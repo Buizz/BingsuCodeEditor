@@ -1,0 +1,86 @@
+﻿<UserControl x:Class="BingsuCodeEditor.CodeTextEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BingsuCodeEditor"
+             xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Background="{DynamicResource MaterialDesignPaper}"
+             TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <DockPanel>
+            <UniformGrid x:Name="StatusBar" Rows="1" DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignToolBarBackground}">
+                <StackPanel Orientation="Horizontal"  Height="28" >
+                    <ComboBox x:Name="CBFontSize" Width="42" materialDesign:TextFieldAssist.SuffixText=" P" Padding="0" Margin="5,0" SelectionChanged="CBFontSize_SelectionChanged">
+                    </ComboBox>
+                    <StackPanel Orientation="Horizontal" MinWidth="40" VerticalAlignment="Center">
+                        <TextBlock Text="줄:" x:Name="TBLineText"/>
+                        <TextBlock Text="1" x:Name="TBLineValue"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" MinWidth="40" VerticalAlignment="Center">
+                        <TextBlock Text="열:" x:Name="TBColumnText"/>
+                        <TextBlock Text="1" x:Name="TBColumnValue"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal"  Height="28" HorizontalAlignment="Right" >
+                    <TextBlock Text="Ctrl" x:Name="TBCtrlValue" VerticalAlignment="Center" Margin="5,0" Visibility="Collapsed"/>
+                    <TextBlock Text="Alt" x:Name="TBAltValue" VerticalAlignment="Center" Margin="5,0" Visibility="Collapsed"/>
+                    <TextBlock Text="Shift" x:Name="TBShiftValue" VerticalAlignment="Center" Margin="5,0" Visibility="Collapsed"/>
+                </StackPanel>
+            </UniformGrid>
+
+            <Border x:Name="TextSearchBox" Height="40" DockPanel.Dock="Bottom" Visibility="Collapsed" BorderBrush="{DynamicResource PrimaryHueMidBrush}" BorderThickness="1">
+                <materialDesign:ColorZone x:Name="ColorZone">
+                    <DockPanel>
+                        <Button x:Name="SearchCloseBtn" DockPanel.Dock="Right" Margin="4" Click="SearchCloseBtn_Click" Style="{StaticResource MaterialDesignToolButton}" VerticalAlignment="Top" HorizontalAlignment="Right">
+                            <materialDesign:PackIcon Kind="Close"/>
+                        </Button>
+                        <DockPanel>
+                            <UniformGrid Rows="1" DockPanel.Dock="Right">
+                                <Button x:Name="FindBtn"  Margin="4" Click="FindBtn_Click" Content="찾기"/>
+                                <Button x:Name="ReplaceBtn" DockPanel.Dock="Right" Margin="4" Content="바꾸기" Click="ReplaceBtn_Click"/>
+                                <Button x:Name="ReplaceAllBtn" DockPanel.Dock="Right" Margin="4" Content="모두 바꾸기" Click="ReplaceAllBtn_Click"/>
+                            </UniformGrid>
+                            <UniformGrid Rows="1"  >
+                                <TextBox x:Name="FindText" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="5,0"
+                                     TextChanged="FindText_TextChanged" PreviewKeyDown="FindText_PreviewKeyDown"/>
+                                <TextBox x:Name="ReplaceText" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="5,0"
+                                         PreviewKeyDown="ReplaceText_PreviewKeyDown"/>
+                            </UniformGrid>
+                        </DockPanel>
+                    </DockPanel>
+                    
+                </materialDesign:ColorZone>
+            </Border>
+            <Border DockPanel.Dock="Top">
+                <avalonedit:TextEditor x:Name="ToolTip" VerticalScrollBarVisibility="Hidden"
+                                       Background="{DynamicResource MaterialDesignToolBarBackground}" TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+                                       HorizontalScrollBarVisibility="Hidden" IsReadOnly="True" IsHitTestVisible="False" Text="툴팁입니다."/>
+            </Border>
+            
+            <avalonedit:TextEditor x:Name="aTextEditor" PreviewKeyDown="aTextEditor_PreviewKeyDown" PreviewKeyUp="aTextEditor_PreviewKeyUp"
+                                   TextChanged="aTextEditor_TextChanged" PreviewMouseWheel="aTextEditor_PreviewMouseWheel" FontFamily="DotumChe"
+                                   Background="{DynamicResource MaterialDesignPaper}" TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+                                   ShowLineNumbers="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                   
+                                   MouseHover="aTextEditor_MouseHover"
+                                   MouseHoverStopped="aTextEditor_MouseHoverStopped"
+                                   >
+                <avalonedit:TextEditor.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="ApplicationCommands.Copy" />
+                        <MenuItem Command="ApplicationCommands.Cut" />
+                        <MenuItem Command="ApplicationCommands.Paste" />
+                        <Separator/>
+                        <!--<MenuItem x:Name="TExtEditorMenuBtn" Header="{StaticResource TextEditor}" InputGestureText="Ctrl + T" Click="TextEditor_Click"/>
+                        <MenuItem x:Name="GUIEditorBtn" Header="{StaticResource GUIEditorBtn}" InputGestureText="Ctrl + U" Click="GUIEditor_Click"/>-->
+                    </ContextMenu>
+                </avalonedit:TextEditor.ContextMenu>
+            </avalonedit:TextEditor>
+        </DockPanel>
+    </Grid>
+</UserControl>
