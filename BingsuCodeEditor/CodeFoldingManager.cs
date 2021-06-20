@@ -10,7 +10,7 @@ using static BingsuCodeEditor.CodeAnalyzer;
 
 namespace BingsuCodeEditor
 {
-    public class CodeFoldingManager
+    public abstract class CodeFoldingManager
     {
         private FoldingManager foldingManager;
         private TextEditor textEditor;
@@ -22,10 +22,20 @@ namespace BingsuCodeEditor
         }
 
 
+        public IEnumerable<FoldingSection> GetFoldingData()
+        {
+            //저장도되야됨
+            return foldingManager.AllFoldings;
+        }
+
+        public abstract void FodlingExec(List<TOKEN> Tokens, int len, List<NewFolding> Foldings);
+
+
+
         public void FoldingUpdate(List<TOKEN> Tokens, int len)
         {
             List<NewFolding> newFoldings = new List<NewFolding>();
-            newFoldings.Add(new NewFolding(0, len));
+            FodlingExec(Tokens, len, newFoldings);
 
 
             int lencash = len;

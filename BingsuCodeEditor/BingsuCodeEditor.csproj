@@ -45,6 +45,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -60,6 +61,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ResourceManager.cs" />
     <Page Include="CodeTextEditor.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -72,7 +74,7 @@
     <Compile Include="Lua\LuaAnalyzer.cs" />
     <Compile Include="LanguageData.cs" />
     <Compile Include="Lua\LuaFoldingManager.cs" />
-    <Compile Include="MyCompletionData.cs" />
+    <Compile Include="CodeCompletionData.cs" />
     <Compile Include="CodeTextEditor.xaml.cs">
       <DependentUpon>CodeTextEditor.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -106,7 +108,33 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\KeyWord.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\nameSpace.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Setting.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Variable.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Action.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Condiction.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Const.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Func.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Function.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

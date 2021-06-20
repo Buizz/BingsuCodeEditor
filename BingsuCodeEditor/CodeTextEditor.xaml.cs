@@ -39,7 +39,6 @@ namespace BingsuCodeEditor
         private bool LeftShiftDown;
 
         private DispatcherTimer dispatcherTimer;
-        private CodeEditorOptions codeEditorOptions;
         private CodeAnalyzer codeAnalyzer;
         private Thread thread;
         private void DispatcherTimer_Tick(object sender, EventArgs e)
@@ -47,17 +46,29 @@ namespace BingsuCodeEditor
             if (codeAnalyzer != null && (thread == null || !thread.IsAlive))
             {
                 string codeText = aTextEditor.Text;
+                int offset = aTextEditor.CaretOffset;
+
 
                 thread = new Thread(()=>
                 {
                     DateTime dateTime = DateTime.Now;
 
-                    codeAnalyzer.Apply(codeText);
+                    codeAnalyzer.Apply(codeText, offset);
 
 
                     aTextEditor.Dispatcher.Invoke(new Action(() =>
                     {
+                        CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(-1);
+
+
                         ToolTip.Text = DateTime.Now.Subtract(dateTime).ToString();
+
+                        if(token != null)
+                        {
+                            ToolTip.AppendText("\n" + token.Value);
+                        }
+
+
                     }), DispatcherPriority.Normal);
                 });
                 thread.Start();
@@ -66,6 +77,13 @@ namespace BingsuCodeEditor
         #endregion
 
         #region #############옵션#############
+
+        private CodeEditorOptions codeEditorOptions;
+        public struct CodeEditorOptions
+        {
+            //글꼴이나 기타 하이라이팅
+        }
+
         public CodeEditorOptions Options
         {
             get
@@ -79,6 +97,7 @@ namespace BingsuCodeEditor
         }
 
 
+        private CodeType CurrentcodeType;
         public CodeType HighLighting
         {
             get
@@ -101,6 +120,7 @@ namespace BingsuCodeEditor
             set
             {
                 CurrentcodeType = value;
+                ScriptName.Text = value.ToString();
                 SetHighLight(CurrentcodeType);
                 SetAnalayer(CurrentcodeType);
             }
@@ -207,7 +227,6 @@ namespace BingsuCodeEditor
             ToolTip.SyntaxHighlighting = highlightingDefinition;
         }
 
-        private CodeType CurrentcodeType;
        
         public void SetHighLight(CodeType highlight)
         {
@@ -325,7 +344,63 @@ namespace BingsuCodeEditor
         #endregion
 
 
+
+        #region #############자동완성#############
+
+        //private Thread cmpthread;
+
+
+
         CustomCompletionWindow completionWindow;
+        private void completionWindowOpen(string input)
+        {
+            if (codeAnalyzer == null)
+                return;
+
+            if (input.Length != 1)
+                return;
+
+
+
+            // Open code completion after the user has pressed dot:
+            completionWindow = new CustomCompletionWindow(aTextEditor.TextArea);
+
+
+
+            //cmpthread = new Thread(() =>
+            //{
+            //    DateTime dateTime = DateTime.Now;
+
+            //    codeAnalyzer.Apply(codeText);
+
+
+            //    aTextEditor.Dispatcher.Invoke(new Action(() =>
+            //    {
+            //        ToolTip.Text = DateTime.Now.Subtract(dateTime).ToString();
+            //    }), DispatcherPriority.Normal);
+            //});
+            //cmpthread.Start();
+
+
+
+            IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
+
+            codeAnalyzer.GetCompletionList(data);
+
+            //data.Add(new CodeCompletionData("function", CompletionWordType.KeyWord));
+            //data.Add(new CodeCompletionData("for", CompletionWordType.KeyWord));
+            completionWindow.Show();
+            completionWindow.Closed += delegate {
+                completionWindow = null;
+            };
+        }
+
+
+
+        #endregion
+
+
+
         #region #############키 입력#############
         private void TextArea_TextEntering(object sender, TextCompositionEventArgs e)
         {
@@ -352,31 +427,23 @@ namespace BingsuCodeEditor
             //자동완성중이 아니면 마지막에 자동입력 실행
 
 
-            if (e.Text == ".")
-            {
-                // Open code completion after the user has pressed dot:
-                completionWindow = new CustomCompletionWindow(aTextEditor.TextArea);
-
-                IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
-                data.Add(new MyCompletionData("Item1"));
-                data.Add(new MyCompletionData("Item2"));
-                data.Add(new MyCompletionData("Item3"));
-                completionWindow.Show();
-                completionWindow.Closed += delegate {
-                    completionWindow = null;
-                };
-            }
         }
 
         private void aTextEditor_TextChanged(object sender, EventArgs e)
         {
 
         }
-        #endregion
+    
 
-        #region #############KeyDown#############
+
         private void aTextEditor_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (completionWindow == null)
+            {
+                string input = e.Key.ToString();
+                completionWindowOpen(input);
+            }
+
             switch (e.Key)
             {
                 case Key.LeftCtrl:
@@ -542,8 +609,13 @@ namespace BingsuCodeEditor
             toolTip.IsOpen = false;
         }
 
-        
+
 
         #endregion
+
+        private void btnSetting_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

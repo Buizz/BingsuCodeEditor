@@ -30,6 +30,10 @@
                     <TextBlock Text="Ctrl" x:Name="TBCtrlValue" VerticalAlignment="Center" Margin="5,0" Visibility="Collapsed"/>
                     <TextBlock Text="Alt" x:Name="TBAltValue" VerticalAlignment="Center" Margin="5,0" Visibility="Collapsed"/>
                     <TextBlock Text="Shift" x:Name="TBShiftValue" VerticalAlignment="Center" Margin="5,0" Visibility="Collapsed"/>
+                    <TextBlock Text="PlainText" x:Name="ScriptName" VerticalAlignment="Center" Margin="5,0"/>
+                    <Button Style="{StaticResource MaterialDesignToolButton}" Name="btnSetting" Width="28" Height="28" Padding="2 0 2 0" materialDesign:RippleAssist.IsCentered="True" Click="btnSetting_Click">
+                        <materialDesign:PackIcon Kind="Settings" />
+                    </Button>
                 </StackPanel>
             </UniformGrid>
 
