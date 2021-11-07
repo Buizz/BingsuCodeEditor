@@ -16,8 +16,26 @@ namespace BingsuCodeEditor.Lua
 
             codeFoldingManager = new LuaFoldingManager(textEditor);
         }
+        public override void AutoInsert(string text)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool AutoRemove()
+        {
+            throw new NotImplementedException();
+        }
+        public override TOKEN TokenBlockAnalyzer(string text, int index, out int outindex)
+        {
+            throw new NotImplementedException();
+        }
 
         public override void GetCompletionList(IList<ICompletionData> data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void TokenAnalyzer()
         {
             throw new NotImplementedException();
         }

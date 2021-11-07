@@ -1,5 +1,7 @@
 ﻿using BingsuCodeEditor.EpScript;
+using BingsuCodeEditor.LineColorDrawer;
 using BingsuCodeEditor.Lua;
+using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Editing;
@@ -37,10 +39,14 @@ namespace BingsuCodeEditor
         #region #############프라이빗#############
         private bool LeftCtrlDown;
         private bool LeftShiftDown;
+        private bool LeftAltDown;
 
         private DispatcherTimer dispatcherTimer;
         private CodeAnalyzer codeAnalyzer;
         private Thread thread;
+
+
+        private DateTime markSameWordTimer;
         private void DispatcherTimer_Tick(object sender, EventArgs e)
         {
             if (codeAnalyzer != null && (thread == null || !thread.IsAlive))
@@ -58,17 +64,55 @@ namespace BingsuCodeEditor
 
                     aTextEditor.Dispatcher.Invoke(new Action(() =>
                     {
-                        CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(-1);
-
-
-                        ToolTip.Text = DateTime.Now.Subtract(dateTime).ToString();
-
-                        if(token != null)
+                        TimeSpan interval = DateTime.Now.Subtract(dateTime);
+                        if (dateTime > markSameWordTimer)
                         {
-                            ToolTip.AppendText("\n" + token.Value);
+                            highLightSelectItem();
+                        }
+                        dispatcherTimer.Interval = TimeSpan.FromMilliseconds(interval.TotalMilliseconds * 2);
+
+
+                        //테스트 트리거
+
+                        ToolTip.Text = "";
+                        //CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(-1);
+                        //ToolTip.AppendText(codeAnalyzer.GetTokenCount() + ":" + "Caret:" + aTextEditor.CaretOffset.ToString());
+                        //if (token != null)
+                        //{
+                        //    ToolTip.AppendText("  " + token.StartOffset + ", " + token.EndOffset);
+                        //    ToolTip.AppendText(", " + token.Value);
+                        //}
+                        CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
+                        if(tk != null)
+                        {
+                            ToolTip.AppendText("TokenIndex : " + tk.Value.Replace("\r\n", "") + "\n");
+                        }
+                        else
+                        {
+                            ToolTip.AppendText("TokenIndex : null\n");
                         }
 
+                        
+                        //for (int i = -1; i <= 1; i++)
+                        //{
+                        //    ToolTip.AppendText(i + " : ");
+                        //    CodeAnalyzer.TOKEN ftk = codeAnalyzer.GetToken(i);
+                        //    if(ftk == null)
+                        //    {
+                        //        ToolTip.AppendText("null");
+                        //    }
+                        //    else
+                        //    {
+                        //        ToolTip.AppendText(ftk.Value);
+                        //    }
+                        //    ToolTip.AppendText("\n");
+                        //}
 
+                        
+
+
+
+                        ToolTip.AppendText("  " + interval.ToString());
                     }), DispatcherPriority.Normal);
                 });
                 thread.Start();
@@ -268,6 +312,24 @@ namespace BingsuCodeEditor
             ToolTip.SyntaxHighlighting = highlightingDefinition;
         }
 
+        public void ResetAdditionalstring()
+        {
+            if(codeAnalyzer != null)
+            {
+                codeAnalyzer.ResetAdditionalstring();
+            }
+        }
+        public void AddAdditionalstring(string key, string value)
+        {
+            if (codeAnalyzer != null)
+            {
+                codeAnalyzer.AddAdditionalstring(key, value);
+            }
+        }
+
+
+
+
         #endregion
 
         #region #############초기화#############
@@ -275,7 +337,12 @@ namespace BingsuCodeEditor
         public LanguageData Lan = new LanguageData();
         private void InitCtrl()
         {
+            markSnippetWord = new MarkSnippetWord(aTextEditor);
+
+
             aTextEditor.Options.ConvertTabsToSpaces = true;
+            aTextEditor.TextArea.SelectionCornerRadius = 0.1;
+            aTextEditor.Options.HighlightCurrentLine = true;
 
             searchPanel = SearchPanel.Install(aTextEditor);
             CBFontSize.Items.Clear();
@@ -290,11 +357,8 @@ namespace BingsuCodeEditor
 
 
 
-            
-
-
             dispatcherTimer = new DispatcherTimer();
-            dispatcherTimer.Interval = TimeSpan.FromMilliseconds(500);
+            dispatcherTimer.Interval = TimeSpan.FromMilliseconds(100);
 
             dispatcherTimer.Tick += DispatcherTimer_Tick;
             dispatcherTimer.Start();
@@ -344,6 +408,138 @@ namespace BingsuCodeEditor
         #endregion
 
 
+        #region #############코드스니핏#############
+
+        private bool IsSnippetStart;
+
+
+
+        private MarkSnippetWord markSnippetWord;
+        private bool TabAutoSnippetStart()
+        {
+            if (IsSnippetStart)
+            {
+                SnippetEnd(false);
+            }
+
+            if (IsSingleSelected())
+            {
+                CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
+                if(tk == null)
+                {
+                    return false;
+                }
+                if (codeAnalyzer.Template.ContainsKey(tk.Value))
+                {
+                    string temp = codeAnalyzer.Template[tk.Value];
+
+                    string tabonce = gettabspace(true);
+                    string tab = gettabspace(false);
+
+                    temp = temp.Replace("[tab]", tab);
+                    temp = temp.Replace("[tabonce]", tabonce);
+
+
+                    int line = aTextEditor.Document.GetLineByOffset(aTextEditor.CaretOffset).LineNumber;
+
+                    temp = markSnippetWord.Start(temp, line);
+
+
+
+                    aTextEditor.Document.Insert(aTextEditor.CaretOffset, temp);
+                    
+
+                    aTextEditor.TextArea.TextView.LineTransformers.Add(markSnippetWord);
+
+                    SnippetCommand(true);
+
+
+                    IsSnippetStart = true;
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void SnippetEnd(bool IsContent)
+        {
+            foreach (var markSnippet in aTextEditor.TextArea.TextView.LineTransformers.OfType<MarkSnippetWord>().ToList())
+            {
+                aTextEditor.TextArea.TextView.LineTransformers.Remove(markSnippet);
+            }
+            if (IsContent)
+            {
+                markSnippetWord.GotoContent();
+            }
+            IsSnippetStart = false;
+        }
+
+
+        private bool SnippetDraw(Key syskey, Key key)
+        {
+            if (!IsSnippetStart)
+            {
+                return false;
+            }
+
+            bool IsInternal = markSnippetWord.CheckSnippetInternal();
+
+            //텝, 엔터가 편집중에 있으면 엔터 누르면 컨텐츠로 아니면 그냥 엔터 실행
+
+
+            switch (key)
+            {
+                case Key.Tab:
+                    if (IsInternal)
+                    {
+                        SnippetCommand();
+                        return true;
+                    }
+                    break;
+                case Key.Enter:
+                    if (IsInternal)
+                    {
+                        SnippetEnd(true);
+                        return true;
+                    }
+
+
+                    SnippetEnd(false);
+                    return false;
+                case Key.Escape:
+                    SnippetEnd(false);
+                    return true;
+                default:
+                    if (markSnippetWord.PosChange())
+                    {
+                        SnippetEnd(false);
+                    }
+                    break;
+            }
+
+
+
+
+            return false;
+        }
+
+        private void SnippetCommand(bool IsFirst = false)
+        {
+            if (IsFirst)
+            {
+                markSnippetWord.SelectFirstItem();
+            }
+            else
+            {
+                markSnippetWord.NextItem();
+            }
+        }
+
+
+        #endregion
+
+
 
         #region #############자동완성#############
 
@@ -354,15 +550,58 @@ namespace BingsuCodeEditor
         CustomCompletionWindow completionWindow;
         private void completionWindowOpen(string input)
         {
+            //선택이 다중일 경우 사용하지 않음
+            //엔터링에서 분석한 정보를 토대로, 자동완성창을 열거나 자동완성 목록을 생성
+            //문자가 앞에 있을 경우 자동완성 사용안함
+            //주석 등의 범위에 있을 경우 자동완성 사용안함. 이거는 코드 아날라이저가 알려주기로함
+            //자동완성중이 아니면 마지막에 자동입력 실행
+
+
+
+
             if (codeAnalyzer == null)
                 return;
-
             if (input.Length != 1)
                 return;
 
 
+            CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(0);
 
-            // Open code completion after the user has pressed dot:
+
+            //자동완성 비활성(주석)
+            if(token != null)
+            {
+                if (token.Type == CodeAnalyzer.TOKEN_TYPE.Comment || token.Type == CodeAnalyzer.TOKEN_TYPE.LineComment
+                    || token.Type == CodeAnalyzer.TOKEN_TYPE.String || token.Type == CodeAnalyzer.TOKEN_TYPE.Special)
+                {
+                    if (completionWindow != null)
+                    {
+                        completionWindow.Close();
+                    }
+                    return;
+                }
+            }
+            //자동완성 비활성(문장 작석 중)
+            int caret = aTextEditor.CaretOffset - 1;
+            string text = aTextEditor.Text;
+            if(text.Length > caret && caret >= 0)
+            {
+                char current = text[caret];
+                if (char.IsLetterOrDigit(current) || current == '_')
+                {
+                    return;
+                }
+            }
+     
+
+
+            if (completionWindow != null)
+            {
+                return;
+            }
+
+
+            //현재 위치 확인
             completionWindow = new CustomCompletionWindow(aTextEditor.TextArea);
 
 
@@ -389,7 +628,7 @@ namespace BingsuCodeEditor
 
             //data.Add(new CodeCompletionData("function", CompletionWordType.KeyWord));
             //data.Add(new CodeCompletionData("for", CompletionWordType.KeyWord));
-            completionWindow.Show();
+            completionWindow.Open();
             completionWindow.Closed += delegate {
                 completionWindow = null;
             };
@@ -404,7 +643,7 @@ namespace BingsuCodeEditor
         #region #############키 입력#############
         private void TextArea_TextEntering(object sender, TextCompositionEventArgs e)
         {
-            //캐럿 분석을 실행
+            //TODO: 캐럿 분석을 실행
             //스페이스 등을 입력시 자동완성 입력 끝내기.
 
             if (e.Text.Length > 0 && completionWindow != null)
@@ -422,29 +661,283 @@ namespace BingsuCodeEditor
 
         private void TextArea_TextEntered(object sender, TextCompositionEventArgs e)
         {
-            //선택이 다중일 경우 사용하지 않음
-            //엔터링에서 분석한 정보를 토대로, 자동완성창을 열거나 자동완성 목록을 생성
-            //자동완성중이 아니면 마지막에 자동입력 실행
+            //3
+            if(aTextEditor.SelectionLength == 0)
+            {
+                CodeAnalyzer.TOKEN ctoken = codeAnalyzer.GetToken(0);
+                switch (e.Text)
+                {
+                    case "{":
+                        if (codeAnalyzer.IsLineEnd || ctoken.Value == "}")
+                        {
+                            aTextEditor.SelectedText = "}";
+                            aTextEditor.SelectionLength = 0;
+                        }
+                        break;
+                    case "[":
+                        if (codeAnalyzer.IsLineEnd || ctoken.Value == "]")
+                        {
+                            aTextEditor.SelectedText = "]";
+                            aTextEditor.SelectionLength = 0;
+                        }
+                        break;
+                    case "(":
+                        if (codeAnalyzer.IsLineEnd || ctoken.Value == ")")
+                        {
+                            aTextEditor.SelectedText = ")";
+                            aTextEditor.SelectionLength = 0;
+                        }
+                        break;
+                    case "}":
+                    case "]":
+                    case ")":
+                        if (ctoken != null && !codeAnalyzer.IsLineEnd && ctoken.Value == e.Text)
+                        {
+                            aTextEditor.SelectionLength = 1;
+                            aTextEditor.SelectedText = "";
+                            aTextEditor.SelectionLength = 0;
+                        }
+                        break;
+                    case "\"":
+                    case "\'":
+                        if (ctoken == null && codeAnalyzer.IsLineEnd)
+                        {
+                            aTextEditor.SelectedText = e.Text;
+                            aTextEditor.SelectionLength = 0;
+                        }
+                        else if (ctoken != null && !codeAnalyzer.IsLineEnd
+                            && ctoken.Type == CodeAnalyzer.TOKEN_TYPE.String
+                            && codeAnalyzer.LineString() == e.Text)
+                        {
+                            aTextEditor.SelectionLength = 1;
+                            aTextEditor.SelectedText = "";
+                            aTextEditor.SelectionLength = 0;
+                        }
+                        break;
 
 
+                }
+            }
+ 
+
+
+            codeAnalyzer.AutoInsert(e.Text);
         }
 
         private void aTextEditor_TextChanged(object sender, EventArgs e)
         {
+            //2
+
+            //타이핑 했을 경우 색칠을 늦춘다.
+            markSameWordTimer = DateTime.Now.AddMilliseconds(1000);
+            foreach (var markSameWord in aTextEditor.TextArea.TextView.LineTransformers.OfType<MarkSameWord>().ToList())
+            {
+                aTextEditor.TextArea.TextView.LineTransformers.Remove(markSameWord);
+            }
+        }
+
+
+        private bool IsSingleSelected()
+        {
+            if (!aTextEditor.TextArea.Selection.IsMultiline && aTextEditor.SelectionLength == 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
+        private string GetLineText(DocumentLine line)
+        {
+            int len = line.Length;
+            int lineoffset = line.Offset;
+
+            return aTextEditor.Document.GetText(lineoffset, len);
+        }
+
+        private void LineChange(bool IsUp)
+        {
+            int ulen;
+            int ulineoffset;
+            string ulinestr;
+
+            int dlen;
+            int dlineoffset;
+            string dlinestr;
+
+
+            int sLength = aTextEditor.SelectionLength;
+            int sStart = aTextEditor.SelectionStart;
+
+
+            if (aTextEditor.TextArea.Selection.IsMultiline && sLength == 0)
+            {
+                return;
+            }
+
+            if (sLength == 0)
+            {
+                //단일 줄
+                int uCaret = aTextEditor.SelectionStart;
+                int dCaret = uCaret + aTextEditor.SelectionLength;
+
+                var cline = aTextEditor.Document.GetLineByOffset(uCaret);
+
+                int totallen = cline.Length;
+                int startoffset = cline.Offset;
+
+                if (IsUp)
+                {
+                    dlineoffset = startoffset;
+                    dlen = totallen;
+
+                    var tline = cline.PreviousLine; //upline
+                    if(tline == null)
+                    {
+                        return;
+                    }
+                    ulineoffset = tline.Offset;
+                    ulen = tline.Length;
+
+                    sStart -= totallen + 2;
+                }
+                else
+                {
+                    ulineoffset = startoffset;
+                    ulen = totallen;
+
+                    var tline = cline.NextLine; //downline
+                    if (tline == null)
+                    {
+                        return;
+                    }
+                    dlineoffset = tline.Offset;
+                    dlen = tline.Length;
+
+                    sStart += totallen + 2;
+                }
+            }
+            else
+            {
+                //다중 줄
+                int uCaret = aTextEditor.SelectionStart;
+                int dCaret = uCaret + aTextEditor.SelectionLength;
+
+
+                var uline = aTextEditor.Document.GetLineByOffset(uCaret);
+                var dline = aTextEditor.Document.GetLineByOffset(dCaret);
+
+                int unumber = uline.LineNumber;
+                int dnumber = dline.LineNumber;
+
+
+
+                int totallen = dline.Offset - uline.Offset + dline.Length;
+                //int totallen = uline.Length + dline.Length + (dnumber - unumber + 1) * 2;
+                int startoffset = uline.Offset;
+
+                if (IsUp)
+                {
+                    dlineoffset = startoffset;
+                    dlen = totallen;
+
+                    var tline = uline.PreviousLine; //upline
+                    if (tline == null)
+                    {
+                        return;
+                    }
+                    ulineoffset = tline.Offset;
+                    ulen = tline.Length;
+
+                    sStart -= ulen + 2;
+                }
+                else
+                {
+                    ulineoffset = startoffset;
+                    ulen = totallen;
+
+                    var tline = dline.NextLine; //downline
+                    if (tline == null)
+                    {
+                        return;
+                    }
+                    dlineoffset = tline.Offset;
+                    dlen = tline.Length;
+
+                    sStart += dlen + 2;
+                }
+            }
+
+            dlinestr = aTextEditor.Document.GetText(dlineoffset, dlen);
+            ulinestr = aTextEditor.Document.GetText(ulineoffset, ulen);
+
+
+            aTextEditor.Document.Replace(ulineoffset, ulen + dlen + 2, dlinestr + "\r\n" + ulinestr);
+
+
+            aTextEditor.SelectionStart = sStart;
+            aTextEditor.SelectionLength = sLength;
+
+
+
+            //aTextEditor.Document.Replace(ulineoffset, ulen + dlen + 2, "");
+
+
+
+            //var currentLine = aTextEditor.Document.GetLineByOffset(aTextEditor.CaretOffset);
+            //var otherLine = currentLine.PreviousLine;
+            //var currentLine = aTextEditor.Document.GetLineByOffset(aTextEditor.CaretOffset);
+            //var otherLine = currentLine.NextLine;
+
+
+            //if(upline == null || downline == null)
+            //{
+            //    return;
+            //}
+
+
+
+
+
+
+            //int ulen = upline.Length;
+            //int ulineoffset = upline.Offset;
+            //int ulinenumber = upline.LineNumber;
+
+            //string ulinestr = aTextEditor.Document.GetText(ulineoffset, ulen);
+
+
+
+            //int dlen = downline.Length;
+            //int dlineoffset = downline.Offset;
+            //int dlinenumber = downline.LineNumber;
+
+            //string dlinestr = aTextEditor.Document.GetText(dlineoffset, dlen);
+
+
+            //aTextEditor.Document.Replace(ulineoffset, ulen + dlen + 2, dlinestr + "\r\n" + ulinestr);
+
 
         }
-    
 
 
         private void aTextEditor_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (completionWindow == null)
+            //1
+
+            string input = e.Key.ToString();
+            if (!LeftCtrlDown && !LeftShiftDown)
             {
-                string input = e.Key.ToString();
                 completionWindowOpen(input);
             }
-
-            switch (e.Key)
+            if (SnippetDraw(e.SystemKey, e.Key))
+            {
+                e.Handled = true;
+            }
+            switch (e.SystemKey)
             {
                 case Key.LeftCtrl:
                     TBCtrlValue.Visibility = Visibility.Visible;
@@ -453,6 +946,118 @@ namespace BingsuCodeEditor
                 case Key.LeftShift:
                     TBShiftValue.Visibility = Visibility.Visible;
                     LeftShiftDown = true;
+                    break;
+                case Key.LeftAlt:
+                    TBAltValue.Visibility = Visibility.Visible;
+                    LeftAltDown = true;
+                    e.Handled = true;
+                    break;
+                case Key.Up:
+                    if (LeftAltDown && !LeftShiftDown)
+                    {
+                        LineChange(true);
+                    }
+                    break;
+                case Key.Down:
+                    if (LeftAltDown && !LeftShiftDown)
+                    {
+                        LineChange(false);
+                    }
+                    break;
+            }
+
+
+            switch (e.Key)
+            {
+                case Key.Tab:
+                case Key.Up:
+                case Key.Down:
+                case Key.Enter:
+                    if (completionWindow != null)
+                    {
+                        if (completionWindow.CompletionList.ListBox.Items.Count == 0)
+                        {
+                            completionWindow.Close();
+                        }
+                    }
+                    break;
+            }
+
+    
+
+
+            switch (e.Key)
+            {
+                case Key.Back:
+                    {
+                        if (codeAnalyzer.AutoDefaultRemove())
+                        {
+                            e.Handled = true;
+                            break;
+                        }
+
+
+                        if (codeAnalyzer.AutoRemove())
+                        {
+                            e.Handled = true;
+                            break;
+                        }
+
+
+                        var currentLine = aTextEditor.Document.GetLineByOffset(aTextEditor.CaretOffset);
+                        int len = currentLine.Length;
+                        if (len % 4 == 0 && len != 0)
+                        {
+                            //4의 배수일 경우
+                            if (aTextEditor.SelectionLength == 0 && aTextEditor.SelectionStart >= 4)
+                            {
+                                int lineoffset = currentLine.Offset;
+                                //라인의 끝일 경우
+                                if (aTextEditor.CaretOffset == lineoffset + len)
+                                {
+                                    string line = aTextEditor.Document.GetText(lineoffset, len);
+                                    if (line.Replace(" ", "") == "")
+                                    {
+                                        e.Handled = true;
+                                        //모든 문자열이 스페이스
+                                        aTextEditor.SelectionStart -= 4;
+                                        aTextEditor.SelectionLength = 4;
+                                        aTextEditor.SelectedText = "";
+                                    }
+                                }
+                            }
+                        }
+                    }       
+                    break;
+                case Key.OemQuotes:
+                    //""로 감싸기 등
+                    {
+                        int len = aTextEditor.SelectionLength;
+
+                        if(len != 0)
+                        {
+                            e.Handled = true;
+                            aTextEditor.SelectionLength = 0;
+                            aTextEditor.SelectedText = "\"";
+                            aTextEditor.SelectionLength = 0;
+                            aTextEditor.SelectionStart += len + 1;
+                            aTextEditor.SelectedText = "\"";
+                            aTextEditor.SelectionStart -= len;
+                            aTextEditor.SelectionLength = len;
+                        }
+                    }
+                    break;
+                case Key.LeftCtrl:
+                    TBCtrlValue.Visibility = Visibility.Visible;
+                    LeftCtrlDown = true;
+                    break;
+                case Key.LeftShift:
+                    TBShiftValue.Visibility = Visibility.Visible;
+                    LeftShiftDown = true;
+                    break;
+                case Key.LeftAlt:
+                    TBAltValue.Visibility = Visibility.Visible;
+                    LeftAltDown = true;
                     break;
                 case Key.F:
                     if (LeftCtrlDown)
@@ -464,12 +1069,132 @@ namespace BingsuCodeEditor
                     break;
                 case Key.Escape:
                     if (IsSearchPanelOpen)
+                    {
                         SearchPanelClose();
+                    }                        
+                    break;
+                case Key.Tab:
+                    if (TabAutoSnippetStart())
+                    {
+                        e.Handled = true;
+                    }                 
+                    break;
+                case Key.Enter:
+                    {
+                        CodeAnalyzer.TOKEN ftk = codeAnalyzer.GetToken(-1);
+                        CodeAnalyzer.TOKEN ttk = codeAnalyzer.GetToken(0);
+
+
+
+
+                        int spacecount = 0;
+                        string tabstr = gettabspace(false);
+
+
+                        int intendsize = aTextEditor.Options.IndentationSize;
+
+                        if (spacecount % intendsize == 0)
+                        {
+                            string tabonce = gettabspace(true);
+
+
+                            if (ftk != null)
+                            {
+                                if (ftk.Value == "{")
+                                {
+                                    if (codeAnalyzer.LineString() != "")
+                                    {
+                                        e.Handled = true;
+                                        aTextEditor.SelectionLength = 0;
+                                        aTextEditor.SelectedText = "\n" + tabstr + tabonce + "\n" + tabstr;
+                                        aTextEditor.SelectionLength = 0;
+                                        aTextEditor.SelectionStart += 5 + spacecount;
+                                    }
+                                }
+                            }
+
+                            if (ttk != null)
+                            {
+                                if (ttk.Value == "{")
+                                {
+                                    if (codeAnalyzer.LineString() == "")
+                                    {
+                                        e.Handled = true;
+                                        aTextEditor.SelectionLength = 0;
+                                        aTextEditor.SelectedText = "\n" + tabstr + tabonce + "\n" + tabstr;
+                                        aTextEditor.SelectionLength = 0;
+                                        aTextEditor.SelectionStart += 5 + spacecount;
+                                    }
+                                }
+                            }
+                        }
+                    }
                     break;
             }
         }
+
+        private string gettabspace(bool IsOnce)
+        {
+            int intendsize = aTextEditor.Options.IndentationSize;
+            if (IsOnce)
+            {
+                string tabonce = "";
+                for (int i = 0; i < intendsize; i++)
+                {
+                    tabonce += " ";
+                }
+                return tabonce;
+            }
+            else
+            {
+                var currentLine = aTextEditor.Document.GetLineByOffset(aTextEditor.CaretOffset);
+                int len = currentLine.Length;
+                int lineoffset = currentLine.Offset;
+                string line = aTextEditor.Document.GetText(lineoffset, len);
+
+                string tabstr = "";
+                if (len != 0)
+                {
+                    for (int i = 0; i < line.Length; i++)
+                    {
+                        if (line[i] == ' ')
+                        {
+                            tabstr += " ";
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                return tabstr;
+            }
+        }
+
+
+
+
         private void aTextEditor_PreviewKeyUp(object sender, KeyEventArgs e)
         {
+
+            switch (e.SystemKey)
+            {
+                case Key.LeftCtrl:
+                    TBCtrlValue.Visibility = Visibility.Collapsed;
+                    LeftCtrlDown = false;
+                    break;
+                case Key.LeftShift:
+                    TBShiftValue.Visibility = Visibility.Collapsed;
+                    LeftShiftDown = false;
+                    break;
+                case Key.LeftAlt:
+                    TBAltValue.Visibility = Visibility.Collapsed;
+                    LeftAltDown = false;
+                    break;
+            }
+
+
             switch (e.Key)
             {
                 case Key.LeftCtrl:
@@ -479,6 +1204,10 @@ namespace BingsuCodeEditor
                 case Key.LeftShift:
                     TBShiftValue.Visibility = Visibility.Collapsed;
                     LeftShiftDown = false;
+                    break;
+                case Key.LeftAlt:
+                    TBAltValue.Visibility = Visibility.Collapsed;
+                    LeftAltDown = false;
                     break;
             }
         }
@@ -591,15 +1320,68 @@ namespace BingsuCodeEditor
         #region #############문단분석#############
         ToolTip toolTip = new ToolTip();
 
+
+        private string lastCurrentToeknValue;
+        private void highLightSelectItem()
+        {
+
+            CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(0);
+
+            if (token != null && token.Type == CodeAnalyzer.TOKEN_TYPE.Identifier)
+            {
+                if (lastCurrentToeknValue != token.Value)
+                {
+                    lastCurrentToeknValue = token.Value;
+                    foreach (var markSameWord in aTextEditor.TextArea.TextView.LineTransformers.OfType<MarkSameWord>().ToList())
+                    {
+                        aTextEditor.TextArea.TextView.LineTransformers.Remove(markSameWord);
+                    }
+
+                    aTextEditor.TextArea.TextView.LineTransformers.Add(new MarkSameWord(token.Value));
+                }
+            }
+            else
+            {
+                lastCurrentToeknValue = "";
+                foreach (var markSameWord in aTextEditor.TextArea.TextView.LineTransformers.OfType<MarkSameWord>().ToList())
+                {
+                    aTextEditor.TextArea.TextView.LineTransformers.Remove(markSameWord);
+                }
+            }
+        }
+
+
         private void aTextEditor_MouseHover(object sender, MouseEventArgs e)
         {
             var pos = aTextEditor.GetPositionFromPoint(e.GetPosition(aTextEditor));
             if (pos != null)
             {
-                toolTip.Placement = System.Windows.Controls.Primitives.PlacementMode.Mouse;
+                TextViewPosition cpos = (TextViewPosition)pos;
+
+
                 //toolTip.PlacementTarget = this; // required for property inheritance
-                toolTip.Content = pos.ToString();
-                toolTip.IsOpen = true;
+
+                int line = cpos.Line - 1;
+                int col = cpos.Column - 1;
+
+                DocumentLine dline = aTextEditor.Document.Lines[line];
+                if (dline.Length == col)
+                {
+                    return;
+                }
+                
+
+                int offset = dline.Offset + col;
+
+                CodeAnalyzer.TOKEN tk = codeAnalyzer.SearchToken(offset, true);
+                if(tk != null)
+                {
+                    toolTip.Placement = System.Windows.Controls.Primitives.PlacementMode.Mouse;
+                    toolTip.Content = tk.Value;
+                    toolTip.IsOpen = true;
+                }
+                //TODO:호버분석 마무리
+             
                 e.Handled = true;
             }
         }

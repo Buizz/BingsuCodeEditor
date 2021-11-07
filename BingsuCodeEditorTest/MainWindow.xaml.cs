@@ -24,6 +24,8 @@ namespace BingsuCodeEditorTest
         public MainWindow()
         {
             InitializeComponent();
+
+            CodeEditor.AddAdditionalstring("default", "function ab");
         }
 
         private void Window_Deactivated(object sender, EventArgs e)

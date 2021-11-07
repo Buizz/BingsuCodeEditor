@@ -27,6 +27,9 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal"  Height="28" HorizontalAlignment="Right" >
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" Foreground="{DynamicResource MaterialDesignBody}" Name="tabSize" Height="28" Padding="2 0 2 0" materialDesign:RippleAssist.IsCentered="True" Click="btnSetting_Click" FontSize="12" Margin="20,0">
+                        TabSize : 4
+                    </Button>
                     <TextBlock Text="Ctrl" x:Name="TBCtrlValue" VerticalAlignment="Center" Margin="5,0" Visibility="Collapsed"/>
                     <TextBlock Text="Alt" x:Name="TBAltValue" VerticalAlignment="Center" Margin="5,0" Visibility="Collapsed"/>
                     <TextBlock Text="Shift" x:Name="TBShiftValue" VerticalAlignment="Center" Margin="5,0" Visibility="Collapsed"/>
