@@ -250,9 +250,11 @@ namespace BingsuCodeEditor.EpScript
         {
             //TODO:토큰 분석 로직
             //tokens에 직접 접근하여 분석한다.
-
+            
             //네임스페이스를 분석 후 토큰을 추가한다
             //GetTokens(Context, -1) 이런식으로 가져와서 분석한다.
+
+            //최근 네임스페이스를 저장하고 해당 파일들이 변형되었는지 체크한다.
 
             TOKEN ctoken = GetToken(-1);
 

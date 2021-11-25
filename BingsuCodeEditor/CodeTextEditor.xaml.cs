@@ -472,6 +472,7 @@ namespace BingsuCodeEditor
             {
                 markSnippetWord.GotoContent();
             }
+            markSnippetWord.Clear();
             IsSnippetStart = false;
         }
 
@@ -511,7 +512,7 @@ namespace BingsuCodeEditor
                     SnippetEnd(false);
                     return true;
                 default:
-                    if (markSnippetWord.PosChange())
+                    if (markSnippetWord.CheckOuter())
                     {
                         SnippetEnd(false);
                     }
@@ -727,6 +728,11 @@ namespace BingsuCodeEditor
         private void aTextEditor_TextChanged(object sender, EventArgs e)
         {
             //2
+            if(IsSnippetStart)
+            {
+                markSnippetWord.PosChange();
+            }
+
 
             //타이핑 했을 경우 색칠을 늦춘다.
             markSameWordTimer = DateTime.Now.AddMilliseconds(1000);
@@ -936,6 +942,7 @@ namespace BingsuCodeEditor
             if (SnippetDraw(e.SystemKey, e.Key))
             {
                 e.Handled = true;
+                return;
             }
             switch (e.SystemKey)
             {
