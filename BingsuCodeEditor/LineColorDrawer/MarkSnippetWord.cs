@@ -1,4 +1,5 @@
 ﻿using ICSharpCode.AvalonEdit;
+using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Rendering;
 using System;
 using System.Collections.Generic;
@@ -41,20 +42,27 @@ namespace BingsuCodeEditor.LineColorDrawer
             snippetTokens.Clear();
         }
 
-
+        string lastLinetext;
         public bool CheckOuter()
         {
+            DocumentLine line = textEditor.Document.GetLineByOffset(startoffset);
+            lastLinetext = textEditor.Document.GetText(line.Offset, line.Length);
             //컨텐츠 위치 밖에서 바꾸면사라짐
-            if(!(startoffset <= textEditor.CaretOffset && textEditor.CaretOffset < endoffset))
-            {
-                return true;
-            }
+            //if(!(startoffset <= textEditor.CaretOffset && textEditor.CaretOffset < endoffset))
+            //{
+            //    return true;
+            //}
 
             return false;
         }
 
         public void PosChange()
         {
+            DocumentLine line = textEditor.Document.GetLineByOffset(startoffset);
+            string linetext = textEditor.Document.GetText(line.Offset, line.Length);
+
+
+
             //여기서 인터널 체크
             int i = GetSnippetIndex();
 
@@ -217,7 +225,7 @@ namespace BingsuCodeEditor.LineColorDrawer
 
         void ApplyChanges(VisualLineElement element)
         {
-            element.TextRunProperties.SetBackgroundBrush(new SolidColorBrush(Color.FromArgb(192, 255, 228, 0)));
+            element.TextRunProperties.SetBackgroundBrush(new SolidColorBrush(Color.FromArgb(128, 255, 200, 200)));
             // This is where you do anything with the line
             //element.TextRunProperties.SetForegroundBrush(Brushes.Red);
         }
