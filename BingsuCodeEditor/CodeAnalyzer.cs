@@ -18,8 +18,16 @@ namespace BingsuCodeEditor
 
             Template = new Dictionary<string, string>();
         }
+        public void SetImportManager(ImportManager importManager)
+        {
+            this.importManager = importManager;
+        }
+
+
+
         private bool IsSpaceCheck;
 
+        public ImportManager importManager;
 
         protected TextEditor textEditor;
         protected CodeFoldingManager codeFoldingManager;
@@ -38,14 +46,12 @@ namespace BingsuCodeEditor
             Special
         }
 
-
-        
-        //Tab으로 자동완성 되는 기능 이걸 토큰에 넣을지 고민중
         public Dictionary<string, string> Template;
 
         public CursorLocation cursorLocation;
         public enum CursorLocation
         {
+            None,
             Keyword,
             FunctionName,
             FunctionArgName,

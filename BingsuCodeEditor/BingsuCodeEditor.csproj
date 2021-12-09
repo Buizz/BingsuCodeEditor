@@ -61,6 +61,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ImportManager.cs" />
     <Compile Include="LineColorDrawer\MarkSameWord.cs" />
     <Compile Include="LineColorDrawer\MarkSnippetWord.cs" />
     <Compile Include="ResourceManager.cs" />

@@ -442,7 +442,7 @@ namespace BingsuCodeEditor
 
                     int line = aTextEditor.Document.GetLineByOffset(aTextEditor.CaretOffset).LineNumber;
 
-                    temp = markSnippetWord.Start(temp, line);
+                    temp = markSnippetWord.Start(tk.Value, temp, line);
 
 
 
@@ -593,7 +593,21 @@ namespace BingsuCodeEditor
                     return;
                 }
             }
-     
+
+            switch (codeAnalyzer.cursorLocation)
+            {
+                case CodeAnalyzer.CursorLocation.None:
+                    break;
+                case CodeAnalyzer.CursorLocation.FunctionArgName:
+                case CodeAnalyzer.CursorLocation.FunctionArgType:
+                case CodeAnalyzer.CursorLocation.FunctionName:
+                case CodeAnalyzer.CursorLocation.ImportFile:
+                case CodeAnalyzer.CursorLocation.ImportNameSpace:
+                case CodeAnalyzer.CursorLocation.Keyword:
+                    break;
+                case CodeAnalyzer.CursorLocation.ObjectName:
+                    return;
+            }
 
 
             if (completionWindow != null)
@@ -730,9 +744,9 @@ namespace BingsuCodeEditor
             //2
             if(IsSnippetStart)
             {
-                markSnippetWord.PosChange();
+                //markSnippetWord.PosChange();
+                markSnippetWord.TypeChangeEnd();
             }
-
 
             //타이핑 했을 경우 색칠을 늦춘다.
             markSameWordTimer = DateTime.Now.AddMilliseconds(1000);
@@ -971,6 +985,15 @@ namespace BingsuCodeEditor
                         LineChange(false);
                     }
                     break;
+            }
+
+
+            if (IsSnippetStart)
+            {
+                if (!markSnippetWord.TypeChangeStart())
+                {
+                    SnippetEnd(false);
+                }
             }
 
 
@@ -1216,6 +1239,11 @@ namespace BingsuCodeEditor
                     TBAltValue.Visibility = Visibility.Collapsed;
                     LeftAltDown = false;
                     break;
+            }
+
+            if (IsSnippetStart)
+            {
+                markSnippetWord.TypeChangeEnd();
             }
         }
         #endregion
