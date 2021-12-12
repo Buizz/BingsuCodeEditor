@@ -64,6 +64,7 @@
     <Compile Include="ImportManager.cs" />
     <Compile Include="LineColorDrawer\MarkSameWord.cs" />
     <Compile Include="LineColorDrawer\MarkSnippetWord.cs" />
+    <Compile Include="PreCompletionData.cs" />
     <Compile Include="ResourceManager.cs" />
     <Page Include="CodeTextEditor.xaml">
       <Generator>MSBuild:Compile</Generator>

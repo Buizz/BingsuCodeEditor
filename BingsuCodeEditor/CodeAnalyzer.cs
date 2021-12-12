@@ -58,6 +58,7 @@ namespace BingsuCodeEditor
             FunctionArgType,
             ImportFile,
             ImportNameSpace,
+            ArgType,
             ObjectName
         }
 
@@ -82,49 +83,9 @@ namespace BingsuCodeEditor
             nameSpace,
             Setting,
             Variable,
+            ArgType,
             Special
         }
-
-
-
-        public List<PreCompletionData> completionDatas = new List<PreCompletionData>();
-        public void ResetCompletionData(CompletionWordType completionWordType)
-        {
-            completionDatas.RemoveAll((t) =>
-            {
-                return t.completionWordType == completionWordType;
-            });
-        }
-        public void AddCompletionData(PreCompletionData preCompletionData)
-        {
-            completionDatas.Add(preCompletionData);
-        }
-
-
-
-        public abstract class PreCompletionData
-        {
-            public CompletionWordType completionWordType;
-
-
-            public PreCompletionData(CompletionWordType completionType, string name)
-            {
-                this.completionWordType = completionType;
-                this.name = name;
-            }
-
-            //키워드 이름
-            protected string name;
-            public abstract string listheader { get; }
-            public abstract string ouputstring { get; }
-            public abstract string desc { get; }
-
-
-
-            //자동 입력을 위한 프리셋
-            public string AutoInsert;
-        }
-
 
 
         public bool IsLineEnd
@@ -167,9 +128,52 @@ namespace BingsuCodeEditor
             }
         }
 
+        /// <summary>
+        /// 분석중인 자동완성 데이터입니다.
+        /// 비동기로 분석합니다.
+        /// </summary>
+        protected List<PreCompletionData> AnalyzercompletionDatas = new List<PreCompletionData>();
+
+        protected List<PreCompletionData> completionDatas = new List<PreCompletionData>();
+        public void ResetCompletionData(CompletionWordType completionWordType)
+        {
+            completionDatas.RemoveAll((t) =>
+            {
+                return t.completionWordType == completionWordType;
+            });
+        }
+        public void AddCompletionData(PreCompletionData preCompletionData)
+        {
+            completionDatas.Add(preCompletionData);
+        }
 
 
-        public abstract void GetCompletionList(IList<ICompletionData> data);
+        
+
+
+        public virtual void GetCompletionList(IList<ICompletionData> data)
+        {
+            switch (cursorLocation)
+            {
+                case CursorLocation.ImportFile:
+                    //파일들이 뜨게 하는 것
+                    if(importManager != null)
+                    {
+                        foreach (var item in importManager.GetFileList())
+                        {
+                            data.Add(new CodeCompletionData(new ImportFileItem(CompletionWordType.nameSpace, item)));
+                        }
+                    }
+                    return;
+            }
+
+            for (int i = 0; i < completionDatas.Count; i++)
+            {
+                data.Add(new CodeCompletionData(completionDatas[i]));
+            }
+        }
+
+
 
         public abstract void TokenAnalyzer();
         public abstract TOKEN TokenBlockAnalyzer(string text, int index, out int outindex);
@@ -228,6 +232,7 @@ namespace BingsuCodeEditor
             }
         }
 
+        private int lasttokenIndex;
         private int currenttokenIndex;
         private int currentoffset;
 
@@ -255,22 +260,37 @@ namespace BingsuCodeEditor
         /// <returns></returns>
         public TOKEN GetToken(int index)
         {
-            if(currenttokenIndex == -1)
+            int cmpindex;
+
+
+
+
+            if (currenttokenIndex == -1)
             {
-                return null;
-            }
-
-            int cmpindex = index;
-
-
-            if (index < 0)
-            {
-                cmpindex = currenttokenIndex + index;
+                if (index == 0)
+                {
+                    //현대 위치가 없는것 이므로 null을 반환
+                    return null;
+                }
+                else
+                {
+                    cmpindex = lasttokenIndex + index;
+                }
             }
             else
             {
                 cmpindex = currenttokenIndex + index;
             }
+
+
+
+
+
+
+
+
+
+
 
             if (cmpindex < 0)
             {
@@ -370,7 +390,10 @@ namespace BingsuCodeEditor
             {
                 return;
             }
-
+            if(lasttokenIndex == -1 && token.StartOffset > caretoffset)
+            {
+                lasttokenIndex = tokenlist.Count() - 1;
+            }
 
             if (token.CheckOffset(caretoffset))
             {
@@ -533,6 +556,7 @@ namespace BingsuCodeEditor
         {
             currentoffset = caretoffset;
             currenttokenIndex = -1;
+            lasttokenIndex = -1;
 
             workComplete = false;
             List<TOKEN> tempList = new List<TOKEN>();
@@ -548,7 +572,10 @@ namespace BingsuCodeEditor
             {
                 currenttokenIndex = Tokens.IndexOf(SearchToken(currentoffset, true));
             }
-
+            if(lasttokenIndex == -1)
+            {
+                lasttokenIndex = Tokens.Count;
+            }
 
             //여기다가 토큰을 분석하자
             TokenAnalyzer();
@@ -564,5 +591,106 @@ namespace BingsuCodeEditor
                 workComplete = true;
             }), DispatcherPriority.Normal);
         }
+
+
+
+
+        #region #############자동완성#############
+
+
+        public class ObjectItem : PreCompletionData
+        {
+            public ObjectItem(CompletionWordType completionType, string name) : base(completionType, name)
+            {
+            }
+
+            //키워드 이름
+            public override string listheader
+            {
+                get
+                {
+                    return name;
+                }
+            }
+            public override string ouputstring
+            {
+                get
+                {
+                    return name;
+                }
+            }
+            public override string desc
+            {
+                get
+                {
+                    return name;
+                }
+            }
+        }
+
+
+        public class ImportFileItem : PreCompletionData
+        {
+            public ImportFileItem(CompletionWordType completionType, string name) : base(completionType, name)
+            {
+            }
+
+            //키워드 이름
+            public override string listheader
+            {
+                get
+                {
+                    return name;
+                }
+            }
+            public override string ouputstring
+            {
+                get
+                {
+                    return name;
+                }
+            }
+            public override string desc
+            {
+                get
+                {
+                    return name;
+                }
+            }
+        }
+
+
+        public class KewWordItem : PreCompletionData
+        {
+            public KewWordItem(CompletionWordType completionType, string name) : base(completionType, name)
+            {
+            }
+
+            //키워드 이름
+            public override string listheader
+            {
+                get
+                {
+                    return name;
+                }
+            }
+            public override string ouputstring
+            {
+                get
+                {
+                    return name;
+                }
+            }
+            public override string desc
+            {
+                get
+                {
+                    return name;
+                }
+            }
+        }
+
+
+        #endregion
     }
 }

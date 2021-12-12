@@ -22,6 +22,13 @@ namespace BingsuCodeEditor
         /// <returns></returns>
         public abstract bool IsFileExist(string filename);
 
+        /// <summary>
+        /// 현재 존재하는 모든 파일들을 가져옵니다.
+        /// </summary>
+        /// <param name="filename">현재 파일의 이름입니다.</param>
+        /// <returns></returns>
+        public abstract List<string> GetFileList(string filename = "");
+
         public abstract string GetDefaultFunctions();
     }
 }

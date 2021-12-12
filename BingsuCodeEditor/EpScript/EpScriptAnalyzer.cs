@@ -22,7 +22,7 @@ namespace BingsuCodeEditor.EpScript
                 AddSubType(item, TOKEN_TYPE.KeyWord);
 
                 //자동완성 초기 입력
-                completionDatas.Add(new KewWord(CompletionWordType.KeyWord, item));
+                completionDatas.Add(new KewWordItem(CompletionWordType.KeyWord, item));
             }
             //[tab]for(var [i] = 0; [i] < [Length] ; [i]++)\n[tab]{\n[tab][tabonce][Content]\n[tab]}
             Template.Add("if", " ([true]) {\n[tab][tabonce][Content]\n[tab]}");
@@ -238,14 +238,19 @@ namespace BingsuCodeEditor.EpScript
 
         public override void GetCompletionList(IList<ICompletionData> data)
         {
-            for (int i = 0; i < completionDatas.Count; i++)
-            {
-                data.Add(new CodeCompletionData(completionDatas[i]));
-            }
+            base.GetCompletionList(data);
+
 
 
             //TODO:분석된 토큰으로 자동완성을 만든다.
         }
+
+
+
+
+
+
+
 
         public override void TokenAnalyzer()
         {
@@ -262,10 +267,85 @@ namespace BingsuCodeEditor.EpScript
 
 
 
+            //Action
+            //Condiction
+            //Function
+            //일반적인 함수들
+
+            //nameSpace
+            //Const
+            //Variable
+            //오브젝트들
+
+            //Setting(Property)
+
+            //ArgType
+            //KeyWord
+            //Special
+
+
+            //함수와 오브젝트의 요소들을 저장해야함.
+
+
+            //토근 분석에 사용되는 요소
+
+
+
             //cursorLocation 현재 위치를 적습니다.
             for (int i = 0; i < Tokens.Count; i++)
             {
+                //함수 안쪽에 있으면 함수
 
+                switch (Tokens[i].Type)
+                {
+                    case TOKEN_TYPE.KeyWord:
+                        switch (Tokens[i].Value)
+                        {
+                            case "var":
+                            //var vname = 값;
+
+                            case "const":
+                            //const vname = 값;
+
+                            case "import":
+                            //import File as t;
+                            //import File;
+
+                            case "function":
+                                //function fname(args){}
+                                ///******/function fname(args){}
+                                /***
+                                 * @Type
+                                 * F
+                                 * @Summary.ko-KR
+                                 * [loc]에 존재하는 [player]의 [unit]을 반환합니다.
+                                 *
+                                 * @param.player.ko-KR
+                                 * 유닛의 소유 플레이어입니다.
+                                 *
+                                 * @param.unit.ko-KR
+                                 * 유닛입니다.
+                                 *
+                                 * @param.loc.ko-KR
+                                 * 로케이션입니다.
+                                ***/
+                                break;
+                        }
+
+
+                        break;
+                    case TOKEN_TYPE.Symbol:
+                        //심불 {} ;
+                        //스코프를 정의,
+                        switch (Tokens[i].Value)
+                        {
+                            case "{":
+                            case "}":
+                                break;
+                        }
+
+                        break;
+                }
             }
 
 
@@ -273,9 +353,9 @@ namespace BingsuCodeEditor.EpScript
 
             CursorLocation cl = CursorLocation.None;
 
-            TOKEN ctoken = GetToken(-1);
-            TOKEN btoken = GetToken(-2);
-            TOKEN bbtoken = GetToken(-3);
+            TOKEN ctoken = GetToken(0);
+            TOKEN btoken = GetToken(-1);
+            TOKEN bbtoken = GetToken(-2);
 
             if (btoken != null)
             {
@@ -285,6 +365,7 @@ namespace BingsuCodeEditor.EpScript
                     {
                         case "var":
                         case "const":
+                        case "as":
                             cl = CursorLocation.ObjectName;
                             break;
                         case "function":
@@ -306,37 +387,5 @@ namespace BingsuCodeEditor.EpScript
 
 
 
-        #region #############자동완성#############
-
-        public class KewWord : PreCompletionData
-        {
-            public KewWord(CompletionWordType completionType, string name) : base(completionType, name)
-            {
-            }
-
-            //키워드 이름
-            public override string listheader
-            {
-                get
-                {
-                    return name;
-                }
-            }
-            public override string ouputstring
-            {
-                get
-                {
-                    return name;
-                }
-            }
-            public override string desc
-            {
-                get
-                {
-                    return name;
-                }
-            }
-        }
-        #endregion
     }
 }

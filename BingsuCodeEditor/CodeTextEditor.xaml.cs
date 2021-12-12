@@ -91,8 +91,9 @@ namespace BingsuCodeEditor
                         {
                             ToolTip.AppendText("TokenIndex : null\n");
                         }
+                        ToolTip.AppendText("cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n");
 
-                        
+
                         //for (int i = -1; i <= 1; i++)
                         //{
                         //    ToolTip.AppendText(i + " : ");
@@ -108,7 +109,7 @@ namespace BingsuCodeEditor
                         //    ToolTip.AppendText("\n");
                         //}
 
-                        
+
 
 
 
@@ -602,6 +603,9 @@ namespace BingsuCodeEditor
                 case CodeAnalyzer.CursorLocation.FunctionArgType:
                 case CodeAnalyzer.CursorLocation.FunctionName:
                 case CodeAnalyzer.CursorLocation.ImportFile:
+
+
+
                 case CodeAnalyzer.CursorLocation.ImportNameSpace:
                 case CodeAnalyzer.CursorLocation.Keyword:
                     break;
