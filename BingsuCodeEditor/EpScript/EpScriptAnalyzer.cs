@@ -1,4 +1,5 @@
-﻿using ICSharpCode.AvalonEdit;
+﻿using BingsuCodeEditor.AutoCompleteToken;
+using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace BingsuCodeEditor.EpScript
 {
-    class EpScriptAnalyzer : CodeAnalyzer
+    partial class EpScriptAnalyzer : CodeAnalyzer
     {
         public EpScriptAnalyzer(TextEditor textEditor) : base(textEditor, false)
         {
@@ -28,7 +29,7 @@ namespace BingsuCodeEditor.EpScript
             Template.Add("if", " ([true]) {\n[tab][tabonce][Content]\n[tab]}");
             Template.Add("for", " (var [i] = [0]; [i] < [Length]; [i]++) {\n[tab][tabonce][Content]\n[tab]}");
 
-
+            tokenAnalyzer = new EpScriptTokenAnalyzer();
             codeFoldingManager = new EpScriptFoldingManager(textEditor);
         }
 
@@ -238,21 +239,24 @@ namespace BingsuCodeEditor.EpScript
 
         public override void GetCompletionList(IList<ICompletionData> data)
         {
-            base.GetCompletionList(data);
-
-
-
             //TODO:분석된 토큰으로 자동완성을 만든다.
+            string scope = maincontainer.currentScope;
+
+            foreach (var item in maincontainer.vars.FindAll(x => scope.Contains(x.scope)))
+            {
+                data.Add(new CodeCompletionData(item.preCompletion));
+            } 
+
+
+
+            base.GetCompletionList(data);
         }
 
 
 
+        //Analyzer오류 분석
 
-
-
-
-
-        public override void TokenAnalyzer()
+        public override void TokenAnalyzer(int caretoffset = int.MaxValue)
         {
             //TODO:토큰 분석 로직
             //tokens에 직접 접근하여 분석한다.
@@ -287,70 +291,7 @@ namespace BingsuCodeEditor.EpScript
             //함수와 오브젝트의 요소들을 저장해야함.
 
 
-            //토근 분석에 사용되는 요소
-
-
-
             //cursorLocation 현재 위치를 적습니다.
-            for (int i = 0; i < Tokens.Count; i++)
-            {
-                //함수 안쪽에 있으면 함수
-
-                switch (Tokens[i].Type)
-                {
-                    case TOKEN_TYPE.KeyWord:
-                        switch (Tokens[i].Value)
-                        {
-                            case "var":
-                            //var vname = 값;
-
-                            case "const":
-                            //const vname = 값;
-
-                            case "import":
-                            //import File as t;
-                            //import File;
-
-                            case "function":
-                                //function fname(args){}
-                                ///******/function fname(args){}
-                                /***
-                                 * @Type
-                                 * F
-                                 * @Summary.ko-KR
-                                 * [loc]에 존재하는 [player]의 [unit]을 반환합니다.
-                                 *
-                                 * @param.player.ko-KR
-                                 * 유닛의 소유 플레이어입니다.
-                                 *
-                                 * @param.unit.ko-KR
-                                 * 유닛입니다.
-                                 *
-                                 * @param.loc.ko-KR
-                                 * 로케이션입니다.
-                                ***/
-                                break;
-                        }
-
-
-                        break;
-                    case TOKEN_TYPE.Symbol:
-                        //심불 {} ;
-                        //스코프를 정의,
-                        switch (Tokens[i].Value)
-                        {
-                            case "{":
-                            case "}":
-                                break;
-                        }
-
-                        break;
-                }
-            }
-
-
-
-
             CursorLocation cl = CursorLocation.None;
 
             TOKEN ctoken = GetToken(0);
@@ -375,14 +316,36 @@ namespace BingsuCodeEditor.EpScript
                             cl = CursorLocation.ImportFile;
                             break;
                     }
-
-
-
-
                 }
             }
-
             cursorLocation = cl;
+
+
+            
+
+
+
+            //토근 분석에 사용되는 요소
+            tokenAnalyzer.Init(Tokens);
+
+            try
+            {
+                maincontainer = tokenAnalyzer.ConatainerAnalyzer(caretoffset);
+            }
+            catch (Exception e)
+            {
+                //tokenAnalyzer.ErrorMessage;
+
+
+                return;
+            }
+            if (tokenAnalyzer.IsError)
+            {
+                //토큰 분석 오류
+            }
+
+
+            //tokenAnalyzer.Complete();
         }
 
 

@@ -71,7 +71,12 @@ namespace BingsuCodeEditor
             get { return preCompletionData.desc; }
         }
 
-        public double Priority => 1;
+
+        public double Priority
+        {
+            get { return preCompletionData.Priority; }
+        }
+
 
         public void Complete(TextArea textArea, ISegment completionSegment,
             EventArgs insertionRequestEventArgs)

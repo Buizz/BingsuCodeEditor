@@ -61,11 +61,16 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutoCompleteToken\Block.cs" />
+    <Compile Include="AutoCompleteToken\Container.cs" />
+    <Compile Include="AutoCompleteToken\Function.cs" />
+    <Compile Include="EpScript\EpScriptTokenAnalyzer.cs" />
     <Compile Include="ImportManager.cs" />
     <Compile Include="LineColorDrawer\MarkSameWord.cs" />
     <Compile Include="LineColorDrawer\MarkSnippetWord.cs" />
     <Compile Include="PreCompletionData.cs" />
     <Compile Include="ResourceManager.cs" />
+    <Compile Include="TokenAnalyzer.cs" />
     <Page Include="CodeTextEditor.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

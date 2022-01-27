@@ -29,6 +29,9 @@ namespace BingsuCodeEditor
 
         public ImportManager importManager;
 
+
+
+        public TokenAnalyzer tokenAnalyzer;
         protected TextEditor textEditor;
         protected CodeFoldingManager codeFoldingManager;
         public enum TOKEN_TYPE
@@ -61,6 +64,25 @@ namespace BingsuCodeEditor
             ArgType,
             ObjectName
         }
+
+
+
+        #region Container관리
+        public AutoCompleteToken.Container maincontainer = new AutoCompleteToken.Container();
+
+        //NameSpace를 가져오는 곳
+        public AutoCompleteToken.Container GetContainer()
+        {
+            //object의 경우 object이름을 넣는다.
+
+            //namespace의 경우 별칭을 넣는다.
+
+
+            return null;
+        }
+
+
+        #endregion
 
 
 
@@ -175,7 +197,7 @@ namespace BingsuCodeEditor
 
 
 
-        public abstract void TokenAnalyzer();
+        public abstract void TokenAnalyzer(int caretoffset = int.MaxValue);
         public abstract TOKEN TokenBlockAnalyzer(string text, int index, out int outindex);
 
 
@@ -578,18 +600,25 @@ namespace BingsuCodeEditor
             }
 
             //여기다가 토큰을 분석하자
-            TokenAnalyzer();
+            TokenAnalyzer(caretoffset);
 
 
             codeFoldingManager.FoldingUpdate(Tokens, text.Length);
 
 
-            textEditor.Dispatcher.Invoke(new Action(() => {
-                Tokens.Clear();
-                Tokens.AddRange(tempList);
+            try
+            {
+                textEditor.Dispatcher.Invoke(new Action(() => {
+                    Tokens.Clear();
+                    Tokens.AddRange(tempList);
 
-                workComplete = true;
-            }), DispatcherPriority.Normal);
+                    workComplete = true;
+
+                }), DispatcherPriority.Normal);
+            }
+            catch (TaskCanceledException)
+            {
+            }
         }
 
 
@@ -602,6 +631,7 @@ namespace BingsuCodeEditor
         {
             public ObjectItem(CompletionWordType completionType, string name) : base(completionType, name)
             {
+                Priority = 2;
             }
 
             //키워드 이름
@@ -633,6 +663,7 @@ namespace BingsuCodeEditor
         {
             public ImportFileItem(CompletionWordType completionType, string name) : base(completionType, name)
             {
+                Priority = 1;
             }
 
             //키워드 이름
@@ -664,6 +695,7 @@ namespace BingsuCodeEditor
         {
             public KewWordItem(CompletionWordType completionType, string name) : base(completionType, name)
             {
+                Priority = 0;
             }
 
             //키워드 이름

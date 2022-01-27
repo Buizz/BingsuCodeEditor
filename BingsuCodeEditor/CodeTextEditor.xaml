@@ -39,7 +39,7 @@
                     </Button>
                 </StackPanel>
             </UniformGrid>
-
+   
             <Border x:Name="TextSearchBox" Height="40" DockPanel.Dock="Bottom" Visibility="Collapsed" BorderBrush="{DynamicResource PrimaryHueMidBrush}" BorderThickness="1">
                 <materialDesign:ColorZone x:Name="ColorZone">
                     <DockPanel>

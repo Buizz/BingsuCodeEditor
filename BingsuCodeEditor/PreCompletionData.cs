@@ -25,6 +25,9 @@ namespace BingsuCodeEditor
         public abstract string desc { get; }
 
 
+        public double Priority;
+
+
 
         //자동 입력을 위한 프리셋
         public string AutoInsert;

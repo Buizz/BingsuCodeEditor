@@ -108,12 +108,16 @@ namespace BingsuCodeEditor
                         //    }
                         //    ToolTip.AppendText("\n");
                         //}
-
-
-
-
-
                         ToolTip.AppendText("  " + interval.ToString());
+
+
+
+                        //ErrorLogList.Items.Clear();
+
+                        //ErrorLogList.Items.Add(codeAnalyzer.tokenAnalyzer.ErrorMessage);
+
+
+
                     }), DispatcherPriority.Normal);
                 });
                 thread.Start();
@@ -1110,6 +1114,10 @@ namespace BingsuCodeEditor
                 case Key.Tab:
                     if (TabAutoSnippetStart())
                     {
+                        if(completionWindow != null)
+                        {
+                            completionWindow.Close();
+                        }
                         e.Handled = true;
                     }                 
                     break;

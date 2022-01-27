@@ -35,7 +35,7 @@ namespace BingsuCodeEditor.Lua
             throw new NotImplementedException();
         }
 
-        public override void TokenAnalyzer()
+        public override void TokenAnalyzer(int caretoffset = int.MaxValue)
         {
             throw new NotImplementedException();
         }

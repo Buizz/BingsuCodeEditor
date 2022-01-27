@@ -81,7 +81,10 @@ namespace BingsuCodeEditor.LineColorDrawer
                 //인터널인 경우
                 //snippetTokens[i].Length += count;
                 int loffset = snippetTokens[i].index - line.Offset + keyword.Length;
-
+                if(loffset < 0)
+                {
+                    return false;
+                }
                 fstr = linetext.Substring(0, loffset);
                 lstr = linetext.Substring(loffset + snippetTokens[i].Length);
                 IsTypeChange = true;
