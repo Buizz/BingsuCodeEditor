@@ -28,6 +28,7 @@ namespace BingsuCodeEditor.EpScript
             //[tab]for(var [i] = 0; [i] < [Length] ; [i]++)\n[tab]{\n[tab][tabonce][Content]\n[tab]}
             Template.Add("if", " ([true]) {\n[tab][tabonce][Content]\n[tab]}");
             Template.Add("for", " (var [i] = [0]; [i] < [Length]; [i]++) {\n[tab][tabonce][Content]\n[tab]}");
+            Template.Add("function", " [FuncName]([Arg]) {\n[tab][tabonce][Content]\n[tab]}");
 
             tokenAnalyzer = new EpScriptTokenAnalyzer();
             codeFoldingManager = new EpScriptFoldingManager(textEditor);
@@ -256,7 +257,7 @@ namespace BingsuCodeEditor.EpScript
 
         //Analyzer오류 분석
 
-        public override void TokenAnalyzer(int caretoffset = int.MaxValue)
+        public override void TokenAnalyze(int caretoffset = int.MaxValue)
         {
             //TODO:토큰 분석 로직
             //tokens에 직접 접근하여 분석한다.

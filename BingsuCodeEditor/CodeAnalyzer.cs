@@ -197,7 +197,7 @@ namespace BingsuCodeEditor
 
 
 
-        public abstract void TokenAnalyzer(int caretoffset = int.MaxValue);
+        public abstract void TokenAnalyze(int caretoffset = int.MaxValue);
         public abstract TOKEN TokenBlockAnalyzer(string text, int index, out int outindex);
 
 
@@ -600,12 +600,12 @@ namespace BingsuCodeEditor
             }
 
             //여기다가 토큰을 분석하자
-            TokenAnalyzer(caretoffset);
+            TokenAnalyze(caretoffset);
 
 
             codeFoldingManager.FoldingUpdate(Tokens, text.Length);
 
-
+            //에러판단
             try
             {
                 textEditor.Dispatcher.Invoke(new Action(() => {

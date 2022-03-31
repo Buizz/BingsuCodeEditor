@@ -36,7 +36,7 @@ namespace BingsuCodeEditor
     public partial class CodeTextEditor : UserControl
     {
 
-        #region #############프라이빗#############
+        #region #############프라이빗(코드분석)#############
         private bool LeftCtrlDown;
         private bool LeftShiftDown;
         private bool LeftAltDown;
@@ -59,6 +59,7 @@ namespace BingsuCodeEditor
                 {
                     DateTime dateTime = DateTime.Now;
 
+                    //코드 분석 실행
                     codeAnalyzer.Apply(codeText, offset);
 
 
@@ -70,6 +71,15 @@ namespace BingsuCodeEditor
                             highLightSelectItem();
                         }
                         dispatcherTimer.Interval = TimeSpan.FromMilliseconds(interval.TotalMilliseconds * 2);
+
+
+
+                        //오류 그리기
+                        //DrawRedLine(0, 10);
+                        
+                        //aTextEditor.TextArea.TextView.Redraw();
+
+
 
 
                         //테스트 트리거
@@ -92,6 +102,10 @@ namespace BingsuCodeEditor
                             ToolTip.AppendText("TokenIndex : null\n");
                         }
                         ToolTip.AppendText("cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n");
+                        if (codeAnalyzer.tokenAnalyzer.IsError)
+                        {
+                            ToolTip.AppendText("Error : " + codeAnalyzer.tokenAnalyzer.ErrorMessage + "\n");
+                        }
 
 
                         //for (int i = -1; i <= 1; i++)
@@ -252,11 +266,14 @@ namespace BingsuCodeEditor
             {
                 case CodeType.epScript:
                     codeAnalyzer = new EpScriptAnalyzer(aTextEditor);
+
                     break;
                 case CodeType.Lua:
                     codeAnalyzer = new LuaAnalyzer(aTextEditor);
                     break;
             }
+            errorUnderLine = new ErrorUnderLine(codeAnalyzer);
+            aTextEditor.TextArea.TextView.LineTransformers.Add(errorUnderLine);
         }
 
         public void SetCustomAnalayer(CodeAnalyzer codeAnalyzer)
@@ -340,6 +357,7 @@ namespace BingsuCodeEditor
         #region #############초기화#############
 
         public LanguageData Lan = new LanguageData();
+        private ErrorUnderLine errorUnderLine;
         private void InitCtrl()
         {
             markSnippetWord = new MarkSnippetWord(aTextEditor);
@@ -605,7 +623,6 @@ namespace BingsuCodeEditor
                     break;
                 case CodeAnalyzer.CursorLocation.FunctionArgName:
                 case CodeAnalyzer.CursorLocation.FunctionArgType:
-                case CodeAnalyzer.CursorLocation.FunctionName:
                 case CodeAnalyzer.CursorLocation.ImportFile:
 
 
@@ -614,6 +631,7 @@ namespace BingsuCodeEditor
                 case CodeAnalyzer.CursorLocation.Keyword:
                     break;
                 case CodeAnalyzer.CursorLocation.ObjectName:
+                case CodeAnalyzer.CursorLocation.FunctionName:
                     return;
             }
 
@@ -1131,7 +1149,7 @@ namespace BingsuCodeEditor
 
                         int spacecount = 0;
                         string tabstr = gettabspace(false);
-
+                        spacecount = tabstr.Length;
 
                         int intendsize = aTextEditor.Options.IndentationSize;
 
@@ -1369,33 +1387,7 @@ namespace BingsuCodeEditor
 
 
         private string lastCurrentToeknValue;
-        private void highLightSelectItem()
-        {
 
-            CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(0);
-
-            if (token != null && token.Type == CodeAnalyzer.TOKEN_TYPE.Identifier)
-            {
-                if (lastCurrentToeknValue != token.Value)
-                {
-                    lastCurrentToeknValue = token.Value;
-                    foreach (var markSameWord in aTextEditor.TextArea.TextView.LineTransformers.OfType<MarkSameWord>().ToList())
-                    {
-                        aTextEditor.TextArea.TextView.LineTransformers.Remove(markSameWord);
-                    }
-
-                    aTextEditor.TextArea.TextView.LineTransformers.Add(new MarkSameWord(token.Value));
-                }
-            }
-            else
-            {
-                lastCurrentToeknValue = "";
-                foreach (var markSameWord in aTextEditor.TextArea.TextView.LineTransformers.OfType<MarkSameWord>().ToList())
-                {
-                    aTextEditor.TextArea.TextView.LineTransformers.Remove(markSameWord);
-                }
-            }
-        }
 
 
         private void aTextEditor_MouseHover(object sender, MouseEventArgs e)
@@ -1439,6 +1431,37 @@ namespace BingsuCodeEditor
         }
 
 
+
+        #endregion
+
+
+        #region #############Draw함수#############
+        private void highLightSelectItem()
+        {
+            CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(0);
+
+            if (token != null && token.Type == CodeAnalyzer.TOKEN_TYPE.Identifier)
+            {
+                if (lastCurrentToeknValue != token.Value)
+                {
+                    lastCurrentToeknValue = token.Value;
+                    foreach (var markSameWord in aTextEditor.TextArea.TextView.LineTransformers.OfType<MarkSameWord>().ToList())
+                    {
+                        aTextEditor.TextArea.TextView.LineTransformers.Remove(markSameWord);
+                    }
+
+                    aTextEditor.TextArea.TextView.LineTransformers.Add(new MarkSameWord(token.Value));
+                }
+            }
+            else
+            {
+                lastCurrentToeknValue = "";
+                foreach (var markSameWord in aTextEditor.TextArea.TextView.LineTransformers.OfType<MarkSameWord>().ToList())
+                {
+                    aTextEditor.TextArea.TextView.LineTransformers.Remove(markSameWord);
+                }
+            }
+        }
 
         #endregion
 

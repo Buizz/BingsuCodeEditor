@@ -80,7 +80,10 @@ namespace BingsuCodeEditor.LineColorDrawer
             {
                 //인터널인 경우
                 //snippetTokens[i].Length += count;
-                int loffset = snippetTokens[i].index - line.Offset + keyword.Length;
+
+                
+                //int loffset = snippetTokens[i].index - line.Offset + keyword.Length;
+                int loffset = snippetTokens[i].index - line.Offset + startoffset;
                 if(loffset < 0)
                 {
                     return false;

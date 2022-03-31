@@ -12,6 +12,8 @@ namespace BingsuCodeEditor.EpScript
     {
         public override Container ConatainerAnalyzer(int startindex = int.MaxValue)
         {
+            IsError = false;
+
             Container rcontainer = new Container();
 
             int currentscope = 0;
@@ -148,7 +150,7 @@ namespace BingsuCodeEditor.EpScript
 
             //스코프 정리
             rcontainer.currentScope = scope;
-
+            
 
 
             return rcontainer;
@@ -194,7 +196,7 @@ namespace BingsuCodeEditor.EpScript
                 if (varconst == "const")
                 {
                     //const일 경우는 선언만 있으면 오류 출력
-                    throw new Exception();
+                    ThrowException("const는 선언 후 대입해줘야 합니다.");
                 }
             }
 
@@ -212,9 +214,23 @@ namespace BingsuCodeEditor.EpScript
 
 
 
+        public override void ThrowException(string message)
+        {
+            //에러가 났을 경우
+            IsError = true;
+            ErrorMessage = message;
+            ErrorIndex = index;
+            //각종 줄 정보를 남긴다..
+
+            return;
+            //throw new Exception(message);
+        }
+
+
         public override Function FunctionAnalyzer()
         {
             throw new NotImplementedException();
         }
+
     }
 }

@@ -66,6 +66,7 @@
     <Compile Include="AutoCompleteToken\Function.cs" />
     <Compile Include="EpScript\EpScriptTokenAnalyzer.cs" />
     <Compile Include="ImportManager.cs" />
+    <Compile Include="LineColorDrawer\ErrorUnderLine.cs" />
     <Compile Include="LineColorDrawer\MarkSameWord.cs" />
     <Compile Include="LineColorDrawer\MarkSnippetWord.cs" />
     <Compile Include="PreCompletionData.cs" />

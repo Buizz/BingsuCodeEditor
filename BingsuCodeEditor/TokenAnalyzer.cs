@@ -132,11 +132,8 @@ namespace BingsuCodeEditor
             {
                 if (IsExist)
                 {
-                    ErrorMessage = "인덱스가 토근의 최대 크기를 넘겼습니다.";
-                    ErrorIndex = -1;
-
-                    IsError = true;
-                    throw new Exception();
+                    //ThrowException("인덱스가 토근의 최대 크기를 넘겼습니다.");
+                    return false;
                 }
                 return true;
             }
@@ -147,6 +144,7 @@ namespace BingsuCodeEditor
         }
 
 
+        public abstract void ThrowException(string message);
 
 
         public abstract Container ConatainerAnalyzer(int startindex = int.MaxValue);
