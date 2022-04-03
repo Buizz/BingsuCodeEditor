@@ -346,7 +346,7 @@ namespace BingsuCodeEditor.EpScript
             }
 
 
-            //tokenAnalyzer.Complete();
+            tokenAnalyzer.Complete(textEditor);
         }
 
 

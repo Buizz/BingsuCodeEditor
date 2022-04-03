@@ -52,22 +52,42 @@ namespace BingsuCodeEditor.LineColorDrawer
                 return;
             }
 
-
-
-            int lineStartOffset = line.Offset;
-            int lineEndOffset = line.Offset + line.Length;
-            string text = CurrentContext.Document.GetText(line);
-
-
+            if (!tokenAnalyzer.IsError)
+            {
+                return;
+            }
 
 
 
+            for (int i = 0; i < tokenAnalyzer.ErrorList.Count; i++)
+            {
+                if(line.LineNumber == tokenAnalyzer.ErrorList[i].Line)
+                {
+                    int lineoffset = line.Offset;
+                    int lineendoffset = line.EndOffset;
 
-            ChangeLinePart(
-              lineStartOffset, // startOffset
-              lineEndOffset, // endOffset
-              element => element.TextRunProperties.SetTextDecorations(myCollection)
-            );
+                    int start = Math.Max(lineoffset, tokenAnalyzer.ErrorList[i].Start);
+                    int end = Math.Min(lineendoffset, tokenAnalyzer.ErrorList[i].End);
+
+                    if(start > lineendoffset)
+                    {
+                        return;
+                    }
+
+
+                    ChangeLinePart(
+                        start, // startOffset
+                        end, // endOffset
+                        element => element.TextRunProperties.SetTextDecorations(myCollection)
+                      );
+                    break;
+                }                                
+            }
+
+
+            //int lineStartOffset = line.Offset;
+            //int lineEndOffset = line.Offset + line.Length;
+            //string text = CurrentContext.Document.GetText(line);
 
 
         }

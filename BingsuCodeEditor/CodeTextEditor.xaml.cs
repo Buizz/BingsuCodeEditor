@@ -102,10 +102,13 @@ namespace BingsuCodeEditor
                             ToolTip.AppendText("TokenIndex : null\n");
                         }
                         ToolTip.AppendText("cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n");
-                        if (codeAnalyzer.tokenAnalyzer.IsError)
-                        {
-                            ToolTip.AppendText("Error : " + codeAnalyzer.tokenAnalyzer.ErrorMessage + "\n");
-                        }
+                        //if (codeAnalyzer.tokenAnalyzer.IsError)
+                        //{
+                        //    foreach (var item in codeAnalyzer.tokenAnalyzer.ErrorList)
+                        //    {
+                        //        ToolTip.AppendText("Error : " + item.Message + "줄 : " + item.Line + "  열 : " + item.Column + "\n");
+                        //    }
+                        //}
 
 
                         //for (int i = -1; i <= 1; i++)

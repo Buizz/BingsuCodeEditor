@@ -1,4 +1,6 @@
 ﻿using BingsuCodeEditor.AutoCompleteToken;
+using ICSharpCode.AvalonEdit;
+using ICSharpCode.AvalonEdit.Document;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,14 +10,46 @@ using static BingsuCodeEditor.CodeAnalyzer;
 
 namespace BingsuCodeEditor
 {
+    public class ErrorToken
+    {
+        public ErrorToken(string Message, int start, int end)
+        {
+            this.Message = Message;
+            this.Start = start;
+            this.End = end;
+        }
+        public string Message;
+        public int Start;
+        public int End;
+        public int Line = -1;
+        public int Column = -1;
+    }
     public abstract class TokenAnalyzer
     {
         private List<TOKEN> tklist;
         protected int index;
 
-        public bool IsError = false;
-        public string ErrorMessage;
-        public int ErrorIndex;
+
+
+        public List<ErrorToken> ErrorList = new List<ErrorToken>();
+        public List<ErrorToken> TempErrorList = new List<ErrorToken>();
+        public bool IsError
+        {
+            get
+            {
+                return ErrorList.Count > 0;
+            }
+            set
+            {
+                if(value == false)
+                {
+                    TempErrorList.Clear();
+                }
+            }
+        }
+
+        //public string ErrorMessage;
+        //public int ErrorIndex;
 
 
         //오류가 나왔을 경우 반환해야됨
@@ -29,10 +63,31 @@ namespace BingsuCodeEditor
         }
 
 
-        //public void Complete()
-        //{
-        //    IsError = false;
-        //}
+        public void Complete(TextEditor textEditor)
+        {
+            textEditor.Dispatcher.Invoke(new Action(() =>
+            {
+                for (int i = 0; i < TempErrorList.Count; i++)
+                {
+                    DocumentLine line;
+                    try
+                    {
+                        line = textEditor.Document.GetLineByOffset((int)TempErrorList[i].Start);
+                    }
+                    catch (System.ArgumentOutOfRangeException)
+                    {
+                        break;
+                    }
+
+                    TempErrorList[i].Line = line.LineNumber;
+                    TempErrorList[i].Column = TempErrorList[i].Start - line.Offset;
+                }
+         
+
+                ErrorList.Clear();
+                ErrorList.AddRange(TempErrorList);
+            }), System.Windows.Threading.DispatcherPriority.Normal);
+        }
 
 
 
@@ -42,10 +97,10 @@ namespace BingsuCodeEditor
         /// <returns></returns>
         public TOKEN GetCurrentToken()
         {
-            if (IsError)
-            {
-                throw new Exception();
-            }
+            //if (IsError)
+            //{
+            //    throw new Exception();
+            //}
 
             IsEndOfList(true);
 
@@ -102,10 +157,10 @@ namespace BingsuCodeEditor
         /// <returns></returns>
         public bool CheckCurrentToken(TOKEN_TYPE ttype, string value = null)
         {
-            if (IsError)
-            {
-                throw new Exception();
-            }
+            //if (IsError)
+            //{
+            //    throw new Exception();
+            //}
 
             IsEndOfList(true);
 
@@ -144,7 +199,38 @@ namespace BingsuCodeEditor
         }
 
 
-        public abstract void ThrowException(string message);
+        public void ThrowException(string message, TOKEN tk)
+        {
+            //에러가 났을 경우
+            IsError = true;
+            if(tk is null)
+            {
+                TempErrorList.Add(new ErrorToken(message, 0, 0));
+            }
+            else
+            {
+                TempErrorList.Add(new ErrorToken(message, tk.StartOffset, tk.EndOffset));
+            }
+
+
+            //List<TOKEN> tklist = GetTokenList();
+            //if (tklist.Count < index)
+            //{
+            //    //ErrorList.Add(new ErrorToken(message, 0, 0));
+            //}
+            //else
+            //{
+            //    TOKEN tk = tklist[index];
+
+            //}
+
+
+
+
+            //각종 줄 정보를 남긴다..
+            return;
+            //throw new Exception(message);
+        }
 
 
         public abstract Container ConatainerAnalyzer(int startindex = int.MaxValue);

@@ -89,5 +89,11 @@
                 </avalonedit:TextEditor.ContextMenu>
             </avalonedit:TextEditor>
         </DockPanel>
+
+        <!--<Border Background="{DynamicResource MaterialDesignPaper}">
+            <DockPanel >
+                <TextBlock Text="처리 할 수 없는 예외 상황이 발생했습니다.(Exception)" Foreground="#DDFF0404" FontWeight="Bold" FontSize="22" />
+            </DockPanel>
+        </Border>-->
     </Grid>
 </UserControl>

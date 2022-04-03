@@ -16,6 +16,9 @@ namespace BingsuCodeEditor.EpScript
 
             Container rcontainer = new Container();
 
+
+            bool isinstartoffset = true;
+
             int currentscope = 0;
             bool forstart = false;
             string scope = "start";
@@ -23,13 +26,14 @@ namespace BingsuCodeEditor.EpScript
             List<Block> forblocks = new List<Block>();
 
 
-            TOKEN tk;
+            TOKEN tk = null;
             while (!IsEndOfList())
             {
                 tk = GetCurrentToken();
                 if (tk.StartOffset > startindex)
                 {
-                    break;
+                    isinstartoffset = false;
+                    //break;
                 }
 
                 //함수 안쪽에 있으면 함수
@@ -52,7 +56,11 @@ namespace BingsuCodeEditor.EpScript
                                     forblocks.Add(b);
                                 }
 
-                                rcontainer.vars.Add(b);
+                                //범위를 벗어날 경우 오브젝트에 넣지 않는다.
+                                if (isinstartoffset)
+                                {
+                                    rcontainer.vars.Add(b);
+                                }
                                 break;
                             case "for":
                                 forblocks.Clear();
@@ -64,10 +72,28 @@ namespace BingsuCodeEditor.EpScript
                                 //import File;
 
                                 tk = GetCurrentToken();
+                                string filename = tk.Value;
+                                string nspace;
 
-
-                                tk = GetCurrentToken();
-
+                                if (CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
+                                {
+                                    //특별 지정자 없이 임포트
+                                }
+                                else if(CheckCurrentToken(TOKEN_TYPE.KeyWord, "as"))
+                                {
+                                    //특별 지정자
+                                    tk = GetCurrentToken();
+                                    nspace = tk.Value;
+                                    if (!CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
+                                    {
+                                        ThrowException("import문이 정상적으로 종료되지 않았습니다.", tk);
+                                    }
+                                }
+                                else
+                                {
+                                    //잘못된 지정자
+                                    ThrowException("import문이 정상적으로 종료되지 않았습니다.", tk);
+                                }
 
 
                                 //Container를 분석한다.
@@ -151,6 +177,10 @@ namespace BingsuCodeEditor.EpScript
             //스코프 정리
             rcontainer.currentScope = scope;
             
+            if (scope != "start")
+            {
+                ThrowException("'{}'가 제대로 닫히지 않았습니다.", tk);
+            }
 
 
             return rcontainer;
@@ -196,7 +226,7 @@ namespace BingsuCodeEditor.EpScript
                 if (varconst == "const")
                 {
                     //const일 경우는 선언만 있으면 오류 출력
-                    ThrowException("const는 선언 후 대입해줘야 합니다.");
+                    ThrowException("const는 선언 후 대입해줘야 합니다.", tk);
                 }
             }
 
@@ -214,17 +244,6 @@ namespace BingsuCodeEditor.EpScript
 
 
 
-        public override void ThrowException(string message)
-        {
-            //에러가 났을 경우
-            IsError = true;
-            ErrorMessage = message;
-            ErrorIndex = index;
-            //각종 줄 정보를 남긴다..
-
-            return;
-            //throw new Exception(message);
-        }
 
 
         public override Function FunctionAnalyzer()
