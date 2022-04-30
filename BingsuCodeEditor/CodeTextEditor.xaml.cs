@@ -60,82 +60,96 @@ namespace BingsuCodeEditor
                     DateTime dateTime = DateTime.Now;
 
                     //코드 분석 실행
-                    codeAnalyzer.Apply(codeText, offset);
-
-
-                    aTextEditor.Dispatcher.Invoke(new Action(() =>
+                    if (codeAnalyzer.WorkCompete)
                     {
-                        TimeSpan interval = DateTime.Now.Subtract(dateTime);
-                        if (dateTime > markSameWordTimer)
+                        codeAnalyzer.Apply(codeText, offset);
+                    }
+
+                    try
+                    {
+                        aTextEditor.Dispatcher.Invoke(new Action(() =>
                         {
-                            highLightSelectItem();
-                        }
-                        dispatcherTimer.Interval = TimeSpan.FromMilliseconds(interval.TotalMilliseconds * 2);
+                            TimeSpan interval = DateTime.Now.Subtract(dateTime);
+                            if (dateTime > markSameWordTimer)
+                            {
+                                highLightSelectItem();
+                            }
+                            dispatcherTimer.Interval = TimeSpan.FromMilliseconds(interval.TotalMilliseconds * 2);
 
 
 
-                        //오류 그리기
-                        //DrawRedLine(0, 10);
-                        
-                        //aTextEditor.TextArea.TextView.Redraw();
+                            //오류 그리기
+                            //DrawRedLine(0, 10);
+
+                            //aTextEditor.TextArea.TextView.Redraw();
 
 
 
 
-                        //테스트 트리거
+                            //테스트 트리거
 
-                        ToolTip.Text = "";
-                        //CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(-1);
-                        //ToolTip.AppendText(codeAnalyzer.GetTokenCount() + ":" + "Caret:" + aTextEditor.CaretOffset.ToString());
-                        //if (token != null)
-                        //{
-                        //    ToolTip.AppendText("  " + token.StartOffset + ", " + token.EndOffset);
-                        //    ToolTip.AppendText(", " + token.Value);
-                        //}
-                        CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
-                        if(tk != null)
-                        {
-                            ToolTip.AppendText("TokenIndex : " + tk.Value.Replace("\r\n", "") + "\n");
-                        }
-                        else
-                        {
-                            ToolTip.AppendText("TokenIndex : null\n");
-                        }
-                        ToolTip.AppendText("cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n");
-                        //if (codeAnalyzer.tokenAnalyzer.IsError)
-                        //{
-                        //    foreach (var item in codeAnalyzer.tokenAnalyzer.ErrorList)
-                        //    {
-                        //        ToolTip.AppendText("Error : " + item.Message + "줄 : " + item.Line + "  열 : " + item.Column + "\n");
-                        //    }
-                        //}
-
-
-                        //for (int i = -1; i <= 1; i++)
-                        //{
-                        //    ToolTip.AppendText(i + " : ");
-                        //    CodeAnalyzer.TOKEN ftk = codeAnalyzer.GetToken(i);
-                        //    if(ftk == null)
-                        //    {
-                        //        ToolTip.AppendText("null");
-                        //    }
-                        //    else
-                        //    {
-                        //        ToolTip.AppendText(ftk.Value);
-                        //    }
-                        //    ToolTip.AppendText("\n");
-                        //}
-                        ToolTip.AppendText("  " + interval.ToString());
+                            ToolTip.Text = "";
+                            //CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(-1);
+                            //ToolTip.AppendText(codeAnalyzer.GetTokenCount() + ":" + "Caret:" + aTextEditor.CaretOffset.ToString());
+                            //if (token != null)
+                            //{
+                            //    ToolTip.AppendText("  " + token.StartOffset + ", " + token.EndOffset);
+                            //    ToolTip.AppendText(", " + token.Value);
+                            //}
+                            CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
+                            if (tk != null)
+                            {
+                                ToolTip.AppendText("TokenIndex : " + tk.Value.Replace("\r\n", "") + "\n");
+                            }
+                            else
+                            {
+                                ToolTip.AppendText("TokenIndex : null\n");
+                            }
+                            ToolTip.AppendText("cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n");
+                            //if (codeAnalyzer.tokenAnalyzer.IsError)
+                            //{
+                            //    foreach (var item in codeAnalyzer.tokenAnalyzer.ErrorList)
+                            //    {
+                            //        ToolTip.AppendText("Error : " + item.Message + "줄 : " + item.Line + "  열 : " + item.Column + "\n");
+                            //    }
+                            //}
 
 
-
-                        //ErrorLogList.Items.Clear();
-
-                        //ErrorLogList.Items.Add(codeAnalyzer.tokenAnalyzer.ErrorMessage);
+                            //for (int i = -1; i <= 1; i++)
+                            //{
+                            //    ToolTip.AppendText(i + " : ");
+                            //    CodeAnalyzer.TOKEN ftk = codeAnalyzer.GetToken(i);
+                            //    if(ftk == null)
+                            //    {
+                            //        ToolTip.AppendText("null");
+                            //    }
+                            //    else
+                            //    {
+                            //        ToolTip.AppendText(ftk.Value);
+                            //    }
+                            //    ToolTip.AppendText("\n");
+                            //}
+                            ToolTip.AppendText("  " + interval.ToString());
 
 
 
-                    }), DispatcherPriority.Normal);
+                            //ErrorLogList.Items.Clear();
+
+                            //ErrorLogList.Items.Add(codeAnalyzer.tokenAnalyzer.ErrorMessage);
+
+
+
+                        }), DispatcherPriority.Normal);
+                    }
+                    catch (TaskCanceledException)
+                    {
+
+                    }
+
+                 
+
+
+
                 });
                 thread.Start();
             }
@@ -435,15 +449,10 @@ namespace BingsuCodeEditor
 
 
         #region #############코드스니핏#############
-
-        private bool IsSnippetStart;
-
-
-
         private MarkSnippetWord markSnippetWord;
         private bool TabAutoSnippetStart()
         {
-            if (IsSnippetStart)
+            if (markSnippetWord.IsSnippetStart)
             {
                 SnippetEnd(false);
             }
@@ -470,8 +479,6 @@ namespace BingsuCodeEditor
 
                     temp = markSnippetWord.Start(tk.Value, temp, line);
 
-
-
                     aTextEditor.Document.Insert(aTextEditor.CaretOffset, temp);
                     
 
@@ -480,7 +487,7 @@ namespace BingsuCodeEditor
                     SnippetCommand(true);
 
 
-                    IsSnippetStart = true;
+                    markSnippetWord.IsSnippetStart = true;
 
                     return true;
                 }
@@ -499,13 +506,12 @@ namespace BingsuCodeEditor
                 markSnippetWord.GotoContent();
             }
             markSnippetWord.Clear();
-            IsSnippetStart = false;
         }
 
 
         private bool SnippetDraw(Key syskey, Key key)
         {
-            if (!IsSnippetStart)
+            if (!markSnippetWord.IsSnippetStart)
             {
                 return false;
             }
@@ -575,7 +581,7 @@ namespace BingsuCodeEditor
 
 
         CustomCompletionWindow completionWindow;
-        private void completionWindowOpen(string input)
+        private void completionWindowOpen(string input, bool IsNameSpaceOpen = false)
         {
             //선택이 다중일 경우 사용하지 않음
             //엔터링에서 분석한 정보를 토대로, 자동완성창을 열거나 자동완성 목록을 생성
@@ -609,16 +615,16 @@ namespace BingsuCodeEditor
                 }
             }
             //자동완성 비활성(문장 작석 중)
-            int caret = aTextEditor.CaretOffset - 1;
-            string text = aTextEditor.Text;
-            if(text.Length > caret && caret >= 0)
-            {
-                char current = text[caret];
-                if (char.IsLetterOrDigit(current) || current == '_')
-                {
-                    return;
-                }
-            }
+            //int caret = aTextEditor.CaretOffset - 1;
+            //string text = aTextEditor.Text;
+            //if(text.Length > caret && caret >= 0)
+            //{
+            //    char current = text[caret];
+            //    if (char.IsLetterOrDigit(current) || current == '_')
+            //    {
+            //        return;
+            //    }
+            //}
 
             switch (codeAnalyzer.cursorLocation)
             {
@@ -668,11 +674,11 @@ namespace BingsuCodeEditor
 
             IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
 
-            codeAnalyzer.GetCompletionList(data);
+            codeAnalyzer.GetCompletionList(data, IsNameSpaceOpen);
 
             //data.Add(new CodeCompletionData("function", CompletionWordType.KeyWord));
             //data.Add(new CodeCompletionData("for", CompletionWordType.KeyWord));
-            completionWindow.Open();
+            completionWindow.Open(IsNameSpaceOpen);
             completionWindow.Closed += delegate {
                 completionWindow = null;
             };
@@ -692,6 +698,13 @@ namespace BingsuCodeEditor
 
             if (e.Text.Length > 0 && completionWindow != null)
             {
+                if(e.Text[0] == '.')
+                {
+                    //completionWindowOpen("f");
+                    return;
+                }
+
+
                 if (!char.IsLetterOrDigit(e.Text[0]))
                 {
                     // Whenever a non-letter is typed while the completion window is open,
@@ -759,19 +772,23 @@ namespace BingsuCodeEditor
                         }
                         break;
 
-
                 }
             }
  
 
-
+            if(e.Text == ".")
+            {
+                completionWindowOpen(".", true);
+                //codeAnalyzer.AutoInsert("f");
+                return;
+            }
             codeAnalyzer.AutoInsert(e.Text);
         }
 
         private void aTextEditor_TextChanged(object sender, EventArgs e)
         {
             //2
-            if(IsSnippetStart)
+            if(markSnippetWord.IsSnippetStart)
             {
                 //markSnippetWord.PosChange();
                 markSnippetWord.TypeChangeEnd();
@@ -980,7 +997,16 @@ namespace BingsuCodeEditor
             string input = e.Key.ToString();
             if (!LeftCtrlDown && !LeftShiftDown)
             {
-                completionWindowOpen(input);
+                if (input == "OemPeriod")
+                {
+                    //codeAnalyzer.GetToken(0);
+                    //.일경우 네임스페이스 확인
+                    return;
+                }
+                else
+                {
+                    completionWindowOpen(input);
+                }
             }
             if (SnippetDraw(e.SystemKey, e.Key))
             {
@@ -1017,7 +1043,7 @@ namespace BingsuCodeEditor
             }
 
 
-            if (IsSnippetStart)
+            if (markSnippetWord.IsSnippetStart)
             {
                 if (!markSnippetWord.TypeChangeStart())
                 {
@@ -1274,7 +1300,7 @@ namespace BingsuCodeEditor
                     break;
             }
 
-            if (IsSnippetStart)
+            if (markSnippetWord.IsSnippetStart)
             {
                 markSnippetWord.TypeChangeEnd();
             }

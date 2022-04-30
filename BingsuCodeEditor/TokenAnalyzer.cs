@@ -29,6 +29,18 @@ namespace BingsuCodeEditor
         private List<TOKEN> tklist;
         protected int index;
 
+        public TOKEN GetLastToken
+        {
+            get
+            {
+                if(tklist.Count <= index)
+                {
+                    return null;
+                }
+
+                return tklist[index];
+            }
+        }
 
 
         public List<ErrorToken> ErrorList = new List<ErrorToken>();

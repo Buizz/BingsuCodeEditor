@@ -74,6 +74,11 @@ namespace BingsuCodeEditor.LineColorDrawer
                         return;
                     }
 
+                    if (end < start)
+                    {
+                        return;
+                    }
+
 
                     ChangeLinePart(
                         start, // startOffset

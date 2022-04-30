@@ -24,7 +24,10 @@ namespace BingsuCodeEditor.AutoCompleteToken
         //2번의 경우 메인 이름 main 별칭 *(별칭이 없다는 의미)
         //3번의 경우 메인 이름 human
 
-        public List<Container> names;
+        //predefine된 네임스페이스가 들어가야 할거같음...
+        public List<ImportedNameSpace> importedNameSpace;
+
+
         public List<Block> vars;
         public List<Container> objs;
 
@@ -32,7 +35,7 @@ namespace BingsuCodeEditor.AutoCompleteToken
 
         public Container()
         {
-            names = new List<Container>();
+            importedNameSpace = new List<ImportedNameSpace>();
             vars = new List<Block>();
             objs = new List<Container>();
             funcs = new List<Function>();

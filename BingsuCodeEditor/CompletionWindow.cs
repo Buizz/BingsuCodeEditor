@@ -54,7 +54,7 @@ namespace BingsuCodeEditor
         }
 
 
-        public void Open()
+        public void Open(bool IsNameSpaceOpen = false)
         {
             this.MinWidth = 0;
             this.Width = 0;
@@ -64,7 +64,10 @@ namespace BingsuCodeEditor
 
             Show();
 
-            this.Visibility = Visibility.Hidden;
+            if (!IsNameSpaceOpen)
+            {
+                this.Visibility = Visibility.Hidden;
+            }
 
 
             this.SizeToContent = SizeToContent.Height;

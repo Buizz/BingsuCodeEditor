@@ -16,7 +16,7 @@ namespace BingsuCodeEditor.EpScript
             string[] keywords = {"object", "static", "once", "if", "else", "while", "for", "function", "foreach",
         "return", "switch", "case", "break", "var", "const", "import", "as", "continue" ,  "true", "True", "false", "False"};
 
-
+           
             foreach (var item in keywords)
             {
                 //토큰 입력
@@ -238,15 +238,58 @@ namespace BingsuCodeEditor.EpScript
             return null;
         }
 
-        public override void GetCompletionList(IList<ICompletionData> data)
+        public override void GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
         {
-            //TODO:분석된 토큰으로 자동완성을 만든다.
             string scope = maincontainer.currentScope;
+
+            //TODO:분석된 토큰으로 자동완성을 만든다.
+            if (IsNameSpaceOpen)
+            {
+                //네임스페이스를 찾아보고 없으면 기존 사용
+                if (false)
+                {
+                    return;
+                }
+
+
+                foreach (var item in maincontainer.importedNameSpace)
+                {
+                    if (string.IsNullOrEmpty(item.shortname))
+                    {
+                        continue;
+                    }
+                    data.Add(new CodeCompletionData(item.preCompletion));
+                }
+
+                foreach (var item in maincontainer.vars.FindAll(x => scope.Contains(x.scope)))
+                {
+                    data.Add(new CodeCompletionData(item.preCompletion));
+                }
+
+
+                PreCompletionData preCompletionData = new ImportFileItem(CompletionWordType.nameSpace, "테스트");
+
+                data.Add(new CodeCompletionData(preCompletionData));
+                return;
+            }
+ 
+
+
+
+
+            foreach (var item in maincontainer.importedNameSpace)
+            {
+                if (string.IsNullOrEmpty(item.shortname))
+                {
+                    continue;
+                }
+                data.Add(new CodeCompletionData(item.preCompletion));
+            }
 
             foreach (var item in maincontainer.vars.FindAll(x => scope.Contains(x.scope)))
             {
                 data.Add(new CodeCompletionData(item.preCompletion));
-            } 
+            }
 
 
 
@@ -335,10 +378,14 @@ namespace BingsuCodeEditor.EpScript
             }
             catch (Exception e)
             {
+                TOKEN errortoken = tokenAnalyzer.GetLastToken;
+                if(!(errortoken is null))
+                {
+                    tokenAnalyzer.ThrowException(e.ToString(), tokenAnalyzer.GetLastToken);
+                }
                 //tokenAnalyzer.ErrorMessage;
 
-
-                return;
+                //return;
             }
             if (tokenAnalyzer.IsError)
             {

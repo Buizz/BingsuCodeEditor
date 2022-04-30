@@ -21,7 +21,8 @@ namespace BingsuCodeEditor.EpScript
 
             int currentscope = 0;
             bool forstart = false;
-            string scope = "start";
+            string scope = "st";
+            string lastblockscope = "st";
 
             List<Block> forblocks = new List<Block>();
 
@@ -30,9 +31,10 @@ namespace BingsuCodeEditor.EpScript
             while (!IsEndOfList())
             {
                 tk = GetCurrentToken();
-                if (tk.StartOffset > startindex)
+                if (tk.StartOffset > startindex && isinstartoffset)
                 {
                     isinstartoffset = false;
+                    lastblockscope = scope;
                     //break;
                 }
 
@@ -78,6 +80,7 @@ namespace BingsuCodeEditor.EpScript
                                 if (CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
                                 {
                                     //특별 지정자 없이 임포트
+                                    rcontainer.importedNameSpace.Add(new ImportedNameSpace(filename, ""));
                                 }
                                 else if(CheckCurrentToken(TOKEN_TYPE.KeyWord, "as"))
                                 {
@@ -88,6 +91,7 @@ namespace BingsuCodeEditor.EpScript
                                     {
                                         ThrowException("import문이 정상적으로 종료되지 않았습니다.", tk);
                                     }
+                                    rcontainer.importedNameSpace.Add(new ImportedNameSpace(filename, nspace));
                                 }
                                 else
                                 {
@@ -96,7 +100,11 @@ namespace BingsuCodeEditor.EpScript
                                 }
 
 
-                                //Container를 분석한다.
+                                //임포트 매니저에게 파일 이름 확인 시키기.
+                                //본인의 이름과 파일 이름을 넘겨야함.
+
+
+
 
                                 break;
                             case "object":
@@ -165,9 +173,32 @@ namespace BingsuCodeEditor.EpScript
                             case "}":
                                 //이전 스코프로 되돌림
                                 int t = currentscope.ToString().Length + 1;
-                                scope = scope.Remove(scope.Length - t, t);
+                                if(scope == "st")
+                                {
+                                    ThrowException("'{}'가 제대로 닫히지 않았습니다.", tk);
+                                }
+                                else
+                                {
+                                    int lastlen = scope.Split('.').Last().Length + 1;
+
+                                    scope = scope.Remove(scope.Length - lastlen, lastlen);
+                                    //currentscope = int.Parse(scope.Split('.').Last());
+                                }
+                                
+
+
                                 break;
                         }
+
+                        break;
+
+                    default:
+                        if (tk.Type == TOKEN_TYPE.Identifier)
+                        {
+                            //키워드일 경우
+                            //네임스페이스인지 아닌지 확인
+
+                        } 
 
                         break;
                 }
@@ -175,9 +206,9 @@ namespace BingsuCodeEditor.EpScript
 
 
             //스코프 정리
-            rcontainer.currentScope = scope;
+            rcontainer.currentScope = lastblockscope;
             
-            if (scope != "start")
+            if (scope != "st")
             {
                 ThrowException("'{}'가 제대로 닫히지 않았습니다.", tk);
             }
@@ -230,13 +261,17 @@ namespace BingsuCodeEditor.EpScript
                 }
             }
 
-            //선언한 경우
-            while (!CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
-            {
-                //문장의 끝이 아닌 동안 진행
-                tk = GetCurrentToken();
+            //const t = func();
+            //const t = func1() + func2();
+            //const t = (func1() + func2());
 
-            }
+            //선언한 경우
+            //while (!CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
+            //{
+            //    //문장의 끝이 아닌 동안 진행
+            //    tk = GetCurrentToken();
+
+            //}
             //문장의 끝
 
             return new Block(varconst, varname, vartype, varvalue);

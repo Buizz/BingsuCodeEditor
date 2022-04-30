@@ -64,6 +64,7 @@
     <Compile Include="AutoCompleteToken\Block.cs" />
     <Compile Include="AutoCompleteToken\Container.cs" />
     <Compile Include="AutoCompleteToken\Function.cs" />
+    <Compile Include="AutoCompleteToken\ImportedNameSpace.cs" />
     <Compile Include="EpScript\EpScriptTokenAnalyzer.cs" />
     <Compile Include="ImportManager.cs" />
     <Compile Include="LineColorDrawer\ErrorUnderLine.cs" />

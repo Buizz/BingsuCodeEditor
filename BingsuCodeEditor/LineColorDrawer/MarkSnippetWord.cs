@@ -21,6 +21,8 @@ namespace BingsuCodeEditor.LineColorDrawer
 
         private string keyword;
 
+        public bool IsSnippetStart = false;
+
         private List<SnippetToken> snippetTokens = new List<SnippetToken>();
         private class SnippetToken
         {
@@ -43,6 +45,7 @@ namespace BingsuCodeEditor.LineColorDrawer
         public void Clear()
         {
             snippetTokens.Clear();
+            IsSnippetStart = false;
         }
 
         string lastLinetext;
@@ -349,6 +352,18 @@ namespace BingsuCodeEditor.LineColorDrawer
                 //ChangeLinePart(line.Offset, line.EndOffset, ApplyChanges);
                 foreach (var item in snippetTokens)
                 {
+                    if (line.Offset > startoffset + item.index)
+                    {
+                        Clear();
+                        return;
+                    }
+                    if (startoffset + item.index + item.Length > line.EndOffset)
+                    {
+                        Clear();
+                        return;
+                    }
+
+
                     ChangeLinePart(startoffset + item.index, startoffset + item.index + item.Length, ApplyChanges);
                 }
             }

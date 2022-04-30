@@ -173,13 +173,13 @@ namespace BingsuCodeEditor
         
 
 
-        public virtual void GetCompletionList(IList<ICompletionData> data)
+        public virtual void GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
         {
             switch (cursorLocation)
             {
                 case CursorLocation.ImportFile:
                     //파일들이 뜨게 하는 것
-                    if(importManager != null)
+                    if (importManager != null)
                     {
                         foreach (var item in importManager.GetFileList())
                         {
@@ -187,6 +187,7 @@ namespace BingsuCodeEditor
                         }
                     }
                     return;
+
             }
 
             for (int i = 0; i < completionDatas.Count; i++)
@@ -245,7 +246,7 @@ namespace BingsuCodeEditor
         }
 
 
-        private bool workComplete = false;
+        private bool workComplete = true;
         public bool WorkCompete
         {
             get
@@ -285,8 +286,6 @@ namespace BingsuCodeEditor
             int cmpindex;
 
 
-
-
             if (currenttokenIndex == -1)
             {
                 if (index == 0)
@@ -303,16 +302,6 @@ namespace BingsuCodeEditor
             {
                 cmpindex = currenttokenIndex + index;
             }
-
-
-
-
-
-
-
-
-
-
 
             if (cmpindex < 0)
             {
@@ -345,6 +334,8 @@ namespace BingsuCodeEditor
 
             //return null;
         }
+
+
 
 
         public TOKEN SearchToken(int offset, bool isfull = false)
@@ -576,11 +567,11 @@ namespace BingsuCodeEditor
 
         public void Apply(string text, int caretoffset)
         {
+            workComplete = false;
             currentoffset = caretoffset;
             currenttokenIndex = -1;
             lasttokenIndex = -1;
 
-            workComplete = false;
             List<TOKEN> tempList = new List<TOKEN>();
 
             List<string> addlist = additionalstring.Values.ToList();
@@ -618,6 +609,7 @@ namespace BingsuCodeEditor
             }
             catch (TaskCanceledException)
             {
+                workComplete = true;
             }
         }
 
