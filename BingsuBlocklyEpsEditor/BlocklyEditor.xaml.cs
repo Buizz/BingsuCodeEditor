@@ -21,14 +21,22 @@ namespace BingsuBlocklyEpsEditor
     /// </summary>
     public partial class BlocklyEditor : UserControl
     {
+        CefSharp.Wpf.ChromiumWebBrowser browser;
         public BlocklyEditor()
         {
             InitializeComponent();
+
+
+
+
+            string localPath = System.Environment.CurrentDirectory;
+
             
-            browser.LoadHtml(System.IO.File.ReadAllText(@"BlocklySetting\BlocklyHTML.html"));
-            //browser.BrowserSettings.AcceptLanguageList = "ko-KR";
+            browser = new CefSharp.Wpf.ChromiumWebBrowser(localPath + @"/BlocklySetting/StartPage.html");
+            JsHandler jh = new JsHandler();
+            browser.JsDialogHandler = jh;
 
-
+            BrowserGrid.Child = browser;
 
             browser.LoadingStateChanged += WebBrowser_LoadingStateChanged;
 
@@ -38,10 +46,10 @@ namespace BingsuBlocklyEpsEditor
         {
             if (e.IsLoading == false)
             {
-                var toolboxXML = System.IO.File.ReadAllText(@"BlocklySetting\blockyToolbox.xml");
-                var workspaceXML = System.IO.File.ReadAllText(@"BlocklySetting\blockyWorkspace.xml");
-                ////ddddffddssssssdddssdsddsssd//sssssddddssssdddddd
+                var toolboxXML = System.IO.File.ReadAllText(@"BlocklySetting\Toolbox.xml");
+                var workspaceXML = System.IO.File.ReadAllText(@"BlocklySetting\TempWorkspace.xml");
 
+     
 
                 var rtn = await browser.EvaluateScriptAsync("init", new object[] { toolboxXML, workspaceXML });
                 if (rtn.Success != true)
@@ -50,7 +58,6 @@ namespace BingsuBlocklyEpsEditor
                 };
             }
         }
-
 
         private async void showCodeButton_Click(object sender, RoutedEventArgs e)
         {
@@ -69,5 +76,55 @@ namespace BingsuBlocklyEpsEditor
         }
 
 
+
+
+
+
+
+
+
+        public class JsHandler : IJsDialogHandler
+        {
+            public bool OnBeforeUnloadDialog(IWebBrowser chromiumWebBrowser, IBrowser browser, string messageText, bool isReload, IJsDialogCallback callback)
+            {
+                return true;
+            }
+
+            public void OnDialogClosed(IWebBrowser chromiumWebBrowser, IBrowser browser)
+            {
+                return;
+            }
+
+            public bool OnJSDialog(IWebBrowser chromiumWebBrowser, IBrowser browser, string originUrl, CefJsDialogType dialogType, string messageText, string defaultPromptText, IJsDialogCallback callback, ref bool suppressMessage)
+            {
+                while (true)
+                {
+                    System.Threading.Thread.Sleep(1000);
+                }
+
+                switch (dialogType)
+                {
+                    case CefJsDialogType.Prompt: // alert
+                        callback.Continue(true, "asd");
+                        return true;
+                    case CefJsDialogType.Alert: // alert
+                        //MessageBox.Show(messageText, "Notice", MessageBoxButton.OK);
+                        callback.Continue(true);
+                        return true;
+                    case CefJsDialogType.Confirm: // confirm
+                        var result = MessageBox.Show(messageText, "Notice", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                        callback.Continue(result == MessageBoxResult.Yes);
+                        return true;
+                }
+                return false;
+            }
+
+            public void OnResetDialogState(IWebBrowser chromiumWebBrowser, IBrowser browser)
+            {
+                return;
+            }
+
+
+        }
     }
 }

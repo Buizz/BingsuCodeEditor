@@ -114,40 +114,35 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="BlocklySetting\BlocklyHTML.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="BlocklySetting\blockyWorkspace.xml">
+    <None Include="BlocklySetting\StartPage.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="BlocklySetting\blockyToolbox.xml">
+    <None Include="BlocklySetting\TempWorkspace.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="BlocklySetting\index.js">
+    <None Include="BlocklySetting\Toolbox.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="BlocklySetting\blockly_compressed.js">
+    <None Include="BlocklySetting\src\core\blockly_compressed.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="BlocklySetting\blocks_compressed.js">
+    </None>
+    <None Include="BlocklySetting\src\core\blocks_compressed.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="BlocklySetting\en.js">
+    </None>
+    <None Include="BlocklySetting\src\core\en.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="BlocklySetting\javascript_compressed.js">
+    </None>
+    <None Include="BlocklySetting\src\core\javascript_compressed.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="BlocklySetting\ko.js">
+    </None>
+    <None Include="BlocklySetting\src\core\ko.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="BlocklySetting\src\" />
+    <Folder Include="BlocklySetting\src\plugin\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

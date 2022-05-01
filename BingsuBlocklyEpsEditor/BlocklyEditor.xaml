@@ -11,6 +11,24 @@
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
             <Button x:Name="showCodeButton" Content="ShowCode" Click="showCodeButton_Click"/>
         </StackPanel>
-        <cefSharp:ChromiumWebBrowser x:Name="browser"/>
+        <Grid>
+            <Border x:Name="BrowserGrid">
+
+            </Border>
+            <Border x:Name="DialogBox" Background="#7F000000" Visibility="Collapsed">
+                <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="200" Height="100" Background="{DynamicResource MaterialDesignPaper}">
+                    <UniformGrid DockPanel.Dock="Bottom" Rows="1">
+                        <Button Content="확인" Style="{StaticResource MaterialDesignFlatButton}"/>
+                        <Button Content="취소" Style="{StaticResource MaterialDesignFlatButton}"/>
+                    </UniformGrid>
+                    <StackPanel Margin="10">
+                        <TextBlock x:Name="PromptMessage" Text="변수명"/>
+                        <TextBox
+                            x:Name="PromptInputBox"
+                              VerticalAlignment="Center" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+        </Grid>
     </DockPanel>
 </UserControl>
