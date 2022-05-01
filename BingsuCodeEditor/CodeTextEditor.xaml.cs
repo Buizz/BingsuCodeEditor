@@ -700,8 +700,8 @@ namespace BingsuCodeEditor
             {
                 if(e.Text[0] == '.')
                 {
-                    //completionWindowOpen("f");
-                    return;
+                    //추가를 하긴 해야 할듯
+                    //return;
                 }
 
 

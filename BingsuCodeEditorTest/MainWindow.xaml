@@ -4,7 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BingsuCodeEditorTest"
-        xmlns:bingsucodeeditor="clr-namespace:BingsuCodeEditor;assembly=BingsuCodeEditor"
+        xmlns:c="clr-namespace:BingsuCodeEditor;assembly=BingsuCodeEditor"
+        xmlns:b="clr-namespace:BingsuBlocklyEpsEditor;assembly=BingsuBlocklyEpsEditor"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Deactivated="Window_Deactivated"
         mc:Ignorable="d"
@@ -19,7 +20,14 @@
             </ToolBar>
         </ToolBarTray>
 
+        <TabControl>
+            <TabItem Header="Blockly">
+                <b:BlocklyEditor x:Name="BlocklyEditor"/>
+            </TabItem>
+            <TabItem Header="텍스트에디터">
+                <c:CodeTextEditor x:Name="CodeEditor" Syntax="epScript"/>
+            </TabItem>
+        </TabControl>
 
-        <bingsucodeeditor:CodeTextEditor x:Name="CodeEditor" Syntax="epScript"/>
     </DockPanel>
 </Window>

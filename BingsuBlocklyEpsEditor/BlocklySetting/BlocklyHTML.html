@@ -1,0 +1,115 @@
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <script src="https://blockly-demo.appspot.com/static/blockly_compressed.js"></script>
+    <script src="https://blockly-demo.appspot.com/static/blocks_compressed.js"></script>
+    <script src="https://blockly-demo.appspot.com/static/javascript_compressed.js"></script>
+    <script src="https://blockly-demo.appspot.com/static/msg/js/ko.js"></script>
+
+    <!--
+    <script src="src/blockly_compressed.js"></script>
+    <script src="src/blocks_compressed.js"></script>
+    <script src="src/javascript_compressed.js"></script>
+    <script src="src/msg/js/ko.js"></script>
+    -->
+    <!--
+    <script src="https://blockly-demo.appspot.com/static/blockly_compressed.js"></script>
+    <script src="https://blockly-demo.appspot.com/static/blocks_compressed.js"></script>
+    <script src="https://blockly-demo.appspot.com/static/javascript_compressed.js"></script>
+    <script src="https://blockly-demo.appspot.com/static/msg/js/ko.js"></script>
+    -->
+    <!--<style>
+        html,
+        body {
+            margin: 0;
+        }
+
+        #root {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #ECEFF1;
+            margin: 0;
+            line-height: 1.5;
+        }
+    </style>-->
+</head>
+<body>
+    <!--<div id="host" style="height: 480px; width: 600px;"></div>-->
+    <div id="root"></div>
+    <script>
+        var workspace;
+
+        function init(toolboxXML, workspaceXML) {
+            workspace = Blockly.inject('root',
+                {
+                    /*media: 'src/media/',*/
+                    toolbox: toolboxXML,
+                    //zoom: {
+                    //    controls: true,
+                    //},
+
+
+                    maxBlocks: Infinity,
+
+                    grid: {
+                        spacing: 20,
+                        length: 1,
+                        colour: '#888',
+                        snap: false
+                    },
+                    zoom: {
+                        controls: true,
+                        wheel: true,
+                        startScale: 1,
+                        maxScale: 3,
+                        minScale: 0.3,
+                        scaleSpeed: 1.2
+                    }
+                });
+            //var wx = Blockly.Xml.textToDom(workspaceXML)ss
+            //Blockly.Xml.domToWorkspace(wx, workspace);
+
+
+            ////const zoomToFit = new ZoomToFitControl(workspace);
+            ////zoomToFit.init();
+
+
+            //var darktheme = Blockly.Theme.defineTheme('dark', {
+            //    'base': Blockly.Themes.Classic,
+            //    'componentStyles': {
+            //        'workspaceBackgroundColour': '#1e1e1e',
+            //        'toolboxBackgroundColour': 'blackBackground',
+            //        'toolboxForegroundColour': '#fff',
+            //        'flyoutBackgroundColour': '#252526',
+            //        'flyoutForegroundColour': '#ccc',
+            //        'flyoutOpacity': 1,
+            //        'scrollbarColour': '#797979',
+            //        'insertionMarkerColour': '#fff',
+            //        'insertionMarkerOpacity': 0.3,
+            //        'scrollbarOpacity': 0.4,
+            //        'cursorColour': '#d0d0d0',
+            //        'blackBackground': '#333',
+            //    },
+            //});
+
+            //workspace.setTheme(darktheme);
+        }
+        function showCode() {
+            Blockly.JavaScript.INFINITE_LOOP_TRAP = null;
+            var code = Blockly.JavaScript.workspaceToCode(workspace);
+            return code;
+        }
+        function runCode() {
+            window.LoopTrap = 1000;
+            Blockly.JavaScript.INFINITE_LOOP_TRAP =
+                'if (--window.LoopTrap == 0) throw "Infinite loop.";\n';
+            var code = Blockly.JavaScript.workspaceToCode(workspace);
+            Blockly.JavaScript.INFINITE_LOOP_TRAP = null;
+            try { eval(code); } catch (e) { alert(e); }
+        }
+    </script>
+</body>
+</html>
