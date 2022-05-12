@@ -107,7 +107,7 @@ namespace BingsuCodeEditor
         /// 현재 토큰을 가져옵니다. null이 나올 수도 있습니다.
         /// </summary>
         /// <returns></returns>
-        public TOKEN GetCurrentToken()
+        public TOKEN GetCurrentToken(bool IsReverse = false)
         {
             //if (IsError)
             //{
@@ -116,7 +116,14 @@ namespace BingsuCodeEditor
 
             IsEndOfList(true);
 
-            return tklist[index++];
+            if (IsReverse)
+            {
+                return tklist[index--];
+            }
+            else
+            {
+                return tklist[index++];
+            }
         }
 
         /// <summary>
@@ -124,19 +131,17 @@ namespace BingsuCodeEditor
         /// a.b.c.d등 .과 키로 이루어진 리스트입니다.
         /// </summary>
         /// <returns></returns>
-        public List<TOKEN> GetTokenList()
+        public List<TOKEN> GetTokenList(bool IsReverse = false)
         {
             List<TOKEN> rlist = new List<TOKEN>();
             //토큰 네임스페이스를 가져옵니다.
             //a.b.c.d등 .과 키로 이루어진 리스트입니다.
 
             IsEndOfList(true);
-
-      
-
+               
             while (true)
             {
-                TOKEN tk = GetCurrentToken();
+                TOKEN tk = GetCurrentToken(IsReverse);
                 if (tk.Type == TOKEN_TYPE.Identifier)
                 {
                     rlist.Add(tk);
@@ -154,10 +159,71 @@ namespace BingsuCodeEditor
                 }
             }
      
+            return rlist;
+        }
+
+
+        /// <summary>
+        /// 토큰 네임스페이스를 가져옵니다.
+        /// a.b.c.d등 .과 키로 이루어진 리스트입니다.
+        /// </summary>
+        /// <returns></returns>
+        public List<TOKEN> GetTokenListFromTarget(TOKEN target, bool IsReverse = false)
+        {
+            List<TOKEN> rlist = new List<TOKEN>();
+            //토큰 네임스페이스를 가져옵니다.
+            //a.b.c.d등 .과 키로 이루어진 리스트입니다.
+
+            int sindex = tklist.IndexOf(target);
 
 
 
 
+            while (true)
+            {
+                if (sindex >= tklist.Count || sindex < 0)
+                {
+                    break;
+                }
+
+                TOKEN tk = tklist[sindex];
+
+                if (IsReverse)
+                {
+                    sindex--;
+                }
+                else
+                {
+                    sindex++;
+                }
+                
+
+                if (tk.Type == TOKEN_TYPE.Identifier)
+                {
+                    rlist.Add(tk);
+                }
+                else
+                {
+                    break;
+                }
+
+                if(tk.Type != TOKEN_TYPE.Symbol && tk.Value == ".")
+                {
+                    break;
+                }
+                if (IsReverse)
+                {
+                    sindex--;
+                }
+                else
+                {
+                    sindex++;
+                }
+            }
+            if (IsReverse)
+            {
+                rlist.Reverse();
+            }
             return rlist;
         }
 

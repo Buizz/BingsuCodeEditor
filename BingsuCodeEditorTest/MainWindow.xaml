@@ -21,12 +21,12 @@
         </ToolBarTray>
 
         <TabControl>
-            <TabItem Header="Blockly">
-                <b:BlocklyEditor x:Name="BlocklyEditor"/>
-            </TabItem>
             <TabItem Header="텍스트에디터">
                 <c:CodeTextEditor x:Name="CodeEditor" Syntax="epScript"/>
             </TabItem>
+            <!--<TabItem Header="Blockly">
+                <b:BlocklyEditor x:Name="BlocklyEditor"/>
+            </TabItem>-->
         </TabControl>
 
     </DockPanel>

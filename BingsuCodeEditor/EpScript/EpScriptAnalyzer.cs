@@ -251,32 +251,28 @@ namespace BingsuCodeEditor.EpScript
                     return;
                 }
 
+                TOKEN ctkn = GetToken(0);
 
-                foreach (var item in maincontainer.importedNameSpace)
+                List<TOKEN> t = tokenAnalyzer.GetTokenListFromTarget(ctkn, true);
+                //imported1.var1;
+                //imported1.const1.object1;
+
+                //const1.object1;
+                //maincontainer.vars[0].
+
+                foreach (var item in t)
                 {
-                    if (string.IsNullOrEmpty(item.shortname))
-                    {
-                        continue;
-                    }
-                    data.Add(new CodeCompletionData(item.preCompletion));
+                    PreCompletionData preCompletionData = new ImportFileItem(CompletionWordType.nameSpace, item.Value);
+                    data.Add(new CodeCompletionData(preCompletionData));
                 }
 
-                foreach (var item in maincontainer.vars.FindAll(x => scope.Contains(x.scope)))
-                {
-                    data.Add(new CodeCompletionData(item.preCompletion));
-                }
-
-
-                PreCompletionData preCompletionData = new ImportFileItem(CompletionWordType.nameSpace, "테스트");
-
-                data.Add(new CodeCompletionData(preCompletionData));
                 return;
             }
  
 
 
 
-
+            
             foreach (var item in maincontainer.importedNameSpace)
             {
                 if (string.IsNullOrEmpty(item.shortname))
@@ -363,10 +359,6 @@ namespace BingsuCodeEditor.EpScript
                 }
             }
             cursorLocation = cl;
-
-
-            
-
 
 
             //토근 분석에 사용되는 요소
