@@ -184,7 +184,7 @@ namespace BingsuCodeEditor.EpScript
                     index--;
 
 
-                    TOKEN_TYPE type = TOKEN_TYPE.LineComment;
+                    TOKEN_TYPE type = TOKEN_TYPE.Comment;
 
                     //block = block.Replace("\r", "");
 
@@ -254,6 +254,7 @@ namespace BingsuCodeEditor.EpScript
                 TOKEN ctkn = GetToken(0);
 
                 List<TOKEN> t = tokenAnalyzer.GetTokenListFromTarget(ctkn, true);
+
                 //imported1.var1;
                 //imported1.const1.object1;
 
@@ -282,6 +283,13 @@ namespace BingsuCodeEditor.EpScript
                 data.Add(new CodeCompletionData(item.preCompletion));
             }
 
+
+
+            foreach (var item in maincontainer.funcs.FindAll(x => scope.Contains(x.scope)))
+            {
+                data.Add(new CodeCompletionData(item.preCompletion));
+            }
+
             foreach (var item in maincontainer.vars.FindAll(x => scope.Contains(x.scope)))
             {
                 data.Add(new CodeCompletionData(item.preCompletion));
@@ -307,8 +315,6 @@ namespace BingsuCodeEditor.EpScript
             //최근 네임스페이스를 저장하고 해당 파일들이 변형되었는지 체크한다.
 
             //ResetCompletionData(CompletionWordType.Function);
-
-
 
 
             //Action
@@ -367,6 +373,10 @@ namespace BingsuCodeEditor.EpScript
             try
             {
                 maincontainer = tokenAnalyzer.ConatainerAnalyzer(caretoffset);
+                if(maincontainer.cursorLocation != CursorLocation.None)
+                {
+                    cursorLocation = maincontainer.cursorLocation;
+                }
             }
             catch (Exception e)
             {

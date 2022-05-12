@@ -28,12 +28,18 @@ namespace BingsuCodeEditor.AutoCompleteToken
         //원본 내용
 
 
+        public string scope;
+        public CodeAnalyzer.CursorLocation cursorLocation;
+
+        public PreCompletionData preCompletion;
+
+
         //함수 이름
         public string funcname;
         public string funcsummary;
 
 
-        public List<Arg> args;
+        public List<Arg> args = new List<Arg>();
         //Arg
         public class Arg
         {

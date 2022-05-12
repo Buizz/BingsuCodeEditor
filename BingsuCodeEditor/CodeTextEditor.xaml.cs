@@ -630,7 +630,6 @@ namespace BingsuCodeEditor
             {
                 case CodeAnalyzer.CursorLocation.None:
                     break;
-                case CodeAnalyzer.CursorLocation.FunctionArgName:
                 case CodeAnalyzer.CursorLocation.FunctionArgType:
                 case CodeAnalyzer.CursorLocation.ImportFile:
 
@@ -639,6 +638,7 @@ namespace BingsuCodeEditor
                 case CodeAnalyzer.CursorLocation.ImportNameSpace:
                 case CodeAnalyzer.CursorLocation.Keyword:
                     break;
+                case CodeAnalyzer.CursorLocation.FunctionArgName:
                 case CodeAnalyzer.CursorLocation.ObjectName:
                 case CodeAnalyzer.CursorLocation.FunctionName:
                     return;

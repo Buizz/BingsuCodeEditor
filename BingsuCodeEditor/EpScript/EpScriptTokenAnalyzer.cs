@@ -23,6 +23,7 @@ namespace BingsuCodeEditor.EpScript
             bool forstart = false;
             string scope = "st";
             string lastblockscope = "st";
+            
 
             List<Block> forblocks = new List<Block>();
 
@@ -99,13 +100,42 @@ namespace BingsuCodeEditor.EpScript
                                     ThrowException("import문이 정상적으로 종료되지 않았습니다.", tk);
                                 }
 
-
                                 //임포트 매니저에게 파일 이름 확인 시키기.
                                 //본인의 이름과 파일 이름을 넘겨야함.
+                                break;
+                            case "function":
+                                Function function = FunctionAnalyzer(startindex);
+
+                                function.scope = scope;
 
 
+                                //범위를 벗어날 경우 오브젝트에 넣지 않는다.
+                                if (isinstartoffset)
+                                {
+                                    if(function.cursorLocation != CursorLocation.None)
+                                    {
+                                        rcontainer.cursorLocation = function.cursorLocation;
+                                    }
+                                    rcontainer.funcs.Add(function);
+                                }
 
-
+                                //function fname(args){}
+                                ///******/function fname(args){}
+                                /***
+                                 * @Type
+                                 * F
+                                 * @Summary.ko-KR
+                                 * [loc]에 존재하는 [player]의 [unit]을 반환합니다.
+                                 *
+                                 * @param.player.ko-KR
+                                 * 유닛의 소유 플레이어입니다.
+                                 *
+                                 * @param.unit.ko-KR
+                                 * 유닛입니다.
+                                 *
+                                 * @param.loc.ko-KR
+                                 * 로케이션입니다.
+                                ***/
                                 break;
                             case "object":
                                 //object linkedList{
@@ -125,27 +155,8 @@ namespace BingsuCodeEditor.EpScript
                                 //    }
                                 //};
 
-                            case "function":
-                                //function fname(args){}
-                                ///******/function fname(args){}
-                                /***
-                                 * @Type
-                                 * F
-                                 * @Summary.ko-KR
-                                 * [loc]에 존재하는 [player]의 [unit]을 반환합니다.
-                                 *
-                                 * @param.player.ko-KR
-                                 * 유닛의 소유 플레이어입니다.
-                                 *
-                                 * @param.unit.ko-KR
-                                 * 유닛입니다.
-                                 *
-                                 * @param.loc.ko-KR
-                                 * 로케이션입니다.
-                                ***/
                                 break;
                         }
-
 
                         break;
                     case TOKEN_TYPE.Symbol:
@@ -219,7 +230,7 @@ namespace BingsuCodeEditor.EpScript
 
 
 
-        public override Block BlockAnalyzer(string type)
+        public Block BlockAnalyzer(string type)
         {
             int tindex = index;
 
@@ -229,16 +240,10 @@ namespace BingsuCodeEditor.EpScript
 
             string varconst = type;
 
-
             TOKEN tk = GetCurrentToken();
             string varname = tk.Value;
             string vartype = "";
             List<TOKEN> varvalue = null;
-
-
-
-
-
 
             if (CheckCurrentToken(TOKEN_TYPE.Symbol, ":"))
             {
@@ -246,7 +251,6 @@ namespace BingsuCodeEditor.EpScript
                 tk = GetCurrentToken();
                 vartype = tk.Value;
             }
-
 
             if (CheckCurrentToken(TOKEN_TYPE.Symbol, "="))
             {
@@ -278,12 +282,125 @@ namespace BingsuCodeEditor.EpScript
         }
 
 
-
-
-
-        public override Function FunctionAnalyzer()
+        public Function FunctionAnalyzer(int startindex)
         {
-            throw new NotImplementedException();
+            Function function = new Function();
+            TOKEN tk = GetCurrentToken();
+
+            
+
+            if (tk.Type != TOKEN_TYPE.Identifier)
+            {
+                ThrowException("함수의 이름에는 식별자가 와야 합니다.", tk);
+            }
+            string funcname = tk.Value;
+            function.funcname = funcname;
+
+
+            CursorLocation cl = CursorLocation.None;
+
+            int argstartoffset = tk.EndOffset;
+            int argendoffset = 0;
+
+            if (!CheckCurrentToken(TOKEN_TYPE.Symbol, "("))
+            {
+                ThrowException("함수의 이름 다음에는 인자선언이 와야 합니다.", tk);
+            }
+
+
+
+            while (true)
+            {
+                Function.Arg arg = new Function.Arg();
+
+                tk = GetCurrentToken();
+
+                if(tk.Type == TOKEN_TYPE.Identifier)
+                {
+                    string argname = tk.Value;
+
+                    arg.argname = argname;
+
+                }
+                else
+                {
+                    if(function.args.Count == 0)
+                    {
+                        if (tk.Type != TOKEN_TYPE.Symbol)
+                        {
+                            //무조건 심불이 와야됨
+                            ThrowException("잘못된 인자 선언입니다. )가 와야합니다.", tk);
+                        }
+                        if (tk.Value == ")")
+                        {
+                            argendoffset = tk.EndOffset;
+                            break;
+                        }
+                        //인자가 없을 수 있음.
+                    }
+
+                    ThrowException("잘못된 인자 선언입니다. 인자 이름이 와야 합니다.", tk);
+                }
+
+
+                tk = GetCurrentToken();
+                if(tk.Type != TOKEN_TYPE.Symbol)
+                {
+                    //무조건 심불이 와야됨
+                    ThrowException("잘못된 인자 선언입니다. ) , :가 와야합니다.", tk);
+                }
+
+                if(tk.Value == ")")
+                {
+                    argendoffset = tk.EndOffset;
+                    break;
+                }
+                else if (tk.Value == ",")
+                {
+
+                }
+                else if (tk.Value == ":")
+                {
+                    tk = GetCommentTokenIten();
+                    if(tk.Type == TOKEN_TYPE.Identifier)
+                    {
+                        //일반 타입
+                        arg.argtype = tk.Value;
+                        GetCurrentToken();
+                    }
+                    else if (tk.Type == TOKEN_TYPE.Comment)
+                    {
+                        //특수처리된 타입
+                        arg.argtype = tk.Value;
+                        GetCurrentToken();
+                    }
+                    else
+                    {
+                        ThrowException("인자 타입을 선언해야 합니다.", tk);
+                    }
+                }
+
+
+                function.args.Add(arg);
+            }
+
+
+            if(cl == CursorLocation.None)
+            {
+                if(argstartoffset <= startindex && startindex <= argendoffset)
+                {
+                    cl = CursorLocation.FunctionArgName;
+                }
+            }
+
+
+            function.cursorLocation = cl;
+
+
+
+            function.preCompletion = new ObjectItem(CompletionWordType.Function, funcname);
+
+            return function;
         }
 
     }

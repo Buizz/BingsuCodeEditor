@@ -27,6 +27,7 @@ namespace BingsuCodeEditor
     public abstract class TokenAnalyzer
     {
         private List<TOKEN> tklist;
+
         protected int index;
 
         public TOKEN GetLastToken
@@ -38,9 +39,25 @@ namespace BingsuCodeEditor
                     return null;
                 }
 
-                return tklist[index];
+                return GetSafeTokenIten();
             }
         }
+
+
+        public TOKEN GetSafeTokenIten(bool GoToReverse = false)
+        {
+            PassComment(GoToReverse);
+
+            return tklist[index];
+        }
+
+
+
+        public TOKEN GetCommentTokenIten()
+        {
+            return tklist[index];
+        }
+
 
 
         public List<ErrorToken> ErrorList = new List<ErrorToken>();
@@ -104,26 +121,18 @@ namespace BingsuCodeEditor
 
 
         /// <summary>
-        /// 현재 토큰을 가져옵니다. null이 나올 수도 있습니다.
+        /// 현재 토큰을 가져옵니다. null이 나올 수도 있습니다. 현재 토근을 가져온 뒤에 다음 토큰을 가져옵니다.
         /// </summary>
         /// <returns></returns>
-        public TOKEN GetCurrentToken(bool IsReverse = false)
+        public TOKEN GetCurrentToken(bool GoToReverse = false)
         {
-            //if (IsError)
-            //{
-            //    throw new Exception();
-            //}
-
             IsEndOfList(true);
 
-            if (IsReverse)
-            {
-                return tklist[index--];
-            }
-            else
-            {
-                return tklist[index++];
-            }
+            TOKEN rtk = GetSafeTokenIten(GoToReverse);
+
+            if (GoToReverse){index--;}else{index++;}
+
+            return rtk;
         }
 
         /// <summary>
@@ -174,56 +183,43 @@ namespace BingsuCodeEditor
             //토큰 네임스페이스를 가져옵니다.
             //a.b.c.d등 .과 키로 이루어진 리스트입니다.
 
-            int sindex = tklist.IndexOf(target);
+            int savedindex = index;
 
 
-
+            index = tklist.IndexOf(target);
 
             while (true)
             {
-                if (sindex >= tklist.Count || sindex < 0)
+                if (index >= tklist.Count || index < 0)
                 {
                     break;
                 }
 
-                TOKEN tk = tklist[sindex];
+                IsEndOfList(true);
+                TOKEN tk = GetCurrentToken(IsReverse);
 
-                if (IsReverse)
-                {
-                    sindex--;
-                }
-                else
-                {
-                    sindex++;
-                }
-                
-
-                if (tk.Type == TOKEN_TYPE.Identifier)
-                {
-                    rlist.Add(tk);
-                }
-                else
+                if(tk.Type != TOKEN_TYPE.Identifier)
                 {
                     break;
                 }
 
-                if(tk.Type != TOKEN_TYPE.Symbol && tk.Value == ".")
+                rlist.Add(tk);
+
+
+                IsEndOfList(true);
+
+                if (!CheckCurrentToken(TOKEN_TYPE.Symbol, ".", IsReverse: IsReverse))
                 {
                     break;
-                }
-                if (IsReverse)
-                {
-                    sindex--;
-                }
-                else
-                {
-                    sindex++;
                 }
             }
             if (IsReverse)
             {
                 rlist.Reverse();
             }
+
+            index = savedindex;
+
             return rlist;
         }
 
@@ -233,7 +229,7 @@ namespace BingsuCodeEditor
         /// 만약 옳은 토큰일 경우 다음 인덱스로 진행합니다.
         /// </summary>
         /// <returns></returns>
-        public bool CheckCurrentToken(TOKEN_TYPE ttype, string value = null)
+        public bool CheckCurrentToken(TOKEN_TYPE ttype, string value = null, bool IsReverse = false)
         {
             //if (IsError)
             //{
@@ -242,7 +238,8 @@ namespace BingsuCodeEditor
 
             IsEndOfList(true);
 
-            TOKEN ntk = tklist[index];
+
+            TOKEN ntk = GetSafeTokenIten();
             if(ttype != ntk.Type)
             {
                 return false;
@@ -256,7 +253,14 @@ namespace BingsuCodeEditor
                 }
             }
 
-            index++;
+            if (IsReverse)
+            {
+                index--;
+            }
+            else
+            {
+                index++;
+            }
             return true;
         }
         public bool IsEndOfList(bool IsExist = false)
@@ -275,6 +279,31 @@ namespace BingsuCodeEditor
                 return false;
             }
         }
+
+        public int PassComment(bool GoToReverse = false)
+        {
+            if (IsEndOfList(false))
+            {
+                return index;
+            }
+            while (tklist[index].Type == TOKEN_TYPE.Comment || tklist[index].Type == TOKEN_TYPE.LineComment)
+            {
+                if (GoToReverse)
+                {
+                    index--;
+                }
+                else
+                {
+                    index++;
+                }
+                if (IsEndOfList(false))
+                {
+                    return index;
+                }
+            }
+            return index;
+        }
+
 
 
         public void ThrowException(string message, TOKEN tk)
@@ -312,7 +341,5 @@ namespace BingsuCodeEditor
 
 
         public abstract Container ConatainerAnalyzer(int startindex = int.MaxValue);
-        public abstract Block BlockAnalyzer(string type);
-        public abstract Function FunctionAnalyzer();
     }
 }

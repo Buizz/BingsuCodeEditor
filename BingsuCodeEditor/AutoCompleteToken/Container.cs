@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static BingsuCodeEditor.CodeAnalyzer;
 
 namespace BingsuCodeEditor.AutoCompleteToken
 {
@@ -11,6 +12,8 @@ namespace BingsuCodeEditor.AutoCompleteToken
         //Object와 NameSpace가 들어온다.
 
         public string currentScope;
+
+        public CursorLocation cursorLocation;
 
 
         public string mainname;
