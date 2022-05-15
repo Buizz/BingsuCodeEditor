@@ -53,8 +53,10 @@ namespace BingsuCodeEditor
             AttachEvents();
         }
 
+        private string inputText;
+        private bool IsNameSpaceOpen;
 
-        public void Open(bool IsNameSpaceOpen = false)
+        public void Open(string input, bool IsNameSpaceOpen = false)
         {
             this.MinWidth = 0;
             this.Width = 0;
@@ -62,13 +64,16 @@ namespace BingsuCodeEditor
             Height = 0;
             this.SizeToContent = SizeToContent.Manual;
 
+
+            this.inputText = input;
+            this.IsNameSpaceOpen = IsNameSpaceOpen;
+
             Show();
 
             if (!IsNameSpaceOpen)
             {
                 this.Visibility = Visibility.Hidden;
             }
-
 
             this.SizeToContent = SizeToContent.Height;
             this.MinHeight = 15;
@@ -86,6 +91,16 @@ namespace BingsuCodeEditor
             completionList.ListBox.Background = (System.Windows.Media.Brush)Application.Current.Resources["MaterialDesignToolBarBackground"];
             completionList.ListBox.Foreground = (System.Windows.Media.Brush)Application.Current.Resources["MaterialDesignBody"];
             completionList.ListBox.BorderBrush = (System.Windows.Media.Brush)Application.Current.Resources["MaterialDesignPaper"];
+
+            if (!string.IsNullOrEmpty(input))
+            {
+                if (!IsNameSpaceOpen)
+                {
+                    completionList.SelectItem(input);
+                    this.StartOffset -= 1;
+                }
+            }
+       
         }
 
 
@@ -167,7 +182,9 @@ namespace BingsuCodeEditor
             // If the Complete callback pushes stacked input handlers, we don't want to pop those when the CC window closes.
             var item = completionList.SelectedItem;
             if (item != null)
+            {
                 item.Complete(this.TextArea, new AnchorSegment(this.TextArea.Document, this.StartOffset, this.EndOffset - this.StartOffset), e);
+            }
         }
 
         void AttachEvents()

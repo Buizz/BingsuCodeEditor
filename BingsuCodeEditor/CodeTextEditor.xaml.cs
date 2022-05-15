@@ -47,16 +47,25 @@ namespace BingsuCodeEditor
 
 
         private DateTime markSameWordTimer;
-        private void DispatcherTimer_Tick(object sender, EventArgs e)
+
+
+        private void StartAnalyzeThread()
         {
-            if (codeAnalyzer != null && (thread == null || !thread.IsAlive))
+            thread = new Thread(() =>
             {
-                string codeText = aTextEditor.Text;
-                int offset = aTextEditor.CaretOffset;
-
-
-                thread = new Thread(()=>
+                while (true)
                 {
+                    if(codeAnalyzer != null)
+                    {
+                        continue;
+                    }
+
+
+                    string codeText = aTextEditor.Text;
+                    int offset = aTextEditor.CaretOffset;
+
+
+
                     DateTime dateTime = DateTime.Now;
 
                     //코드 분석 실행
@@ -145,8 +154,124 @@ namespace BingsuCodeEditor
                     {
 
                     }
+                }
+            });
+            thread.Start();
+        }
 
-                 
+        private void DispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            if (codeAnalyzer != null && (thread == null || !thread.IsAlive))
+            {
+                string codeText = aTextEditor.Text;
+                int offset = aTextEditor.CaretOffset;
+
+
+                thread = new Thread(() =>
+                {
+                    DateTime dateTime = DateTime.Now;
+
+                    //코드 분석 실행
+                    if (codeAnalyzer.WorkCompete)
+                    {
+                        codeAnalyzer.Apply(codeText, offset);
+                    }
+
+                    try
+                    {
+                        aTextEditor.Dispatcher.Invoke(new Action(() =>
+                        {
+                            TimeSpan interval = DateTime.Now.Subtract(dateTime);
+                            if (dateTime > markSameWordTimer)
+                            {
+                                highLightSelectItem();
+                            }
+                            dispatcherTimer.Interval = TimeSpan.FromMilliseconds(interval.TotalMilliseconds * 2);
+
+                            CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
+
+                            if (OpenSiginal)
+                            {
+                                if (OpenIsNameSpaceOpen)
+                                {
+                                    if(tk != null)
+                                    {
+                                        completionWindowOpen(OpenInput, OpenIsNameSpaceOpen);
+                                        OpenSiginal = false;
+                                    }
+                                }
+                                else
+                                {
+                                    completionWindowOpen(OpenInput, OpenIsNameSpaceOpen);
+                                    OpenSiginal = false;
+                                }                       
+                            }
+
+
+                            //오류 그리기
+                            //DrawRedLine(0, 10);
+
+                            //aTextEditor.TextArea.TextView.Redraw();
+
+
+                            //테스트 트리거
+
+                            ToolTip.Text = "";
+                            //CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(-1);
+                            //ToolTip.AppendText(codeAnalyzer.GetTokenCount() + ":" + "Caret:" + aTextEditor.CaretOffset.ToString());
+                            //if (token != null)
+                            //{
+                            //    ToolTip.AppendText("  " + token.StartOffset + ", " + token.EndOffset);
+                            //    ToolTip.AppendText(", " + token.Value);
+                            //}
+                            if (tk != null)
+                            {
+                                ToolTip.AppendText("TokenIndex : " + tk.Value.Replace("\r\n", "") + "\n");
+                            }
+                            else
+                            {
+                                ToolTip.AppendText("TokenIndex : null\n");
+                            }
+                            ToolTip.AppendText("cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n");
+                            //if (codeAnalyzer.tokenAnalyzer.IsError)
+                            //{
+                            //    foreach (var item in codeAnalyzer.tokenAnalyzer.ErrorList)
+                            //    {
+                            //        ToolTip.AppendText("Error : " + item.Message + "줄 : " + item.Line + "  열 : " + item.Column + "\n");
+                            //    }
+                            //}
+
+
+                            //for (int i = -1; i <= 1; i++)
+                            //{
+                            //    ToolTip.AppendText(i + " : ");
+                            //    CodeAnalyzer.TOKEN ftk = codeAnalyzer.GetToken(i);
+                            //    if(ftk == null)
+                            //    {
+                            //        ToolTip.AppendText("null");
+                            //    }
+                            //    else
+                            //    {
+                            //        ToolTip.AppendText(ftk.Value);
+                            //    }
+                            //    ToolTip.AppendText("\n");
+                            //}
+                            ToolTip.AppendText("  " + interval.ToString());
+
+
+
+                            //ErrorLogList.Items.Clear();
+
+                            //ErrorLogList.Items.Add(codeAnalyzer.tokenAnalyzer.ErrorMessage);
+
+
+
+                        }), DispatcherPriority.Normal);
+                    }
+                    catch (TaskCanceledException)
+                    {
+
+                    }
 
 
 
@@ -395,7 +520,7 @@ namespace BingsuCodeEditor
                 }
             }
 
-
+            //StartAnalyzeThread();
 
             dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Interval = TimeSpan.FromMilliseconds(100);
@@ -579,9 +704,22 @@ namespace BingsuCodeEditor
         //private Thread cmpthread;
 
 
+        private bool OpenSiginal;
+        private string OpenInput;
+        private bool OpenIsNameSpaceOpen;
+        private void CompletionWindowOpenAsync(string input, bool IsNameSpaceOpen = false)
+        {
+            OpenSiginal = true;
+            OpenInput = input;
+            OpenIsNameSpaceOpen = IsNameSpaceOpen;
+
+            //completionWindowOpen(input, IsNameSpaceOpen);
+        }
+
+
 
         CustomCompletionWindow completionWindow;
-        private void completionWindowOpen(string input, bool IsNameSpaceOpen = false)
+        private  void completionWindowOpen(string input, bool IsNameSpaceOpen = false)
         {
             //선택이 다중일 경우 사용하지 않음
             //엔터링에서 분석한 정보를 토대로, 자동완성창을 열거나 자동완성 목록을 생성
@@ -591,10 +729,11 @@ namespace BingsuCodeEditor
 
 
 
-
             if (codeAnalyzer == null)
                 return;
             if (input.Length != 1)
+                return;
+            if (string.IsNullOrWhiteSpace(input))
                 return;
 
 
@@ -670,6 +809,9 @@ namespace BingsuCodeEditor
             //});
             //cmpthread.Start();
 
+            //await ();
+
+            codeAnalyzer.WaitToUpdate(aTextEditor);
 
 
             IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
@@ -678,10 +820,22 @@ namespace BingsuCodeEditor
 
             //data.Add(new CodeCompletionData("function", CompletionWordType.KeyWord));
             //data.Add(new CodeCompletionData("for", CompletionWordType.KeyWord));
-            completionWindow.Open(IsNameSpaceOpen);
+            completionWindow.Open(input, IsNameSpaceOpen);
+            if (!IsNameSpaceOpen)
+            {
+                //completionWindow.CompletionList.SelectItem(input);
+            }
+
             completionWindow.Closed += delegate {
                 completionWindow = null;
             };
+
+
+            //if (data.Count == 0)
+            //{
+            //    completionWindow.Close();
+            //    return;
+            //}
         }
 
 
@@ -774,14 +928,21 @@ namespace BingsuCodeEditor
 
                 }
             }
- 
 
-            if(e.Text == ".")
+            if (!LeftCtrlDown && !LeftShiftDown)
             {
-                completionWindowOpen(".", true);
-                //codeAnalyzer.AutoInsert("f");
-                return;
+                if (e.Text == ".")
+                {
+                    CompletionWindowOpenAsync(".", true);
+                    //codeAnalyzer.AutoInsert("f");
+                    return;
+                }
+                else
+                {
+                    CompletionWindowOpenAsync(e.Text);
+                }
             }
+        
             codeAnalyzer.AutoInsert(e.Text);
         }
 
@@ -999,13 +1160,14 @@ namespace BingsuCodeEditor
             {
                 if (input == "OemPeriod")
                 {
+                    //
                     //codeAnalyzer.GetToken(0);
                     //.일경우 네임스페이스 확인
-                    return;
+                    //return;
                 }
                 else
                 {
-                    completionWindowOpen(input);
+                    //CompletionWindowOpenAsync(input);
                 }
             }
             if (SnippetDraw(e.SystemKey, e.Key))

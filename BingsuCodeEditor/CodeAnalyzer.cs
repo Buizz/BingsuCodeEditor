@@ -254,6 +254,8 @@ namespace BingsuCodeEditor
                 return workComplete;
             }
         }
+        private string LastAnalyzeText;
+
 
         private int lasttokenIndex;
         private int currenttokenIndex;
@@ -266,6 +268,18 @@ namespace BingsuCodeEditor
                 return currenttokenIndex;
             }
         }
+
+
+
+        public void WaitToUpdate(TextEditor textEditor)
+        {
+            //while (!WorkCompete)
+            //{
+                
+            //}
+            //Apply(textEditor.Text, textEditor.CaretOffset);
+        }
+
 
 
         public int GetTokenCount()
@@ -568,6 +582,8 @@ namespace BingsuCodeEditor
         public void Apply(string text, int caretoffset)
         {
             workComplete = false;
+            LastAnalyzeText = text;
+
             currentoffset = caretoffset;
             currenttokenIndex = -1;
             lasttokenIndex = -1;

@@ -39,11 +39,17 @@ namespace BingsuCodeEditor
 
 
             int lencash = len;
-
-            textEditor.Dispatcher.Invoke(new Action(()=> {
-                if(lencash == textEditor.Document.TextLength)
-                    foldingManager.UpdateFoldings(newFoldings, -1);
-            }), DispatcherPriority.Normal);
+            try
+            {
+                textEditor.Dispatcher.Invoke(new Action(() => {
+                    if (lencash == textEditor.Document.TextLength)
+                        foldingManager.UpdateFoldings(newFoldings, -1);
+                }), DispatcherPriority.Normal);
+            }
+            catch (Exception)
+            {
+            }
+   
         }
     }
 }

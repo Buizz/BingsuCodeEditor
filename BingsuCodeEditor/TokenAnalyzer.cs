@@ -77,6 +77,9 @@ namespace BingsuCodeEditor
             }
         }
 
+
+
+
         //public string ErrorMessage;
         //public int ErrorIndex;
 
@@ -188,6 +191,8 @@ namespace BingsuCodeEditor
 
             index = tklist.IndexOf(target);
 
+            CheckCurrentToken(TOKEN_TYPE.Symbol, ".", IsReverse: IsReverse);
+
             while (true)
             {
                 if (index >= tklist.Count || index < 0)
@@ -196,6 +201,10 @@ namespace BingsuCodeEditor
                 }
 
                 IsEndOfList(true);
+                if (index < 0)
+                {
+                    break;
+                }
                 TOKEN tk = GetCurrentToken(IsReverse);
 
                 if(tk.Type != TOKEN_TYPE.Identifier)
@@ -207,6 +216,10 @@ namespace BingsuCodeEditor
 
 
                 IsEndOfList(true);
+                if (index < 0)
+                {
+                    break;
+                }
 
                 if (!CheckCurrentToken(TOKEN_TYPE.Symbol, ".", IsReverse: IsReverse))
                 {

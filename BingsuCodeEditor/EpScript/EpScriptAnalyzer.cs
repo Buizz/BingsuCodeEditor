@@ -252,9 +252,12 @@ namespace BingsuCodeEditor.EpScript
                 }
 
                 TOKEN ctkn = GetToken(0);
+                if(ctkn == null)
+                {
+                    return;
+                }
 
                 List<TOKEN> t = tokenAnalyzer.GetTokenListFromTarget(ctkn, true);
-
                 //imported1.var1;
                 //imported1.const1.object1;
 
