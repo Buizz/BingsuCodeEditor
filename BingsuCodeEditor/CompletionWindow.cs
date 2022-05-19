@@ -97,7 +97,7 @@ namespace BingsuCodeEditor
                 if (!IsNameSpaceOpen)
                 {
                     completionList.SelectItem(input);
-                    this.StartOffset -= 1;
+                    this.StartOffset -= input.Length;
                 }
             }
        

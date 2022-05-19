@@ -159,6 +159,7 @@ namespace BingsuCodeEditor
             thread.Start();
         }
 
+
         private void DispatcherTimer_Tick(object sender, EventArgs e)
         {
             if (codeAnalyzer != null && (thread == null || !thread.IsAlive))
@@ -167,7 +168,7 @@ namespace BingsuCodeEditor
                 int offset = aTextEditor.CaretOffset;
 
 
-                thread = new Thread(() =>
+                thread = new Thread(async () =>
                 {
                     DateTime dateTime = DateTime.Now;
 
@@ -175,106 +176,104 @@ namespace BingsuCodeEditor
                     if (codeAnalyzer.WorkCompete)
                     {
                         codeAnalyzer.Apply(codeText, offset);
-                    }
-
-                    try
-                    {
-                        aTextEditor.Dispatcher.Invoke(new Action(() =>
+                        try
                         {
-                            TimeSpan interval = DateTime.Now.Subtract(dateTime);
-                            if (dateTime > markSameWordTimer)
+                            await aTextEditor.Dispatcher.InvokeAsync(new Action(() =>
                             {
-                                highLightSelectItem();
-                            }
-                            dispatcherTimer.Interval = TimeSpan.FromMilliseconds(interval.TotalMilliseconds * 2);
-
-                            CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
-
-                            if (OpenSiginal)
-                            {
-                                if (OpenIsNameSpaceOpen)
+                                CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
+                                if (OpenSiginal)
                                 {
-                                    if(tk != null)
+                                    if (OpenIsNameSpaceOpen)
+                                    {
+                                        if (tk != null)
+                                        {
+                                            completionWindowOpen(OpenInput, OpenIsNameSpaceOpen);
+                                            OpenSiginal = false;
+                                        }
+                                    }
+                                    else
                                     {
                                         completionWindowOpen(OpenInput, OpenIsNameSpaceOpen);
                                         OpenSiginal = false;
                                     }
                                 }
+
+
+                                TimeSpan interval = DateTime.Now.Subtract(dateTime);
+                                if (dateTime > markSameWordTimer)
+                                {
+                                    highLightSelectItem();
+                                }
+                                dispatcherTimer.Interval = TimeSpan.FromMilliseconds(interval.TotalMilliseconds * 2);
+
+
+          
+
+
+                                //오류 그리기
+                                //DrawRedLine(0, 10);
+
+                                //aTextEditor.TextArea.TextView.Redraw();
+
+
+                                //테스트 트리거
+
+                                ToolTip.Text = "";
+                                //CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(-1);
+                                //ToolTip.AppendText(codeAnalyzer.GetTokenCount() + ":" + "Caret:" + aTextEditor.CaretOffset.ToString());
+                                //if (token != null)
+                                //{
+                                //    ToolTip.AppendText("  " + token.StartOffset + ", " + token.EndOffset);
+                                //    ToolTip.AppendText(", " + token.Value);
+                                //}
+                                if (tk != null)
+                                {
+                                    ToolTip.AppendText("TokenIndex : " + tk.Value.Replace("\r\n", "") + "\n");
+                                }
                                 else
                                 {
-                                    completionWindowOpen(OpenInput, OpenIsNameSpaceOpen);
-                                    OpenSiginal = false;
-                                }                       
-                            }
+                                    ToolTip.AppendText("TokenIndex : null\n");
+                                }
+
+                                ToolTip.AppendText("cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n");
+                                //if (codeAnalyzer.tokenAnalyzer.IsError)
+                                //{
+                                //    foreach (var item in codeAnalyzer.tokenAnalyzer.ErrorList)
+                                //    {
+                                //        ToolTip.AppendText("Error : " + item.Message + "줄 : " + item.Line + "  열 : " + item.Column + "\n");
+                                //    }
+                                //}
 
 
-                            //오류 그리기
-                            //DrawRedLine(0, 10);
-
-                            //aTextEditor.TextArea.TextView.Redraw();
-
-
-                            //테스트 트리거
-
-                            ToolTip.Text = "";
-                            //CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(-1);
-                            //ToolTip.AppendText(codeAnalyzer.GetTokenCount() + ":" + "Caret:" + aTextEditor.CaretOffset.ToString());
-                            //if (token != null)
-                            //{
-                            //    ToolTip.AppendText("  " + token.StartOffset + ", " + token.EndOffset);
-                            //    ToolTip.AppendText(", " + token.Value);
-                            //}
-                            if (tk != null)
-                            {
-                                ToolTip.AppendText("TokenIndex : " + tk.Value.Replace("\r\n", "") + "\n");
-                            }
-                            else
-                            {
-                                ToolTip.AppendText("TokenIndex : null\n");
-                            }
-                            ToolTip.AppendText("cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n");
-                            //if (codeAnalyzer.tokenAnalyzer.IsError)
-                            //{
-                            //    foreach (var item in codeAnalyzer.tokenAnalyzer.ErrorList)
-                            //    {
-                            //        ToolTip.AppendText("Error : " + item.Message + "줄 : " + item.Line + "  열 : " + item.Column + "\n");
-                            //    }
-                            //}
-
-
-                            //for (int i = -1; i <= 1; i++)
-                            //{
-                            //    ToolTip.AppendText(i + " : ");
-                            //    CodeAnalyzer.TOKEN ftk = codeAnalyzer.GetToken(i);
-                            //    if(ftk == null)
-                            //    {
-                            //        ToolTip.AppendText("null");
-                            //    }
-                            //    else
-                            //    {
-                            //        ToolTip.AppendText(ftk.Value);
-                            //    }
-                            //    ToolTip.AppendText("\n");
-                            //}
-                            ToolTip.AppendText("  " + interval.ToString());
+                                //for (int i = -1; i <= 1; i++)
+                                //{
+                                //    ToolTip.AppendText(i + " : ");
+                                //    CodeAnalyzer.TOKEN ftk = codeAnalyzer.GetToken(i);
+                                //    if(ftk == null)
+                                //    {
+                                //        ToolTip.AppendText("null");
+                                //    }
+                                //    else
+                                //    {
+                                //        ToolTip.AppendText(ftk.Value);
+                                //    }
+                                //    ToolTip.AppendText("\n");
+                                //}
+                                ToolTip.AppendText("  " + interval.ToString());
 
 
 
-                            //ErrorLogList.Items.Clear();
+                                //ErrorLogList.Items.Clear();
 
-                            //ErrorLogList.Items.Add(codeAnalyzer.tokenAnalyzer.ErrorMessage);
+                                //ErrorLogList.Items.Add(codeAnalyzer.tokenAnalyzer.ErrorMessage);
 
+                            }), DispatcherPriority.Normal);
+                        }
+                        catch (TaskCanceledException)
+                        {
 
-
-                        }), DispatcherPriority.Normal);
+                        }
                     }
-                    catch (TaskCanceledException)
-                    {
-
-                    }
-
-
-
                 });
                 thread.Start();
             }
@@ -704,14 +703,23 @@ namespace BingsuCodeEditor
         //private Thread cmpthread;
 
 
-        private bool OpenSiginal;
+        private bool OpenSiginal = false;
         private string OpenInput;
         private bool OpenIsNameSpaceOpen;
         private void CompletionWindowOpenAsync(string input, bool IsNameSpaceOpen = false)
         {
+            if (OpenSiginal)
+            {
+                OpenInput += input;
+            }
+            else
+            {
+                OpenInput = input;
+            }
+
             OpenSiginal = true;
-            OpenInput = input;
             OpenIsNameSpaceOpen = IsNameSpaceOpen;
+      
 
             //completionWindowOpen(input, IsNameSpaceOpen);
         }

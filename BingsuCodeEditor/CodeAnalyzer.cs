@@ -258,7 +258,19 @@ namespace BingsuCodeEditor
 
 
         private int lasttokenIndex;
-        private int currenttokenIndex;
+
+        private int _currenttokenIndex;
+        private int currenttokenIndex
+        {
+            get
+            {
+                if (_currenttokenIndex == -1)
+                {
+                    //_currenttokenIndex = Tokens.IndexOf(SearchToken(currentoffset, true));
+                }
+                return _currenttokenIndex;
+            }
+        }
         private int currentoffset;
 
         public int CurrentTokenIndex
@@ -424,7 +436,7 @@ namespace BingsuCodeEditor
 
             if (token.CheckOffset(caretoffset))
             {
-                currenttokenIndex = tokenlist.Count() - 1;
+                _currenttokenIndex = tokenlist.Count() - 1;
             }
         }
         public List<TOKEN> GetTokenList(string text, int caretoffset, bool initText = false)
@@ -585,7 +597,7 @@ namespace BingsuCodeEditor
             LastAnalyzeText = text;
 
             currentoffset = caretoffset;
-            currenttokenIndex = -1;
+            _currenttokenIndex = -1;
             lasttokenIndex = -1;
 
             List<TOKEN> tempList = new List<TOKEN>();
@@ -597,9 +609,15 @@ namespace BingsuCodeEditor
             }
             tempList.AddRange(GetTokenList(text, caretoffset));
 
-            if(currenttokenIndex == -1)
+
+            Tokens.Clear();
+            Tokens.AddRange(tempList);
+
+
+
+            if (currenttokenIndex == -1)
             {
-                currenttokenIndex = Tokens.IndexOf(SearchToken(currentoffset, true));
+                _currenttokenIndex = Tokens.IndexOf(SearchToken(currentoffset, true));
             }
             if(lasttokenIndex == -1)
             {
@@ -609,24 +627,11 @@ namespace BingsuCodeEditor
             //여기다가 토큰을 분석하자
             TokenAnalyze(caretoffset);
 
-
             codeFoldingManager.FoldingUpdate(Tokens, text.Length);
 
             //에러판단
-            try
-            {
-                textEditor.Dispatcher.Invoke(new Action(() => {
-                    Tokens.Clear();
-                    Tokens.AddRange(tempList);
 
-                    workComplete = true;
-
-                }), DispatcherPriority.Normal);
-            }
-            catch (TaskCanceledException)
-            {
-                workComplete = true;
-            }
+            workComplete = true;
         }
 
 

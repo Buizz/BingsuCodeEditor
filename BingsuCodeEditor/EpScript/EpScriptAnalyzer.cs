@@ -367,6 +367,13 @@ namespace BingsuCodeEditor.EpScript
                     }
                 }
             }
+
+            if(cl == CursorLocation.None)
+            {
+
+            }
+
+
             cursorLocation = cl;
 
 
