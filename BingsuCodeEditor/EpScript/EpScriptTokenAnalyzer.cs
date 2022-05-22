@@ -308,6 +308,8 @@ namespace BingsuCodeEditor.EpScript
             }
 
 
+            string errormsg = "";
+            bool isException = false;
 
             while (true)
             {
@@ -329,7 +331,10 @@ namespace BingsuCodeEditor.EpScript
                         if (tk.Type != TOKEN_TYPE.Symbol)
                         {
                             //무조건 심불이 와야됨
-                            ThrowException("잘못된 인자 선언입니다. )가 와야합니다.", tk);
+                            argendoffset = tk.EndOffset;
+                            isException = true;
+                            errormsg = "잘못된 인자 선언입니다. )가 와야합니다.";
+                            break;
                         }
                         if (tk.Value == ")")
                         {
@@ -339,15 +344,22 @@ namespace BingsuCodeEditor.EpScript
                         //인자가 없을 수 있음.
                     }
 
-                    ThrowException("잘못된 인자 선언입니다. 인자 이름이 와야 합니다.", tk);
+                    argendoffset = tk.EndOffset;
+                    isException = true;
+                    errormsg = "잘못된 인자 선언입니다. 인자 이름이 와야 합니다.";
+                    break;
                 }
 
+                recheck:
 
                 tk = GetCurrentToken();
                 if(tk.Type != TOKEN_TYPE.Symbol)
                 {
                     //무조건 심불이 와야됨
-                    ThrowException("잘못된 인자 선언입니다. ) , :가 와야합니다.", tk);
+                    argendoffset = tk.EndOffset;
+                    isException = true;
+                    errormsg = "잘못된 인자 선언입니다. ) , :가 와야합니다.";
+                    break;
                 }
 
                 if(tk.Value == ")")
@@ -366,37 +378,49 @@ namespace BingsuCodeEditor.EpScript
                     {
                         //일반 타입
                         arg.argtype = tk.Value;
-                        GetCurrentToken();
                     }
                     else if (tk.Type == TOKEN_TYPE.Comment)
                     {
                         //특수처리된 타입
                         arg.argtype = tk.Value;
-                        GetCurrentToken();
                     }
                     else
                     {
-                        ThrowException("인자 타입을 선언해야 합니다.", tk);
+                        if (tk.StartOffset <= startindex && startindex <= tk.EndOffset)
+                        {
+                            cl = CursorLocation.FunctionArgType;
+                        }
+                        argendoffset = tk.EndOffset;
+                        isException = true;
+                        errormsg = "인자 타입을 선언해야 합니다.";
+                        break;
                     }
+
+                    if (tk.StartOffset <= startindex && startindex <= tk.EndOffset)
+                    {
+                        cl = CursorLocation.FunctionArgType;
+                    }
+
+                    GetCurrentToken();
+                    goto recheck;
                 }
-
-
                 function.args.Add(arg);
             }
 
-
-            if(cl == CursorLocation.None)
+            if (cl == CursorLocation.None)
             {
-                if(argstartoffset <= startindex && startindex <= argendoffset)
+                if (argstartoffset <= startindex && startindex <= argendoffset)
                 {
                     cl = CursorLocation.FunctionArgName;
                 }
             }
 
-
             function.cursorLocation = cl;
 
-
+            if (isException)
+            {
+                ThrowException(errormsg, tk);
+            }
 
             function.preCompletion = new ObjectItem(CompletionWordType.Function, funcname);
 

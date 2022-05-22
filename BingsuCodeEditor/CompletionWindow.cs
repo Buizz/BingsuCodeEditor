@@ -56,7 +56,7 @@ namespace BingsuCodeEditor
         private string inputText;
         private bool IsNameSpaceOpen;
 
-        public void Open(string input, bool IsNameSpaceOpen = false)
+        public void Open(string input, bool NoStartWithStartText = false)
         {
             this.MinWidth = 0;
             this.Width = 0;
@@ -66,11 +66,11 @@ namespace BingsuCodeEditor
 
 
             this.inputText = input;
-            this.IsNameSpaceOpen = IsNameSpaceOpen;
+            this.IsNameSpaceOpen = NoStartWithStartText;
 
             Show();
 
-            if (!IsNameSpaceOpen)
+            if (!NoStartWithStartText)
             {
                 this.Visibility = Visibility.Hidden;
             }
@@ -94,7 +94,7 @@ namespace BingsuCodeEditor
 
             if (!string.IsNullOrEmpty(input))
             {
-                if (!IsNameSpaceOpen)
+                if (!NoStartWithStartText)
                 {
                     completionList.SelectItem(input);
                     this.StartOffset -= input.Length;

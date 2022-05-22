@@ -187,13 +187,13 @@ namespace BingsuCodeEditor
                                     {
                                         if (tk != null)
                                         {
-                                            completionWindowOpen(OpenInput, OpenIsNameSpaceOpen);
+                                            completionWindowOpen(OpenInput, OpenIsNameSpaceOpen, OpenNoStartWithStartText);
                                             OpenSiginal = false;
                                         }
                                     }
                                     else
                                     {
-                                        completionWindowOpen(OpenInput, OpenIsNameSpaceOpen);
+                                        completionWindowOpen(OpenInput, OpenIsNameSpaceOpen, OpenNoStartWithStartText);
                                         OpenSiginal = false;
                                     }
                                 }
@@ -706,7 +706,8 @@ namespace BingsuCodeEditor
         private bool OpenSiginal = false;
         private string OpenInput;
         private bool OpenIsNameSpaceOpen;
-        private void CompletionWindowOpenAsync(string input, bool IsNameSpaceOpen = false)
+        private bool OpenNoStartWithStartText;
+        private void CompletionWindowOpenAsync(string input, bool IsNameSpaceOpen = false, bool NoStartWithStartText = false)
         {
             if (OpenSiginal)
             {
@@ -719,7 +720,7 @@ namespace BingsuCodeEditor
 
             OpenSiginal = true;
             OpenIsNameSpaceOpen = IsNameSpaceOpen;
-      
+            OpenNoStartWithStartText = NoStartWithStartText;
 
             //completionWindowOpen(input, IsNameSpaceOpen);
         }
@@ -727,7 +728,7 @@ namespace BingsuCodeEditor
 
 
         CustomCompletionWindow completionWindow;
-        private  void completionWindowOpen(string input, bool IsNameSpaceOpen = false)
+        private  void completionWindowOpen(string input, bool IsNameSpaceOpen = false, bool NoStartWithStartText = false)
         {
             //선택이 다중일 경우 사용하지 않음
             //엔터링에서 분석한 정보를 토대로, 자동완성창을 열거나 자동완성 목록을 생성
@@ -828,7 +829,11 @@ namespace BingsuCodeEditor
 
             //data.Add(new CodeCompletionData("function", CompletionWordType.KeyWord));
             //data.Add(new CodeCompletionData("for", CompletionWordType.KeyWord));
-            completionWindow.Open(input, IsNameSpaceOpen);
+
+
+            completionWindow.Open(input, IsNameSpaceOpen | NoStartWithStartText);
+
+
             if (!IsNameSpaceOpen)
             {
                 //completionWindow.CompletionList.SelectItem(input);
@@ -945,7 +950,12 @@ namespace BingsuCodeEditor
                     //codeAnalyzer.AutoInsert("f");
                     return;
                 }
-                else
+                else if (e.Text == ":")
+                {
+                    CompletionWindowOpenAsync(":", NoStartWithStartText:true);
+                    //codeAnalyzer.AutoInsert("f");
+                    return;
+                }else
                 {
                     CompletionWindowOpenAsync(e.Text);
                 }
@@ -1614,8 +1624,16 @@ namespace BingsuCodeEditor
                 CodeAnalyzer.TOKEN tk = codeAnalyzer.SearchToken(offset, true);
                 if(tk != null)
                 {
+                    if(tk.errorToken == null)
+                    {
+                        toolTip.Content = tk.Value;
+                    }
+                    else
+                    {
+                        toolTip.Content = tk.errorToken.Message;
+                    }
+
                     toolTip.Placement = System.Windows.Controls.Primitives.PlacementMode.Mouse;
-                    toolTip.Content = tk.Value;
                     toolTip.IsOpen = true;
                 }
                 //TODO:호버분석 마무리

@@ -238,8 +238,14 @@ namespace BingsuCodeEditor.EpScript
             return null;
         }
 
-        public override void GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
+        public override bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
         {
+            if (base.GetCompletionList(data))
+            {
+                return true;
+            }
+
+
             string scope = maincontainer.currentScope;
 
             //TODO:분석된 토큰으로 자동완성을 만든다.
@@ -248,13 +254,13 @@ namespace BingsuCodeEditor.EpScript
                 //네임스페이스를 찾아보고 없으면 기존 사용
                 if (false)
                 {
-                    return;
+                    return true;
                 }
 
                 TOKEN ctkn = GetToken(0);
                 if(ctkn == null)
                 {
-                    return;
+                    return true;
                 }
 
                 List<TOKEN> t = tokenAnalyzer.GetTokenListFromTarget(ctkn, true);
@@ -270,7 +276,7 @@ namespace BingsuCodeEditor.EpScript
                     data.Add(new CodeCompletionData(preCompletionData));
                 }
 
-                return;
+                return true;
             }
  
 
@@ -300,7 +306,7 @@ namespace BingsuCodeEditor.EpScript
 
 
 
-            base.GetCompletionList(data);
+            return true;
         }
 
 

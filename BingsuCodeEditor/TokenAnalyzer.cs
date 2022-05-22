@@ -321,17 +321,22 @@ namespace BingsuCodeEditor
 
         public void ThrowException(string message, TOKEN tk)
         {
+            ErrorToken errorToken;
+
             //에러가 났을 경우
             IsError = true;
             if(tk is null)
             {
-                TempErrorList.Add(new ErrorToken(message, 0, 0));
+                errorToken = new ErrorToken(message, 0, 0);
             }
             else
             {
-                TempErrorList.Add(new ErrorToken(message, tk.StartOffset, tk.EndOffset));
+                errorToken =  new ErrorToken(message, tk.StartOffset, tk.EndOffset);
             }
 
+            tk.errorToken = errorToken;
+
+            TempErrorList.Add(errorToken);
 
             //List<TOKEN> tklist = GetTokenList();
             //if (tklist.Count < index)

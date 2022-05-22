@@ -173,7 +173,7 @@ namespace BingsuCodeEditor
         
 
 
-        public virtual void GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
+        public virtual bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
         {
             switch (cursorLocation)
             {
@@ -186,14 +186,20 @@ namespace BingsuCodeEditor
                             data.Add(new CodeCompletionData(new ImportFileItem(CompletionWordType.nameSpace, item)));
                         }
                     }
-                    return;
+                    return true;
 
+                case CursorLocation.FunctionArgType:
+                    data.Add(new CodeCompletionData(new VarType(CompletionWordType.ArgType, "테스트")));
+                    return true;
+                default:
+                    for (int i = 0; i < completionDatas.Count; i++)
+                    {
+                        data.Add(new CodeCompletionData(completionDatas[i]));
+                    }
+                    break;
             }
 
-            for (int i = 0; i < completionDatas.Count; i++)
-            {
-                data.Add(new CodeCompletionData(completionDatas[i]));
-            }
+            return false;
         }
 
 
@@ -408,6 +414,7 @@ namespace BingsuCodeEditor
             public TOKEN_TYPE Type;
             public string Value;
 
+            public ErrorToken errorToken;
 
             public string Special;
         }
@@ -638,6 +645,39 @@ namespace BingsuCodeEditor
 
 
         #region #############자동완성#############
+
+
+
+        public class VarType : PreCompletionData
+        {
+            public VarType(CompletionWordType completionType, string name) : base(completionType, name)
+            {
+                Priority = 1;
+            }
+
+            //키워드 이름
+            public override string listheader
+            {
+                get
+                {
+                    return name;
+                }
+            }
+            public override string ouputstring
+            {
+                get
+                {
+                    return name;
+                }
+            }
+            public override string desc
+            {
+                get
+                {
+                    return name;
+                }
+            }
+        }
 
 
         public class ObjectItem : PreCompletionData
