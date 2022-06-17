@@ -12,7 +12,7 @@ namespace BingsuCodeEditor
     /// <summary>
     /// The code completion window.
     /// </summary>
-    public class CustomCompletionWindow : CompletionWindowBase
+    public class CustomCompletionWindow : BingsuCodeEditor.CompletionWindowBase
     {
         readonly CompletionList completionList = new CompletionList();
         ToolTip toolTip = new ToolTip();
@@ -68,6 +68,7 @@ namespace BingsuCodeEditor
             this.inputText = input;
             this.IsNameSpaceOpen = NoStartWithStartText;
 
+
             Show();
 
             if (!NoStartWithStartText)
@@ -97,13 +98,21 @@ namespace BingsuCodeEditor
                 if (!NoStartWithStartText)
                 {
                     completionList.SelectItem(input);
-                    this.StartOffset -= input.Length;
+                    if (this.StartOffset != 0)
+                    {
+                        this.StartOffset -= input.Length;
+                    }
                 }
             }
-       
+            YOffset += 100;
+
+            UpdatePosition();
         }
 
-
+        public void ForceUpdatePosition()
+        {
+            UpdatePosition();
+        }
 
 
         #region ToolTip handling
@@ -195,6 +204,7 @@ namespace BingsuCodeEditor
             this.TextArea.MouseWheel += textArea_MouseWheel;
             this.TextArea.PreviewTextInput += textArea_PreviewTextInput;
         }
+
 
         /// <inheritdoc/>
         protected override void DetachEvents()
@@ -298,7 +308,7 @@ namespace BingsuCodeEditor
                 TextDocument document = this.TextArea.Document;
                 if (document != null)
                 {
-                    completionList.SelectItem(document.GetText(this.StartOffset, offset - this.StartOffset));
+                    if(this.StartOffset != -1) completionList.SelectItem(document.GetText(this.StartOffset, offset - this.StartOffset));
                 }
             }
         }

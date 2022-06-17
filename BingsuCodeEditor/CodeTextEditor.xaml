@@ -63,20 +63,15 @@
                     
                 </materialDesign:ColorZone>
             </Border>
-            <Border DockPanel.Dock="Top">
-                <avalonedit:TextEditor x:Name="ToolTip" VerticalScrollBarVisibility="Hidden"
-                                       Background="{DynamicResource MaterialDesignToolBarBackground}" TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-                                       HorizontalScrollBarVisibility="Hidden" IsReadOnly="True" IsHitTestVisible="False" Text="툴팁입니다."/>
-            </Border>
-            
+
             <avalonedit:TextEditor x:Name="aTextEditor" PreviewKeyDown="aTextEditor_PreviewKeyDown" PreviewKeyUp="aTextEditor_PreviewKeyUp"
-                                   TextChanged="aTextEditor_TextChanged" PreviewMouseWheel="aTextEditor_PreviewMouseWheel" FontFamily="DotumChe"
-                                   Background="{DynamicResource MaterialDesignPaper}" TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-                                   ShowLineNumbers="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                       TextChanged="aTextEditor_TextChanged" PreviewMouseWheel="aTextEditor_PreviewMouseWheel" FontFamily="DotumChe"
+                                       Background="{DynamicResource MaterialDesignPaper}" TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+                                       ShowLineNumbers="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
                                    
-                                   MouseHover="aTextEditor_MouseHover"
-                                   MouseHoverStopped="aTextEditor_MouseHoverStopped"
-                                   >
+                                       MouseHover="aTextEditor_MouseHover"
+                                       MouseHoverStopped="aTextEditor_MouseHoverStopped"
+                                       >
                 <avalonedit:TextEditor.ContextMenu>
                     <ContextMenu>
                         <MenuItem Command="ApplicationCommands.Copy" />
@@ -84,7 +79,7 @@
                         <MenuItem Command="ApplicationCommands.Paste" />
                         <Separator/>
                         <!--<MenuItem x:Name="TExtEditorMenuBtn" Header="{StaticResource TextEditor}" InputGestureText="Ctrl + T" Click="TextEditor_Click"/>
-                        <MenuItem x:Name="GUIEditorBtn" Header="{StaticResource GUIEditorBtn}" InputGestureText="Ctrl + U" Click="GUIEditor_Click"/>-->
+                            <MenuItem x:Name="GUIEditorBtn" Header="{StaticResource GUIEditorBtn}" InputGestureText="Ctrl + U" Click="GUIEditor_Click"/>-->
                     </ContextMenu>
                 </avalonedit:TextEditor.ContextMenu>
             </avalonedit:TextEditor>

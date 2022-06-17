@@ -83,7 +83,10 @@
     <Compile Include="AutoCompleteToken\Container.cs" />
     <Compile Include="AutoCompleteToken\Function.cs" />
     <Compile Include="AutoCompleteToken\ImportedNameSpace.cs" />
+    <Compile Include="CompletionWindowBase.cs" />
+    <Compile Include="EpScript\EpScriptFunction.cs" />
     <Compile Include="EpScript\EpScriptTokenAnalyzer.cs" />
+    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="ImportManager.cs" />
     <Compile Include="LineColorDrawer\ErrorUnderLine.cs" />
     <Compile Include="LineColorDrawer\MarkSameWord.cs" />

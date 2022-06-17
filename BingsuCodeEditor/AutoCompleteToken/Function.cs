@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace BingsuCodeEditor.AutoCompleteToken
 {
-    public class Function
+    public struct CalledFunction{
+        public List<string> funcname;
+        public int argindex;
+    }
+
+    public abstract class Function
     {
         //function fname(args){}
         ///******/function fname(args){}
@@ -33,6 +38,8 @@ namespace BingsuCodeEditor.AutoCompleteToken
 
         public PreCompletionData preCompletion;
 
+        public bool IsInCursor = false;
+        public bool IsPredefine = false;
 
         //함수 이름
         public string funcname;
@@ -45,9 +52,22 @@ namespace BingsuCodeEditor.AutoCompleteToken
         {
             public string argname;
             public string argtype;
-            public string argsummary;
+        }
+        protected Dictionary<string, string> argsummary = new Dictionary<string, string>();
+
+        public string GetArgSummary(string arg)
+        {
+            if (argsummary.ContainsKey(arg))
+            {
+                return argsummary[arg];
+            }
+            else
+            {
+                return "";
+            }
         }
 
-        
+
+        public abstract void ReadComment(string comment);
     }
 }

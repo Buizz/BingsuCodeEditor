@@ -240,13 +240,9 @@ namespace BingsuCodeEditor.EpScript
 
         public override bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
         {
-            if (base.GetCompletionList(data))
-            {
-                return true;
-            }
-
-
             string scope = maincontainer.currentScope;
+
+
 
             //TODO:분석된 토큰으로 자동완성을 만든다.
             if (IsNameSpaceOpen)
@@ -256,7 +252,7 @@ namespace BingsuCodeEditor.EpScript
                 {
                     return true;
                 }
-
+                
                 TOKEN ctkn = GetToken(0);
                 if(ctkn == null)
                 {
@@ -278,12 +274,15 @@ namespace BingsuCodeEditor.EpScript
 
                 return true;
             }
- 
 
 
+            if (base.GetCompletionList(data))
+            {
+                return true;
+            }
 
-            
-            foreach (var item in maincontainer.importedNameSpace)
+
+            foreach (var item in maincontainer.importedNameSpaces)
             {
                 if (string.IsNullOrEmpty(item.shortname))
                 {
@@ -303,7 +302,6 @@ namespace BingsuCodeEditor.EpScript
             {
                 data.Add(new CodeCompletionData(item.preCompletion));
             }
-
 
 
             return true;
@@ -353,6 +351,16 @@ namespace BingsuCodeEditor.EpScript
             TOKEN btoken = GetToken(-1);
             TOKEN bbtoken = GetToken(-2);
 
+            if(ctoken != null)
+            {
+                if(ctoken.Type == TOKEN_TYPE.Symbol && ctoken.Value == ";")
+                {
+                    ctoken = GetToken(-1);
+                    btoken = GetToken(-2);
+                    bbtoken = GetToken(-3);
+                }
+            }
+
             if (btoken != null)
             {
                 if(btoken.Type == TOKEN_TYPE.KeyWord)
@@ -374,9 +382,14 @@ namespace BingsuCodeEditor.EpScript
                 }
             }
 
+
             if(cl == CursorLocation.None)
             {
-
+                //if(ctoken != null)
+                //{
+                //    int argpos;
+                //    tokenAnalyzer.GetWritedFunction(ctoken, out argpos);
+                //}
             }
 
 

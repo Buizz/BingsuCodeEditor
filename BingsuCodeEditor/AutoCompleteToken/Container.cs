@@ -28,7 +28,7 @@ namespace BingsuCodeEditor.AutoCompleteToken
         //3번의 경우 메인 이름 human
 
         //predefine된 네임스페이스가 들어가야 할거같음...
-        public List<ImportedNameSpace> importedNameSpace;
+        public List<ImportedNameSpace> importedNameSpaces;
 
 
         public List<Block> vars;
@@ -38,10 +38,31 @@ namespace BingsuCodeEditor.AutoCompleteToken
 
         public Container()
         {
-            importedNameSpace = new List<ImportedNameSpace>();
+            importedNameSpaces = new List<ImportedNameSpace>();
             vars = new List<Block>();
             objs = new List<Container>();
             funcs = new List<Function>();
+        }
+
+        /// <summary>
+        /// 식별자가 정의되어 있으면 true를 반환합니다.
+        /// </summary>
+        /// <param name="scope"></param>
+        /// <returns></returns>
+        public bool CheckIdentifier(string scope, string funcname)
+        {
+            Block var = vars.Find(x => (x.blockname == funcname && scope.Contains(x.scope)));
+            Container obj = objs.Find(x => (x.mainname == funcname));
+            Function func = funcs.Find(x => (x.funcname == funcname && scope.Contains(x.scope)));
+
+            ImportedNameSpace importedNameSpace = importedNameSpaces.Find(x => (x.shortname == funcname));
+
+            if(var == null && obj == null && func == null && importedNameSpace == null)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

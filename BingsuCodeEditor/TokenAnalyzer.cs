@@ -26,9 +26,15 @@ namespace BingsuCodeEditor
     }
     public abstract class TokenAnalyzer
     {
-        private List<TOKEN> tklist;
+        protected List<TOKEN> tklist;
 
         protected int index;
+        public int CurrentInedx
+        {
+            get { return index; }
+            set { index = value; }
+        }
+
 
         public TOKEN GetLastToken
         {
@@ -47,15 +53,19 @@ namespace BingsuCodeEditor
         public TOKEN GetSafeTokenIten(bool GoToReverse = false)
         {
             PassComment(GoToReverse);
-
+  
             return tklist[index];
         }
 
 
 
-        public TOKEN GetCommentTokenIten()
+        public TOKEN GetCommentTokenIten(int tindex = 0)
         {
-            return tklist[index];
+            int i = index + tindex;
+            if (0 <= i && i < tklist.Count)
+                return tklist[index + tindex];
+
+            return null;
         }
 
 
@@ -153,6 +163,7 @@ namespace BingsuCodeEditor
                
             while (true)
             {
+
                 TOKEN tk = GetCurrentToken(IsReverse);
                 if (tk.Type == TOKEN_TYPE.Identifier)
                 {
@@ -163,7 +174,10 @@ namespace BingsuCodeEditor
                     rlist.Add(tk);
                     return rlist;
                 }
-
+                if (IsEndOfList(true))
+                {
+                    break;
+                }
 
                 if (!CheckCurrentToken(TOKEN_TYPE.Symbol, "."))
                 {
@@ -174,6 +188,12 @@ namespace BingsuCodeEditor
             return rlist;
         }
 
+        /// <summary>
+        /// target으롭부터 작성중인 함수를 판별합니다.
+        /// 이중 구조의 경우 주의하여야 합니다.
+        /// </summary>
+        public abstract Function GetWritedFunction(TOKEN target, out int pos);
+        
 
         /// <summary>
         /// 토큰 네임스페이스를 가져옵니다.
@@ -242,7 +262,7 @@ namespace BingsuCodeEditor
         /// 만약 옳은 토큰일 경우 다음 인덱스로 진행합니다.
         /// </summary>
         /// <returns></returns>
-        public bool CheckCurrentToken(TOKEN_TYPE ttype, string value = null, bool IsReverse = false)
+        public bool CheckCurrentToken(TOKEN_TYPE ttype, string value = null, bool IsReverse = false,  TOKEN returntk = null)
         {
             //if (IsError)
             //{
@@ -253,6 +273,7 @@ namespace BingsuCodeEditor
 
 
             TOKEN ntk = GetSafeTokenIten();
+            returntk = ntk;
             if(ttype != ntk.Type)
             {
                 return false;
@@ -282,7 +303,7 @@ namespace BingsuCodeEditor
             {
                 if (IsExist)
                 {
-                    //ThrowException("인덱스가 토근의 최대 크기를 넘겼습니다.");
+                    ThrowException("인덱스가 토근의 최대 크기를 넘겼습니다.", null);
                     return false;
                 }
                 return true;
@@ -319,25 +340,42 @@ namespace BingsuCodeEditor
 
 
 
-        public void ThrowException(string message, TOKEN tk)
+        public void ThrowException(string message, TOKEN tk, int len = 0)
         {
-            ErrorToken errorToken;
-
             //에러가 났을 경우
             IsError = true;
-            if(tk is null)
+
+            if(tk == null)
             {
-                errorToken = new ErrorToken(message, 0, 0);
+                ErrorToken errorToken = new ErrorToken(message, 0, 0);
+                TempErrorList.Add(errorToken);
             }
             else
             {
-                errorToken =  new ErrorToken(message, tk.StartOffset, tk.EndOffset);
+                int index = tklist.IndexOf(tk);
+
+                TOKEN starttarget = tklist[index];
+                TOKEN endtarget = tklist[index + len];
+
+                ErrorToken errorToken = new ErrorToken(message, starttarget.StartOffset, endtarget.EndOffset);
+                starttarget.errorToken = errorToken;
+                endtarget.errorToken = errorToken;
+                TempErrorList.Add(errorToken);
+
+                //for (int i = 0; i <= len; i++)
+                //{
+                //    if(tklist.Count > i + index)
+                //    {
+                //        TOKEN target = tklist[i + index];
+
+                //        ErrorToken errorToken = new ErrorToken(message, target.StartOffset, target.EndOffset);
+                //        target.errorToken = errorToken;
+                //        TempErrorList.Add(errorToken);
+                //    }                    
+                //}
             }
 
-            tk.errorToken = errorToken;
-
-            TempErrorList.Add(errorToken);
-
+            
             //List<TOKEN> tklist = GetTokenList();
             //if (tklist.Count < index)
             //{
@@ -348,9 +386,6 @@ namespace BingsuCodeEditor
             //    TOKEN tk = tklist[index];
 
             //}
-
-
-
 
             //각종 줄 정보를 남긴다..
             return;

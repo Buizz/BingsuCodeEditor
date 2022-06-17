@@ -62,7 +62,8 @@ namespace BingsuCodeEditor
             ImportFile,
             ImportNameSpace,
             ArgType,
-            ObjectName
+            ObjectName,
+            CallFunction
         }
 
 
@@ -375,10 +376,19 @@ namespace BingsuCodeEditor
             for (int i = 0; i < Tokens.Count; i++)
             {
                 TOKEN tk = Tokens[i];
+                
 
                 if (tk.CheckOffset(offset, isfull))
                 {
                     return tk;
+                }
+                if(tk.EndOffset < offset && i + 1 < Tokens.Count)
+                {
+                    TOKEN ntk = Tokens[i + 1];
+                    if(ntk.StartOffset > offset)
+                    {
+                        return tk;
+                    }
                 }
             }
 
@@ -395,6 +405,9 @@ namespace BingsuCodeEditor
                 this.EndOffset = Offset + Value.Length;
                 this.Type = Type;
                 this.Value = Value;
+
+                funcname = new List<string>();
+                argindex = -1;
             }
 
             public bool CheckOffset(int offset, bool Isfull = false)
@@ -417,6 +430,9 @@ namespace BingsuCodeEditor
             public ErrorToken errorToken;
 
             public string Special;
+
+            public int argindex;
+            public List<string> funcname;
         }
         
 
@@ -652,7 +668,7 @@ namespace BingsuCodeEditor
         {
             public VarType(CompletionWordType completionType, string name) : base(completionType, name)
             {
-                Priority = 1;
+                Priority = 2;
             }
 
             //키워드 이름
@@ -684,7 +700,7 @@ namespace BingsuCodeEditor
         {
             public ObjectItem(CompletionWordType completionType, string name) : base(completionType, name)
             {
-                Priority = 2;
+                Priority = 3;
             }
 
             //키워드 이름

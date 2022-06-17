@@ -41,16 +41,16 @@ namespace BingsuCodeEditorTest
             ITheme theme = paletteHelper.GetTheme();
             if (!IsDark)
             {
-                CodeEditor.IsDark = true;
                 theme.SetBaseTheme(Theme.Dark);
                 paletteHelper.SetTheme(theme);
+                CodeEditor.IsDark = true;
                 IsDark = true;
             }
             else
             {
-                CodeEditor.IsDark = false;
                 theme.SetBaseTheme(Theme.Light);
                 paletteHelper.SetTheme(theme);
+                CodeEditor.IsDark = false;
                 IsDark = false;
             }
 
