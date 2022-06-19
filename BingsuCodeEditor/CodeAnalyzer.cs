@@ -406,7 +406,7 @@ namespace BingsuCodeEditor
                 this.Type = Type;
                 this.Value = Value;
 
-                funcname = new List<string>();
+                funcname = new List<TOKEN>();
                 argindex = -1;
             }
 
@@ -432,7 +432,7 @@ namespace BingsuCodeEditor
             public string Special;
 
             public int argindex;
-            public List<string> funcname;
+            public List<TOKEN> funcname;
         }
         
 

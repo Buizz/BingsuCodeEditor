@@ -177,11 +177,23 @@ namespace BingsuCodeEditor
                     if (codeAnalyzer.WorkCompete)
                     {
                         codeAnalyzer.Apply(codeText, offset);
+                        CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
+
+                        bool isFuncInternall = false;
+                        string currentfuncname = "";
+                        if(tk != null && tk.funcname.Count != 0)
+                        {
+                            isFuncInternall = true;
+                            foreach (var item in tk.funcname)
+                            {
+                                currentfuncname += item.Value;
+                            }
+                        }
+
                         try
                         {
                             await aTextEditor.Dispatcher.InvokeAsync(new Action(() =>
                             {
-                                CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
                                 if (OpenSiginal)
                                 {
                                     if (OpenIsNameSpaceOpen)
@@ -210,19 +222,32 @@ namespace BingsuCodeEditor
                                 if (IsKeyDown)
                                 {
                                     IsKeyDown = false;
-                                    OpenTooltipBox();
+                                    
+                                    if (isFuncInternall)
+                                    {
+                                        functooltipTextBox.Text = currentfuncname + " " + tk.argindex;
+                                        OpenTooltipBox();
+                                    }
+                                }
+
+                                if (!isFuncInternall)
+                                {
+                                    CloseTooltipBox();
                                 }
 
 
+
+
+
+                                #region ######################################################DEBUG######################################################
                                 //오류 그리기
                                 //DrawRedLine(0, 10);
 
                                 //aTextEditor.TextArea.TextView.Redraw();
 
-
                                 //테스트 트리거
-
-                                functooltipTextBox.Text = "";
+                                string debug = "";
+                                
                                 //CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(-1);
                                 //ToolTip.AppendText(codeAnalyzer.GetTokenCount() + ":" + "Caret:" + aTextEditor.CaretOffset.ToString());
                                 //if (token != null)
@@ -232,14 +257,14 @@ namespace BingsuCodeEditor
                                 //}
                                 if (tk != null)
                                 {
-                                    functooltipTextBox.AppendText("TokenIndex : " + tk.Value.Replace("\r\n", "") + "\n");
+                                    debug += "TokenIndex : " + tk.Value.Replace("\r\n", "") + "\n";
                                 }
                                 else
                                 {
-                                    functooltipTextBox.AppendText("TokenIndex : null\n");
+                                debug += "TokenIndex : null\n";
                                 }
 
-                                functooltipTextBox.AppendText("cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n");
+                                debug += "cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n";
                                 //if (codeAnalyzer.tokenAnalyzer.IsError)
                                 //{
                                 //    foreach (var item in codeAnalyzer.tokenAnalyzer.ErrorList)
@@ -247,7 +272,6 @@ namespace BingsuCodeEditor
                                 //        ToolTip.AppendText("Error : " + item.Message + "줄 : " + item.Line + "  열 : " + item.Column + "\n");
                                 //    }
                                 //}
-
 
                                 //for (int i = -1; i <= 1; i++)
                                 //{
@@ -263,14 +287,13 @@ namespace BingsuCodeEditor
                                 //    }
                                 //    ToolTip.AppendText("\n");
                                 //}
-                                functooltipTextBox.AppendText("  " + interval.ToString());
+                                debug += "  " + interval.ToString();
 
-
-
+                                //functooltipTextBox.Text = debug;
                                 //ErrorLogList.Items.Clear();
 
                                 //ErrorLogList.Items.Add(codeAnalyzer.tokenAnalyzer.ErrorMessage);
-
+                                #endregion
                             }), DispatcherPriority.Normal);
                         }
                         catch (TaskCanceledException)

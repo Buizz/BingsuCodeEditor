@@ -319,6 +319,8 @@ namespace BingsuCodeEditor.EpScript
         {
             string fname = ctk.Value;
 
+            List<TOKEN> tlist = new List<TOKEN>();
+            tlist.Add(ctk);
             if (argindex != -1)
             {
                 //상속받았을 경우
@@ -335,17 +337,21 @@ namespace BingsuCodeEditor.EpScript
             if (CheckCurrentToken(TOKEN_TYPE.Symbol, "."))
             {
                 //.이므로 이어지는 토큰
-                List<TOKEN> tlist = GetTokenList();
+                tlist = GetTokenList();
             }
 
 
-            if (CheckCurrentToken(TOKEN_TYPE.Symbol, "("))
+            TOKEN tk = GetCurrentToken();
+   
+            //선언된 함수의 시작
+            if (tk != null && tk.Type == TOKEN_TYPE.Symbol && tk.Value == "(")
             {
-                //선언된 함수
                 int innercount = 1;
 
                 int cargindex = 0;
-                TOKEN tk = null;
+                tk.argindex = 0;
+                tk.funcname = tlist;
+
                 //innercount가 0이 될때까지 진행
                 while (true)
                 {
@@ -358,6 +364,8 @@ namespace BingsuCodeEditor.EpScript
                         break;
                     }
                     tk = GetCurrentToken();
+                    tk.argindex = cargindex;
+                    tk.funcname = tlist;
 
                     switch (tk.Type)
                     {

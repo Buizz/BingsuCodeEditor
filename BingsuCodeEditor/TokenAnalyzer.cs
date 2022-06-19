@@ -262,7 +262,7 @@ namespace BingsuCodeEditor
         /// 만약 옳은 토큰일 경우 다음 인덱스로 진행합니다.
         /// </summary>
         /// <returns></returns>
-        public bool CheckCurrentToken(TOKEN_TYPE ttype, string value = null, bool IsReverse = false,  TOKEN returntk = null)
+        public bool CheckCurrentToken(TOKEN_TYPE ttype, string value = null, bool IsReverse = false)
         {
             //if (IsError)
             //{
@@ -273,8 +273,8 @@ namespace BingsuCodeEditor
 
 
             TOKEN ntk = GetSafeTokenIten();
-            returntk = ntk;
-            if(ttype != ntk.Type)
+
+            if (ttype != ntk.Type)
             {
                 return false;
             }
