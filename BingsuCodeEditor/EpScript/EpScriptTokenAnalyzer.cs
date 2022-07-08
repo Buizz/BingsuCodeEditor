@@ -82,7 +82,20 @@ namespace BingsuCodeEditor.EpScript
                                 //import File;
 
                                 tk = GetCurrentToken();
-                                string filename = tk.Value;
+                                List<TOKEN> t = GetTokenListFromTarget(tk, saveIndex:false);
+
+                                string filename = "";
+                                //tk = GetCurrentToken();
+                                foreach (var item in t)
+                                {
+                                    if(filename != "")
+                                    {
+                                        filename += ".";
+                                    }
+                                    filename += item.Value;
+                                }
+
+
                                 string nspace;
 
                                 if (CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
@@ -319,6 +332,7 @@ namespace BingsuCodeEditor.EpScript
         {
             string fname = ctk.Value;
 
+            int argstartindex = ctk.StartOffset;
             List<TOKEN> tlist = new List<TOKEN>();
             tlist.Add(ctk);
             if (argindex != -1)
@@ -341,17 +355,16 @@ namespace BingsuCodeEditor.EpScript
             }
 
 
-            TOKEN tk = GetCurrentToken();
+            TOKEN tk = null;//GetCurrentToken();
    
+
             //선언된 함수의 시작
-            if (tk != null && tk.Type == TOKEN_TYPE.Symbol && tk.Value == "(")
+            if (CheckCurrentToken(TOKEN_TYPE.Symbol, "("))
             {
                 int innercount = 1;
 
                 int cargindex = 0;
-                tk.argindex = 0;
-                tk.funcname = tlist;
-
+             
                 //innercount가 0이 될때까지 진행
                 while (true)
                 {
@@ -380,6 +393,15 @@ namespace BingsuCodeEditor.EpScript
                             }
                             else if (tk.Value == ",")
                             {
+                                if (!container.innerFuncInfor.IsInnerFuncinfor &&
+                                    argstartindex <= startindex &&  startindex <= tk.StartOffset)
+                                {
+                                    //내부함수가 이미 결정되어 있지 않을 경우
+                                    container.innerFuncInfor.IsInnerFuncinfor = true;
+                                    container.innerFuncInfor.argindex = cargindex;
+                                    container.innerFuncInfor.funcename = tlist;
+                                }
+                                argstartindex = tk.StartOffset;
                                 cargindex++;
                             }
                             else if (tk.Value == "(")
@@ -388,7 +410,19 @@ namespace BingsuCodeEditor.EpScript
                             }
                             break;
                     }
-                    if (innercount == 0) break;
+                    if (innercount == 0)
+                    {
+                        if (!container.innerFuncInfor.IsInnerFuncinfor &&
+                            argstartindex <= startindex && startindex <= tk.EndOffset)
+                        {
+                            //내부함수가 이미 결정되어 있지 않을 경우
+                            container.innerFuncInfor.IsInnerFuncinfor = true;
+                            container.innerFuncInfor.argindex = cargindex;
+                            container.innerFuncInfor.funcename = tlist;
+                        }
+                        argstartindex = tk.StartOffset;
+                        break;
+                    }
                 }
             }
 
@@ -544,7 +578,30 @@ namespace BingsuCodeEditor.EpScript
 
                 tk = GetCurrentToken();
 
-                if(tk.Type == TOKEN_TYPE.Symbol && tk.Value == ";")
+
+
+                if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == ":")
+                {
+                    if (IsEndOfList())
+                    {
+                        ThrowException("반환 타입이 와야 합니다.", tk);
+                        goto EndLabel;
+                    }
+                    tk = GetCurrentToken();
+
+                    function.returntype = tk.Value;
+
+                    if (IsEndOfList())
+                    {
+                        ThrowException("반환 타입이 와야 합니다.", tk);
+                        goto EndLabel;
+                    }
+                    findex = CurrentInedx;
+                    tk = GetCurrentToken();
+                }
+
+
+                if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == ";")
                 {
                     //그냥 끝내기
                     function.IsPredefine = true;

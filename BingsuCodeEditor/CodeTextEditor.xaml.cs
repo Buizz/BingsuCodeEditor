@@ -179,12 +179,13 @@ namespace BingsuCodeEditor
                         codeAnalyzer.Apply(codeText, offset);
                         CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
 
-                        bool isFuncInternall = false;
+                        //codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor
+
+                        //bool isFuncInternall = false;
                         string currentfuncname = "";
-                        if(tk != null && tk.funcname.Count != 0)
+                        if (codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
                         {
-                            isFuncInternall = true;
-                            foreach (var item in tk.funcname)
+                            foreach (var item in codeAnalyzer.maincontainer.innerFuncInfor.funcename)
                             {
                                 currentfuncname += item.Value;
                             }
@@ -223,14 +224,17 @@ namespace BingsuCodeEditor
                                 {
                                     IsKeyDown = false;
                                     
-                                    if (isFuncInternall)
+                                    if (codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
                                     {
-                                        functooltipTextBox.Text = currentfuncname + " " + tk.argindex;
-                                        OpenTooltipBox();
+                                        functooltipTextBox.Text = currentfuncname + " " + codeAnalyzer.maincontainer.innerFuncInfor.argindex;
+
+                                        int caretoffset = codeAnalyzer.maincontainer.innerFuncInfor.funcename.First().StartOffset;
+
+                                        OpenTooltipBox(caretoffset);
                                     }
                                 }
 
-                                if (!isFuncInternall)
+                                if (!codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
                                 {
                                     CloseTooltipBox();
                                 }
@@ -520,6 +524,13 @@ namespace BingsuCodeEditor
             }
         }
 
+        public void SetImportManager(ImportManager importManager)
+        {
+            if (codeAnalyzer != null)
+            {
+                codeAnalyzer.importManager = importManager;
+            }
+        }
 
 
 
@@ -926,8 +937,10 @@ namespace BingsuCodeEditor
         #region #############키 입력#############
 
 
-        private void OpenTooltipBox()
+        private void OpenTooltipBox(int startoffset)
         {
+            if (functooltip.IsLoaded) return;
+
             if (functooltip.IsOpen)
             {
                 functooltip.IsOpen = false;
@@ -937,7 +950,9 @@ namespace BingsuCodeEditor
             //double OrginXPos = 0;
             //double OrginYPos = 0;
 
-            TextViewPosition StartPostion = aTextEditor.TextArea.Caret.Position;
+            //TextViewPosition StartPostion = aTextEditor.TextArea.Caret.Position;
+
+            TextViewPosition StartPostion = new TextViewPosition(aTextEditor.Document.GetLocation(startoffset));
             StartPostion.VisualColumn -= 1;
 
             //Point p = aTextEditor.TextArea.TextView.GetVisualPosition(StartPostion, VisualYPosition.LineTop);
@@ -1101,7 +1116,14 @@ namespace BingsuCodeEditor
                     return;
                 }else
                 {
-                    CompletionWindowOpenAsync(e.Text);
+                    if(e.Text.Length == 1)
+                    {
+                        char t = e.Text[0];
+                        if(char.IsLetter(t) || t == '_')
+                        {
+                            CompletionWindowOpenAsync(e.Text);
+                        }
+                    }
                 }
             }
         

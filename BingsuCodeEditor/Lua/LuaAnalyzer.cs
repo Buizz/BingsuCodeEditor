@@ -30,7 +30,7 @@ namespace BingsuCodeEditor.Lua
             throw new NotImplementedException();
         }
 
-        public override bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpace = false)
+        public override bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpace = false, string DataType = "")
         {
             throw new NotImplementedException();
         }

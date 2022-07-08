@@ -1,4 +1,8 @@
-﻿using MaterialDesignThemes.Wpf;
+﻿using BingsuCodeEditor;
+using BingsuCodeEditorTest.epScript;
+using Dragablz;
+using MahApps.Metro.Controls;
+using MaterialDesignThemes.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,18 +23,22 @@ namespace BingsuCodeEditorTest
     /// <summary>
     /// MainWindow.xaml에 대한 상호 작용 논리
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : MetroWindow
     {
+
+        ImportManager importManager;
         public MainWindow()
         {
             InitializeComponent();
 
-            CodeEditor.AddAdditionalstring("default", "function ab");
+            importManager = new epsImportManager();
+            MainTabablzControl.NewItemFactory = NewItemFunc;
+            //CodeEditor.AddAdditionalstring("default", "function ab");
         }
 
         private void Window_Deactivated(object sender, EventArgs e)
         {
-            CodeEditor.Deactivated();
+            //CodeEditor.Deactivated();
         }
 
         private bool IsDark;
@@ -43,17 +51,38 @@ namespace BingsuCodeEditorTest
             {
                 theme.SetBaseTheme(Theme.Dark);
                 paletteHelper.SetTheme(theme);
-                CodeEditor.IsDark = true;
+                //CodeEditor.IsDark = true;
                 IsDark = true;
             }
             else
             {
                 theme.SetBaseTheme(Theme.Light);
                 paletteHelper.SetTheme(theme);
-                CodeEditor.IsDark = false;
+                //CodeEditor.IsDark = false;
                 IsDark = false;
             }
 
+        }
+
+        private void NewItem_Click(object sender, RoutedEventArgs e)
+        {
+
+            //TabablzControl.AddItem(NewItemFunc(),null , AddLocationHint.First);
+
+            MainTabablzControl.Items.Add(NewItemFunc());
+        }
+
+        private object NewItemFunc()
+        {
+            TabItem tab = new TabItem();
+            BingsuCodeEditor.CodeTextEditor codeTextEditor = new BingsuCodeEditor.CodeTextEditor();
+            codeTextEditor.Syntax = BingsuCodeEditor.CodeTextEditor.CodeType.epScript;
+            codeTextEditor.SetImportManager(importManager);
+
+            tab.Content = codeTextEditor;
+            tab.Header = "새 파일";
+
+            return tab;
         }
     }
 }

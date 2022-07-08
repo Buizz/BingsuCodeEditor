@@ -45,6 +45,7 @@ namespace BingsuCodeEditor.AutoCompleteToken
         public string funcname;
         public string funcsummary;
 
+        public string returntype;
 
         public List<Arg> args = new List<Arg>();
         //Arg

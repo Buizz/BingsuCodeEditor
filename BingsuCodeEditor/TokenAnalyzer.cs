@@ -200,7 +200,7 @@ namespace BingsuCodeEditor
         /// a.b.c.d등 .과 키로 이루어진 리스트입니다.
         /// </summary>
         /// <returns></returns>
-        public List<TOKEN> GetTokenListFromTarget(TOKEN target, bool IsReverse = false)
+        public List<TOKEN> GetTokenListFromTarget(TOKEN target, bool IsReverse = false, bool saveIndex = true)
         {
             List<TOKEN> rlist = new List<TOKEN>();
             //토큰 네임스페이스를 가져옵니다.
@@ -251,7 +251,7 @@ namespace BingsuCodeEditor
                 rlist.Reverse();
             }
 
-            index = savedindex;
+            if(saveIndex) index = savedindex;
 
             return rlist;
         }

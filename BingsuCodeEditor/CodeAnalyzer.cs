@@ -1,4 +1,5 @@
-﻿using ICSharpCode.AvalonEdit;
+﻿using BingsuCodeEditor.AutoCompleteToken;
+using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,10 @@ namespace BingsuCodeEditor
         }
 
 
+        public string folder;
+        public string filepath;
+
+
 
         private bool IsSpaceCheck;
 
@@ -31,7 +36,9 @@ namespace BingsuCodeEditor
 
 
 
+
         public TokenAnalyzer tokenAnalyzer;
+        public TokenAnalyzer secondtokenAnalyzer;
         protected TextEditor textEditor;
         protected CodeFoldingManager codeFoldingManager;
         public enum TOKEN_TYPE
@@ -61,7 +68,7 @@ namespace BingsuCodeEditor
             FunctionArgType,
             ImportFile,
             ImportNameSpace,
-            ArgType,
+            VarTypeDefine,
             ObjectName,
             CallFunction
         }
@@ -71,18 +78,11 @@ namespace BingsuCodeEditor
         #region Container관리
         public AutoCompleteToken.Container maincontainer = new AutoCompleteToken.Container();
 
-        //NameSpace를 가져오는 곳
-        public AutoCompleteToken.Container GetContainer()
+        public Container GetContainer(string filetext)
         {
-            //object의 경우 object이름을 넣는다.
-
-            //namespace의 경우 별칭을 넣는다.
-
-
-            return null;
+            secondtokenAnalyzer.Init(GetTokenList(filetext));
+            return secondtokenAnalyzer.ConatainerAnalyzer();
         }
-
-
         #endregion
 
 
@@ -174,7 +174,7 @@ namespace BingsuCodeEditor
         
 
 
-        public virtual bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
+        public virtual bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false, string DataType = "")
         {
             switch (cursorLocation)
             {
@@ -189,9 +189,6 @@ namespace BingsuCodeEditor
                     }
                     return true;
 
-                case CursorLocation.FunctionArgType:
-                    data.Add(new CodeCompletionData(new VarType(CompletionWordType.ArgType, "테스트")));
-                    return true;
                 default:
                     for (int i = 0; i < completionDatas.Count; i++)
                     {
@@ -229,7 +226,7 @@ namespace BingsuCodeEditor
             }
 
             if (
-                ftk != null && ttk != null && (
+                ftk != null && ttk != null && ftk.EndOffset == ttk.StartOffset && (
                 (ftk.Value == "{" && ttk.Value == "}")
                 || (ftk.Value == "[" && ttk.Value == "]")
                 || (ftk.Value == "(" && ttk.Value == ")")))
@@ -240,7 +237,8 @@ namespace BingsuCodeEditor
                 return true;
             }
 
-            if(ttk != null && ttk.Value == "\"\""){
+            if(ttk != null && ttk.Value == "\"\"" && ftk.EndOffset == ttk.StartOffset)
+            {
                 textEditor.SelectionStart -= 1;
                 textEditor.SelectionLength = 2;
                 textEditor.SelectedText = "";
@@ -462,7 +460,7 @@ namespace BingsuCodeEditor
                 _currenttokenIndex = tokenlist.Count() - 1;
             }
         }
-        public List<TOKEN> GetTokenList(string text, int caretoffset, bool initText = false)
+        public List<TOKEN> GetTokenList(string text, int caretoffset = -1, bool initText = false)
         {
             if(caretoffset == -1)
             {

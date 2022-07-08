@@ -31,6 +31,7 @@ namespace BingsuCodeEditor.EpScript
             Template.Add("function", " [FuncName]([Arg]) {\n[tab][tabonce][Content]\n[tab]}");
 
             tokenAnalyzer = new EpScriptTokenAnalyzer();
+            secondtokenAnalyzer = new EpScriptTokenAnalyzer();
             codeFoldingManager = new EpScriptFoldingManager(textEditor);
         }
 
@@ -238,7 +239,7 @@ namespace BingsuCodeEditor.EpScript
             return null;
         }
 
-        public override bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
+        public override bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false, string DataType = "")
         {
             string scope = maincontainer.currentScope;
 
@@ -246,33 +247,114 @@ namespace BingsuCodeEditor.EpScript
 
             //TODO:분석된 토큰으로 자동완성을 만든다.
             if (IsNameSpaceOpen)
-            {
-                //네임스페이스를 찾아보고 없으면 기존 사용
-                if (false)
-                {
-                    return true;
-                }
-                
+            {                
                 TOKEN ctkn = GetToken(0);
-                if(ctkn == null)
-                {
-                    return true;
-                }
+                if(ctkn == null) return true;
 
                 List<TOKEN> t = tokenAnalyzer.GetTokenListFromTarget(ctkn, true);
                 //imported1.var1;
                 //imported1.const1.object1;
-
                 //const1.object1;
                 //maincontainer.vars[0].
 
-                foreach (var item in t)
+                if(t.Count == 0) return true;
+    
+
+
+                //네임스페이스를 찾아보고 없으면 패스
+                if (maincontainer.CheckIdentifier(scope, t[0].Value))
                 {
-                    PreCompletionData preCompletionData = new ImportFileItem(CompletionWordType.nameSpace, item.Value);
-                    data.Add(new CodeCompletionData(preCompletionData));
+                    return true;
                 }
 
+
+
+                Container ccon = maincontainer;
+                string folderpath = folder;
+                int index = 0;
+                string lscope = scope;
+                while (true)
+                {
+                    string objname = t[index].Value;
+                    Block var = ccon.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
+                    Container obj = ccon.objs.Find(x => (x.mainname == objname));
+                    Function func = ccon.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
+                    ImportedNameSpace importedNameSpace = ccon.importedNameSpaces.Find(x => (x.shortname == objname));
+
+
+
+                    if (importedNameSpace != null)
+                    {
+                        string nsfile = importedNameSpace.mainname;
+                        string pullpath = importManager.GetPullPath(nsfile, folderpath);
+                        folderpath = importManager.GetFloderPath(nsfile, ccon.folderpath);
+
+                        if (importManager.IsFileExist(pullpath))
+                        {
+                            if(importManager.IsCachedContainer(pullpath))
+                            {
+                                //파일이 변형되었을 경우
+                                importManager.UpdateContainer(pullpath,GetContainer(importManager.GetFIleContent(pullpath)));
+                            }
+
+                            ccon = importManager.GetContainer(pullpath);
+                            lscope = "st";//스코프 초기화
+                            index++;
+                            if (index == t.Count)
+                            {
+                                //마지막 부분이므로 해당 콘테이너의 내용을 모두 넣는다.
+
+
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            return true;
+                        }
+
+                    }
+                    else if (func != null)
+                    {
+
+                    }
+                    else if (obj != null)
+                    {
+
+                    }
+                    else if (var != null)
+                    {
+
+                    }
+                    else
+                    {
+                        return true;
+                    }
+
+
+                }
+
+
+
+                //foreach (var item in t)
+                //{
+                //    PreCompletionData preCompletionData = new ImportFileItem(CompletionWordType.nameSpace, item.Value);
+                //    data.Add(new CodeCompletionData(preCompletionData));
+                //}
+
                 return true;
+            }
+            switch (cursorLocation)
+            {
+                case CursorLocation.FunctionArgType:
+                case CursorLocation.VarTypeDefine:
+                    if(cursorLocation == CursorLocation.FunctionArgType)
+                    {
+                        data.Add(new CodeCompletionData(new VarType(CompletionWordType.ArgType, "func함수인자")));
+                    }
+                    data.Add(new CodeCompletionData(new VarType(CompletionWordType.ArgType, "test테스트")));
+                    
+                    return true;
             }
 
 
@@ -385,6 +467,10 @@ namespace BingsuCodeEditor.EpScript
 
             if(cl == CursorLocation.None)
             {
+                if(ctoken != null && ctoken.Type == TOKEN_TYPE.Symbol && ctoken.Value == ":")
+                {
+                    cl = CursorLocation.VarTypeDefine;
+                }
                 //if(ctoken != null)
                 //{
                 //    int argpos;

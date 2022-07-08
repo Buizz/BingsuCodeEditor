@@ -16,6 +16,17 @@ namespace BingsuCodeEditor.AutoCompleteToken
         public CursorLocation cursorLocation;
 
 
+        public class InnerFuncInfor
+        {
+            public bool IsInnerFuncinfor = false;
+            public List<TOKEN> funcename;
+            public int argindex;
+            public string argtype;
+        }
+        public InnerFuncInfor innerFuncInfor;
+
+        public string folderpath;
+
         public string mainname;
         public string shortname;
         //각각의 콘테이너는 별칭을 가짐.
@@ -39,6 +50,7 @@ namespace BingsuCodeEditor.AutoCompleteToken
         public Container()
         {
             importedNameSpaces = new List<ImportedNameSpace>();
+            innerFuncInfor = new InnerFuncInfor();
             vars = new List<Block>();
             objs = new List<Container>();
             funcs = new List<Function>();
@@ -64,5 +76,7 @@ namespace BingsuCodeEditor.AutoCompleteToken
 
             return true;
         }
+
+
     }
 }
