@@ -8,10 +8,12 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              Background="{DynamicResource MaterialDesignPaper}"
              TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+             Unloaded="UserControl_Unloaded"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <DockPanel>
+            <!--<TextBox DockPanel.Dock="Top" x:Name="TestLog"/>-->
             <UniformGrid x:Name="StatusBar" Rows="1" DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignToolBarBackground}">
                 <StackPanel Orientation="Horizontal"  Height="28" >
                     <ComboBox x:Name="CBFontSize" Width="42" materialDesign:TextFieldAssist.SuffixText=" P" Padding="0" Margin="5,0" SelectionChanged="CBFontSize_SelectionChanged">
@@ -27,8 +29,8 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal"  Height="28" HorizontalAlignment="Right" >
-                    <Button Style="{StaticResource MaterialDesignFlatButton}" Foreground="{DynamicResource MaterialDesignBody}" Name="tabSize" Height="28" Padding="2 0 2 0" materialDesign:RippleAssist.IsCentered="True" Click="btnSetting_Click" FontSize="12" Margin="20,0">
-                        TabSize : 4
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" Foreground="{DynamicResource MaterialDesignBody}" Name="tabSize" Height="28" Padding="2 0 2 0" materialDesign:RippleAssist.IsCentered="True" Click="btnTabSize_Click" FontSize="12" Margin="20,0">
+                        SpaceSize : 4
                     </Button>
                     <TextBlock Text="Ctrl" x:Name="TBCtrlValue" VerticalAlignment="Center" Margin="5,0" Visibility="Collapsed"/>
                     <TextBlock Text="Alt" x:Name="TBAltValue" VerticalAlignment="Center" Margin="5,0" Visibility="Collapsed"/>
@@ -65,7 +67,7 @@
             </Border>
 
             <avalonedit:TextEditor x:Name="aTextEditor" PreviewKeyDown="aTextEditor_PreviewKeyDown" PreviewKeyUp="aTextEditor_PreviewKeyUp"
-                                       TextChanged="aTextEditor_TextChanged" PreviewMouseWheel="aTextEditor_PreviewMouseWheel" FontFamily="DotumChe"
+                                       TextChanged="aTextEditor_TextChanged" PreviewMouseWheel="aTextEditor_PreviewMouseWheel" FontFamily="D2Coding"
                                        Background="{DynamicResource MaterialDesignPaper}" TextElement.Foreground="{DynamicResource MaterialDesignBody}"
                                        ShowLineNumbers="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
                                    
@@ -85,6 +87,7 @@
             </avalonedit:TextEditor>
         </DockPanel>
 
+        <local:OptionControl x:Name="optionControl" Visibility="Collapsed"/>
         <!--<Border Background="{DynamicResource MaterialDesignPaper}">
             <DockPanel >
                 <TextBlock Text="처리 할 수 없는 예외 상황이 발생했습니다.(Exception)" Foreground="#DDFF0404" FontWeight="Bold" FontSize="22" />

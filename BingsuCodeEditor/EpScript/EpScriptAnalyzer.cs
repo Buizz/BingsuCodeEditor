@@ -14,28 +14,50 @@ namespace BingsuCodeEditor.EpScript
         public EpScriptAnalyzer(TextEditor textEditor) : base(textEditor, false)
         {
             string[] keywords = {"object", "static", "once", "if", "else", "while", "for", "function", "foreach",
-        "return", "switch", "case", "break", "var", "const", "import", "as", "continue" ,  "true", "True", "false", "False"};
+        "return", "switch", "case", "break", "var", "const", "import", "as", "continue" , "true", "True", "false", "False"};
 
-           
+
+            //[tab]for(var [i] = 0; [i] < [Length] ; [i]++)\n[tab]{\n[tab][tabonce][Content]\n[tab]}
+            Template.Add("if", " ([true]) {\n[tab][tabonce][Content]\n[tab]}");
+            Template.Add("while", " ([true]) {\n[tab][tabonce][Content]\n[tab]}");
+            Template.Add("switch", " ([Var]) {\n[tab][tabonce][Content]\n[tab]}");
+            Template.Add("for", " (var [i] = [0]; [i] < [Length]; [i]++) {\n[tab][tabonce][Content]\n[tab]}");
+            Template.Add("foreach", " ([Var] : [Func]) {\n[tab][tabonce][Content]\n[tab]}");
+            Template.Add("function", " [FuncName]([Arg]) {\n[tab][tabonce][Content]\n[tab]}");
+            Template.Add("object", " [objname]{\n[tab][tabonce][Content]\n[tab]};");
+            //Template.Add("/***", "\n[tab] * @Type\n[tab] * F\n[tab] * @Summary.ko-KR\n[tab] * [Summary]\n[tab] * @param.args.ko-KR\n[tab]***/[Content]");
+
+
+
+
             foreach (var item in keywords)
             {
                 //토큰 입력
                 AddSubType(item, TOKEN_TYPE.KeyWord);
 
                 //자동완성 초기 입력
-                completionDatas.Add(new KewWordItem(CompletionWordType.KeyWord, item));
+                if (Template.ContainsKey(item))
+                {
+                    completionDatas.Add(new KewWordItem(CompletionWordType.KeyWord, item, item + "\n참고:코드 조각을 삽입하려면 Tab키를 두번 누르세요."));
+                }
+                else
+                {
+                    completionDatas.Add(new KewWordItem(CompletionWordType.KeyWord, item));
+                }
             }
-            //[tab]for(var [i] = 0; [i] < [Length] ; [i]++)\n[tab]{\n[tab][tabonce][Content]\n[tab]}
-            Template.Add("if", " ([true]) {\n[tab][tabonce][Content]\n[tab]}");
-            Template.Add("for", " (var [i] = [0]; [i] < [Length]; [i]++) {\n[tab][tabonce][Content]\n[tab]}");
-            Template.Add("function", " [FuncName]([Arg]) {\n[tab][tabonce][Content]\n[tab]}");
 
-            tokenAnalyzer = new EpScriptTokenAnalyzer();
-            secondtokenAnalyzer = new EpScriptTokenAnalyzer();
+
+            FuncPreChar.Add("$");
+            FuncPreChar.Add("@");
+
+
+            tokenAnalyzer = new LuaTokenAnalyzer();
+            secondtokenAnalyzer = new LuaTokenAnalyzer();
             codeFoldingManager = new EpScriptFoldingManager(textEditor);
         }
 
-        
+
+
         public override void AutoInsert(string text)
         {
             if(textEditor.SelectionLength == 0)
@@ -80,7 +102,7 @@ namespace BingsuCodeEditor.EpScript
 
 
 
-        public override TOKEN TokenBlockAnalyzer(string text, int index, out int outindex)
+        public override TOKEN TokenBlockAnalyzer(string text, int index, out int outindex, int caretoffset)
         {
             int sindex = index;
             char t = text[index];
@@ -125,7 +147,7 @@ namespace BingsuCodeEditor.EpScript
 
                 TOKEN_TYPE type = TOKEN_TYPE.String;
 
-                TOKEN token = new TOKEN(sindex, type, block);
+                TOKEN token = new TOKEN(sindex, type, block, caretoffset);
                 outindex = index;
                 return token;
             }
@@ -154,7 +176,7 @@ namespace BingsuCodeEditor.EpScript
 
                     block = block.Replace("\r", "");
 
-                    TOKEN token = new TOKEN(sindex, type, block);
+                    TOKEN token = new TOKEN(sindex, type, block, caretoffset);
                     outindex = index;
                     return token;
                 }
@@ -189,7 +211,7 @@ namespace BingsuCodeEditor.EpScript
 
                     //block = block.Replace("\r", "");
 
-                    TOKEN token = new TOKEN(sindex, type, block);
+                    TOKEN token = new TOKEN(sindex, type, block, caretoffset);
                     outindex = index;
                     return token;
                 }
@@ -229,7 +251,7 @@ namespace BingsuCodeEditor.EpScript
 
                     //block = block.Replace("\r", "");
 
-                    TOKEN token = new TOKEN(sindex, type, block);
+                    TOKEN token = new TOKEN(sindex, type, block, caretoffset);
                     outindex = index;
                     return token;
                 }
@@ -239,16 +261,509 @@ namespace BingsuCodeEditor.EpScript
             return null;
         }
 
-        public override bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false, string DataType = "")
+
+       
+
+
+        public override object GetObjectFromName(List<string> objectname, Container startcontainer, FindType findType, IList<ICompletionData> data = null, string scope = "st")
+        {
+            //imported1.var1;
+            //imported1.const1.object1;
+            //const1.object1;
+            //maincontainer.vars[0].
+
+            //참조 찾아보고 없으면 패스
+            //if (!startcontainer.CheckIdentifier(scope, objectname[0]))
+            //{
+            //    return null;
+            //}
+            if (objectname.Count == 0) return null;
+
+            Container ccon = startcontainer;
+            Container objcon = null;
+            string folderpath = folder;
+            int index = 0;
+            string lscope = scope;
+            while (true)
+            {
+                string objname = objectname[index];
+
+
+
+                if (scope.IndexOf("st.O") != -1)
+                {
+                    List<string> tname = new List<string>();
+                    tname.Add(scope.Split('.')[1].Substring(1));
+                    object _obj = GetObjectFromName(tname, ccon, FindType.Obj);
+
+                    if (_obj != null)
+                    {
+                        objcon = (Container)_obj;
+                    }
+
+                    if (objname == "this")
+                    {
+                        //this가 나오면 un같은거는 안된다.
+
+                        lscope = objcon.GetInitObjectNameSpacee();
+                        index++;
+                        if (index == objectname.Count)
+                        {
+                            if (findType == FindType.AutoComplete)
+                            {
+                                //마지막 부분이므로 해당 콘테이너의 내용을 모두 넣는다.
+                                if (objcon != null) objcon.GetAllItems(data, objcon.GetInitObjectNameSpacee(), noargFlag:true);
+                            }
+                            break;
+                        }
+                        continue;
+                    }
+                }
+
+
+
+
+
+                Block var = null;
+                Container obj = null;
+                Function func = null;
+                ImportedNameSpace importedNameSpace = null;
+
+
+
+                if (objcon != null)
+                {
+                    var = objcon.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
+                    obj = objcon.objs.Find(x => (x.mainname == objname));
+                    func = objcon.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
+                }
+                else
+                {
+                    var = ccon.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
+                    obj = ccon.objs.Find(x => (x.mainname == objname));
+                    func = ccon.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
+                    importedNameSpace = ccon.importedNameSpaces.Find(x => (x.shortname == objname));
+                }
+
+                if(CodeAnalyzer.DefaultFuncContainer != null)
+                {
+                    if (var == null)
+                    {
+                        var = CodeAnalyzer.DefaultFuncContainer.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
+                    }
+                    if (obj == null)
+                    {
+                        obj = CodeAnalyzer.DefaultFuncContainer.objs.Find(x => (x.mainname == objname));
+                    }
+                    if (func == null)
+                    {
+                        func = CodeAnalyzer.DefaultFuncContainer.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
+                    }
+                }
+              
+                //if (objname == "this" && objectname.Count == 1)
+                //{
+                //    //자기참조일 경우
+                //    if (findType == FindType.AutoComplete)
+                //    {
+                //        //마지막 부분이므로 해당 콘테이너의 내용을 모두 넣는다.
+                //        ccon.GetAllItems(data, "st.O" + startcontainer.mainname);
+                //    }
+                //}
+
+
+                if (importedNameSpace != null)
+                {
+                    string nsfile = importedNameSpace.mainname;
+                    string pullpath = importManager.GetPullPath(nsfile, folderpath);
+
+                    if (importManager.IsFileExist(pullpath))
+                    {
+                        if (!importManager.IsCachedContainer(pullpath))
+                        {
+                            //파일이 변형되었을 경우
+                            importManager.UpdateContainer(pullpath, GetContainer(importManager.GetFIleContent(pullpath)));
+                        }
+
+                        ccon = importManager.GetContainer(pullpath);
+
+                        if (pullpath.IndexOf(".") != -1)
+                        {
+                            folderpath = pullpath.Substring(0, pullpath.LastIndexOf("."));
+                        }
+                        else
+                        {
+                            folderpath = "";
+                        }
+
+                        lscope = "st";//스코프 초기화
+                        index++;
+                        if (index == objectname.Count)
+                        {
+                            if (findType == FindType.AutoComplete)
+                            {
+                                //마지막 부분이므로 해당 콘테이너의 내용을 모두 넣는다.
+                                ccon.GetAllItems(data, lscope);
+                            }else if (findType == FindType.All)
+                            {
+                                return importedNameSpace;
+                            }
+
+                            break; 
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+
+                }
+                else if (func != null)
+                {
+                    if (findType == FindType.Func || findType == FindType.All)
+                    {
+                        //마지막 찻수인경우
+                        if (index + 1 == objectname.Count)
+                        {
+                            //함수 찾는거면 이 func를 돌려주면 됨.ㅋㅋ
+                            return func;
+                        }
+
+                        break;
+                    }
+                    else if (findType == FindType.AutoComplete)
+                    {
+                        //자동완성이면 해당 함수의 반환타입을 주사
+                        string rtype = func.returntype;
+
+                        if(rtype == null) return null;
+
+                        List<string> tname = new List<string>();
+                        tname.AddRange(rtype.Split('.'));
+                        object _obj = GetObjectFromName(tname, ccon, FindType.Obj);
+
+                        if (_obj != null)
+                        {
+                            objcon = (Container)_obj;
+                        }
+                        else
+                        {
+                            return null;
+                        }
+
+
+                        if (index + 1 == objectname.Count)
+                        {
+                            //마지막 찻수인 경우 오브젝트의 요소들 반환
+                            objcon.GetAllItems(data, objcon.GetInitObjectNameSpacee(), noargFlag: true);
+                            break;
+                        }
+
+                    }
+
+
+                        return null;
+                }
+                else if (obj != null)
+                {
+                    if (findType == FindType.Obj)
+                    {
+                        if (index + 2 == objectname.Count)
+                        {
+                            switch(objectname[index + 1])
+                            {
+                                case "cast":
+                                case "alloc":
+                                    return obj;
+                            }
+                        }
+                    }
+                        
+
+
+
+                    if (index + 1 == objectname.Count)
+                    {
+                        if (findType == FindType.AutoComplete)
+                        {
+                            //마지막 부분이므로 해당 콘테이너의 내용을 모두 넣는다.
+                            data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "cast")));
+                            data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "alloc")));
+                            data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "free")));
+                        }
+                        else if (findType == FindType.Obj || findType == FindType.All)
+                        {
+                            return obj;
+                        }
+
+
+                        break;
+                    }
+                    else
+                    {
+
+                        if (index + 1 < objectname.Count)
+                        {
+                            string last = objectname[index + 1];
+
+                            if (last == "alloc" || last == "cast")
+                            {
+                                if (index + 2 == objectname.Count)
+                                {
+                                    //마지막이 alloc, cast인 경우
+                                    if (findType == FindType.AutoComplete)
+                                    {
+                                        obj.GetAllItems(data, obj.GetInitObjectNameSpacee(), noargFlag: true);
+                                        break;
+                                    }else if (findType == FindType.Func)
+                                    {
+                                        if(last == "alloc")
+                                        {
+                                            //생성자 함수 가져오기
+                                            func = obj.funcs.Find(x => (x.funcname == "constructor" && obj.GetInitObjectNameSpacee().Contains(x.scope)));
+                                            return func;
+                                        }
+                                    }
+                                    return null;
+                                }
+                                else
+                                {
+                                    //오브젝트를 참조하는 것.
+                                    lscope = obj.GetInitObjectNameSpacee();
+                                    objcon = obj;
+                                    index += 2;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                }
+                else if (var != null)
+                {
+                    //변수의 정의를 참조하여 타입을 확인.
+                    //obj이면 해당 obj의 멤버변수 ex var t = a.b.c(); 이런식이면
+                    //a.b.c를 탐색해야됨.
+                    //var.values
+                    //obj일 경우 obj는 콘테이너이므로... 함수 찾는 과정이면 한단계 더 들어갈 수 있음.
+                    object _obj;
+
+        
+                    if (!string.IsNullOrEmpty(var.blocktype))
+                    {
+                        List<string> list = new List<string>();
+
+                        list.Add(var.blocktype);
+
+
+                        //타입이 지정되어 있을 경우
+                        if (ccon.IsObject)
+                        {
+                            //오브젝트이면 밖에서 찾아야 함니다.
+
+                        }
+                        _obj = GetObjectFromName(list, ccon, FindType.Obj);
+
+                        if(_obj == null && CodeAnalyzer.DefaultFuncContainer != null)
+                        {
+                            _obj = GetObjectFromName(list, CodeAnalyzer.DefaultFuncContainer, FindType.Obj);
+                        }
+
+
+                        if (objcon != null && var.blocktype == "selftype")
+                        {
+                            _obj = objcon;
+                        }
+                    }
+                    else
+                    {
+                        //그 외
+                        _obj = GetObjectFromName(var.values, ccon, FindType.Obj);
+                        if (_obj == null && CodeAnalyzer.DefaultFuncContainer != null)
+                        {
+                            _obj = GetObjectFromName(var.values, CodeAnalyzer.DefaultFuncContainer, FindType.Obj);
+                        }
+                        if (_obj == null)
+                        {
+                            //함수 일 가능성이 있음
+                            _obj = GetObjectFromName(var.values, ccon, FindType.Func);
+                            if (_obj == null && CodeAnalyzer.DefaultFuncContainer != null)
+                            {
+                                _obj = GetObjectFromName(var.values, CodeAnalyzer.DefaultFuncContainer, FindType.Func);
+                            }
+                            if (_obj != null)
+                            {
+                                Function funcobject = (Function)_obj;
+                                List<string> list = new List<string>();
+                                list.Add(funcobject.returntype);
+                                //리턴값을 읽기
+
+                                _obj = GetObjectFromName(list, ccon, FindType.Obj);
+                            }
+                        }
+                    }
+
+
+                    if (_obj != null)
+                    {
+                        Container varobject = (Container)_obj;
+                        ccon = varobject;
+                        lscope = "st";//스코프 초기화
+                        index++;
+                        if (index == objectname.Count)
+                        {
+                            if (findType == FindType.AutoComplete)
+                            {
+                                //마지막 부분이므로 해당 콘테이너의 내용을 모두 넣는다.
+                                ccon.GetAllItems(data, ccon.GetInitObjectNameSpacee());
+                            }else if (findType == FindType.All)
+                            {
+                                return _obj;
+                            }
+
+
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        //아니면 아래에 있는거 사용하기
+                        if (index + 1 == objectname.Count)
+                        {
+                            if (findType == FindType.AutoComplete)
+                            {
+                                //마지막 부분이므로 해당 콘테이너의 내용을 모두 넣는다.
+                                data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "getValueAddr")));
+                            }
+                            else if (findType == FindType.All)
+                            {
+                                return var;
+                            }
+
+                            break;
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+
+
+
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            return null;
+        }
+
+
+
+
+        /// <summary>
+        /// 이름으로 부터 파일을 가져옴
+        /// </summary>
+        public override object GetObjectFromName(List<TOKEN> tokenlist, Container startcontainer, FindType findType, IList<ICompletionData> data = null,  string scope = "st")
+        {
+            if (tokenlist == null) return null;
+
+            List<string> strs = new List<string>();
+
+            foreach (var item in tokenlist)
+            {
+                strs.Add(item.Value);
+            }
+
+            return GetObjectFromName(strs, startcontainer, findType, data, scope);
+        }
+
+        public override bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
         {
             string scope = maincontainer.currentScope;
 
 
 
+            Container container = maincontainer;
+            Container objcontainer = null;
+
+
+            if (scope.IndexOf("st.O") != -1)
+            {
+                //string[] scopes = scope.Split('.');
+                //string initscope = scopes[0] + "." + scopes[1];
+
+                List<string> tname = new List<string>();
+                tname.Add(scope.Split('.')[1].Substring(1));
+                object _obj = GetObjectFromName(tname, maincontainer, FindType.Obj, scope: "st");
+
+                if (_obj != null)
+                {
+                    objcontainer = (Container)_obj;
+                }
+            }
+
+
+
+
+
+            switch (cursorLocation)
+            {
+                case CursorLocation.ImportFile:
+                    //파일들이 뜨게 하는 것
+                    if (importManager != null)
+                    {
+                        if (!IsNameSpaceOpen)
+                        {
+                            string fname = "";
+
+                            TOKEN ctkn = GetToken(0, TOKEN.Side.Right);
+                            List<TOKEN> t = tokenAnalyzer.GetTokenListFromTarget(ctkn, true);
+
+                            List<string> strs = new List<string>();
+                            for (int i = 0; i < t.Count - 1; i++)
+                            {
+                                strs.Add(t[i].Value);
+
+                                fname += t[i].Value;
+                                fname += ".";
+                            }
+
+
+                            if(fname == "")
+                            {
+                                foreach (var item in importManager.GetFileList())
+                                {
+                                    data.Add(new CodeCompletionData(new ImportFileItem(CompletionWordType.nameSpace, item)));
+                                }
+                                return true;
+                            }
+                            else
+                            {
+                                foreach (var item in importManager.GetFileList())
+                                {
+                                    string tstr = item;
+                                    if (tstr.StartsWith(fname))
+                                    {
+                                        tstr = tstr.Replace(fname, "");
+                                        data.Add(new CodeCompletionData(new ImportFileItem(CompletionWordType.nameSpace, tstr)));
+                                    }
+                                }
+                                return true;
+                            }
+                        }
+                    }
+                    break;
+            }
+
+                       
             //TODO:분석된 토큰으로 자동완성을 만든다.
             if (IsNameSpaceOpen)
             {                
-                TOKEN ctkn = GetToken(0);
+                TOKEN ctkn = GetToken(0, TOKEN.Side.Right);
                 if(ctkn == null) return true;
 
                 List<TOKEN> t = tokenAnalyzer.GetTokenListFromTarget(ctkn, true);
@@ -257,83 +772,51 @@ namespace BingsuCodeEditor.EpScript
                 //const1.object1;
                 //maincontainer.vars[0].
 
-                if(t.Count == 0) return true;
-    
+                //Item.cast(inven[i]). 이럴 경우 Item.cast를 t로 보낸다.
+                //Item.cast함수의 반환타입을 구해야 한다.
+                //t.Add(new TOKEN(0, TOKEN_TYPE.Identifier, "Item", 0));
+                //t.Add(new TOKEN(0, TOKEN_TYPE.Identifier, "cast", 0));
+                if (t.Count == 0) return true;
 
 
-                //네임스페이스를 찾아보고 없으면 패스
-                if (maincontainer.CheckIdentifier(scope, t[0].Value))
+                List<string> strs = new List<string>();
+
+                string fname = "";
+                foreach (var item in t)
                 {
-                    return true;
+                    strs.Add(item.Value);
+
+                    fname += item.Value;
+                    fname += ".";
                 }
 
-
-
-                Container ccon = maincontainer;
-                string folderpath = folder;
-                int index = 0;
-                string lscope = scope;
-                while (true)
+                string last = GetDirectText(0);
+                if(cursorLocation == CursorLocation.ImportFile && importManager != null)
                 {
-                    string objname = t[index].Value;
-                    Block var = ccon.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
-                    Container obj = ccon.objs.Find(x => (x.mainname == objname));
-                    Function func = ccon.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
-                    ImportedNameSpace importedNameSpace = ccon.importedNameSpaces.Find(x => (x.shortname == objname));
-
-
-
-                    if (importedNameSpace != null)
+                    bool IsImport = false;
+                    List<string> filelist = importManager.GetFileList(maincontainer.folderpath);
+                    List<string> autocmpfilelist = new List<string>();
+                    foreach (var item in filelist)
                     {
-                        string nsfile = importedNameSpace.mainname;
-                        string pullpath = importManager.GetPullPath(nsfile, folderpath);
-                        folderpath = importManager.GetFloderPath(nsfile, ccon.folderpath);
-
-                        if (importManager.IsFileExist(pullpath))
+                        if (item.StartsWith(fname))
                         {
-                            if(importManager.IsCachedContainer(pullpath))
-                            {
-                                //파일이 변형되었을 경우
-                                importManager.UpdateContainer(pullpath,GetContainer(importManager.GetFIleContent(pullpath)));
-                            }
-
-                            ccon = importManager.GetContainer(pullpath);
-                            lscope = "st";//스코프 초기화
-                            index++;
-                            if (index == t.Count)
-                            {
-                                //마지막 부분이므로 해당 콘테이너의 내용을 모두 넣는다.
-
-
-                                break;
-                            }
+                            //일치할 경우
+                            IsImport = true;
+                            autocmpfilelist.Add(item.Substring(fname.Length));
                         }
-                        else
+                    }
+                    if (IsImport)
+                    {
+                        foreach (var item in autocmpfilelist)
                         {
-                            return true;
+                            data.Add(new CodeCompletionData(new ImportFileItem(CompletionWordType.nameSpace, item)));
                         }
-
                     }
-                    else if (func != null)
-                    {
-
-                    }
-                    else if (obj != null)
-                    {
-
-                    }
-                    else if (var != null)
-                    {
-
-                    }
-                    else
-                    {
-                        return true;
-                    }
-
-
                 }
+              
 
+
+                GetObjectFromName(strs, container, FindType.AutoComplete, data, scope);
 
 
                 //foreach (var item in t)
@@ -350,40 +833,60 @@ namespace BingsuCodeEditor.EpScript
                 case CursorLocation.VarTypeDefine:
                     if(cursorLocation == CursorLocation.FunctionArgType)
                     {
-                        data.Add(new CodeCompletionData(new VarType(CompletionWordType.ArgType, "func함수인자")));
+                        foreach (var item in LuaDefaultCompletionData.GetCompletionKeyWordList())
+                        {
+                            data.Add(item);
+                        } 
                     }
-                    data.Add(new CodeCompletionData(new VarType(CompletionWordType.ArgType, "test테스트")));
-                    
+                    else
+                    {
+                        foreach (var item in container.objs)
+                        {
+                            data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Variable, item.mainname)));
+                        }
+                        foreach (var item in DefaultFuncContainer.objs)
+                        {
+                            data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Variable, item.mainname)));
+                        }
+                    }
+
                     return true;
             }
 
-
-            if (base.GetCompletionList(data))
+            if (maincontainer.innerFuncInfor.IsInnerFuncinfor)
             {
-                return true;
-            }
-
-
-            foreach (var item in maincontainer.importedNameSpaces)
-            {
-                if (string.IsNullOrEmpty(item.shortname))
+                //인자
+                Function func = (Function)GetObjectFromName(maincontainer.innerFuncInfor.funcename, maincontainer, FindType.Func);
+                if (func != null)
                 {
-                    continue;
+                    if(func.args.Count <= maincontainer.innerFuncInfor.argindex)
+                    {
+                        return true;
+                    }
+                    string argtype = func.args[maincontainer.innerFuncInfor.argindex].argtype;
+
+                    foreach (var item in LuaDefaultCompletionData.GetCompletionDataList(argtype))
+                    {
+                        data.Add(item);
+                    }
                 }
-                data.Add(new CodeCompletionData(item.preCompletion));
             }
-
-
-
-            foreach (var item in maincontainer.funcs.FindAll(x => scope.Contains(x.scope)))
+            else
             {
-                data.Add(new CodeCompletionData(item.preCompletion));
+                if (base.GetCompletionList(data)) return true;
             }
 
-            foreach (var item in maincontainer.vars.FindAll(x => scope.Contains(x.scope)))
+
+
+
+            container.GetAllItems(data, scope);
+            if(objcontainer != null)
             {
-                data.Add(new CodeCompletionData(item.preCompletion));
+                data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Const, "this")));
+                objcontainer.GetAllItems(data, scope);
             }
+            DefaultFuncContainer.GetAllItems(data, "st");
+
 
 
             return true;
@@ -429,6 +932,9 @@ namespace BingsuCodeEditor.EpScript
             //cursorLocation 현재 위치를 적습니다.
             CursorLocation cl = CursorLocation.None;
 
+
+            //TOKEN clefttoken = GetToken(0, TOKEN.Side.Left);
+
             TOKEN ctoken = GetToken(0);
             TOKEN btoken = GetToken(-1);
             TOKEN bbtoken = GetToken(-2);
@@ -441,6 +947,10 @@ namespace BingsuCodeEditor.EpScript
                     btoken = GetToken(-2);
                     bbtoken = GetToken(-3);
                 }
+                if (ctoken.Type == TOKEN_TYPE.KeyWord && ctoken.Value == "function")
+                {
+                    cl = CursorLocation.FunctionName;
+                }
             }
 
             if (btoken != null)
@@ -452,22 +962,27 @@ namespace BingsuCodeEditor.EpScript
                         case "var":
                         case "const":
                         case "as":
-                            cl = CursorLocation.ObjectName;
+                            cl = CursorLocation.VarName;
                             break;
                         case "function":
                             cl = CursorLocation.FunctionName;
                             break;
-                        case "import":
-                            cl = CursorLocation.ImportFile;
+                            break;
+                        case "object":
+                            cl = CursorLocation.ObjectDefine;
                             break;
                     }
                 }
             }
-
+            
 
             if(cl == CursorLocation.None)
             {
-                if(ctoken != null && ctoken.Type == TOKEN_TYPE.Symbol && ctoken.Value == ":")
+                if (ctoken != null && ctoken.Type == TOKEN_TYPE.Symbol && ctoken.Value == ":")
+                {
+                    cl = CursorLocation.VarTypeDefine;
+                }
+                if (btoken != null && btoken.Type == TOKEN_TYPE.Symbol && btoken.Value == ":")
                 {
                     cl = CursorLocation.VarTypeDefine;
                 }
@@ -488,7 +1003,9 @@ namespace BingsuCodeEditor.EpScript
             try
             {
                 maincontainer = tokenAnalyzer.ConatainerAnalyzer(caretoffset);
-                if(maincontainer.cursorLocation != CursorLocation.None)
+                //RefershImportContainer(maincontainer);
+
+                if (maincontainer.cursorLocation != CursorLocation.None)
                 {
                     cursorLocation = maincontainer.cursorLocation;
                 }
@@ -513,7 +1030,92 @@ namespace BingsuCodeEditor.EpScript
             tokenAnalyzer.Complete(textEditor);
         }
 
+        public override string GetTooiTipText(TOKEN token)
+        {
+            switch (token.Type)
+            {
+                case TOKEN_TYPE.Identifier:
+                    break;
+                default:
+                    return "";
+            }
 
 
+            List<TOKEN> t = tokenAnalyzer.GetTokenListFromTarget(token, true);
+
+            string rstr = "";
+            foreach (var item in t)
+            {
+                if(rstr != "")
+                {
+                    rstr += ".";
+                }
+
+                rstr += item.Value;
+            }
+
+            object o = GetObjectFromName(t, maincontainer, FindType.All, null, token.scope);
+
+            if(o != null)
+            {
+                switch (o.GetType().Name)
+                {
+                    case "Block":
+                        Block var = (Block) o;
+                        rstr = var.blockdefine + " " + rstr;
+                        if (!string.IsNullOrEmpty(var.blocktype))
+                        {
+                            rstr += ":" + var.blocktype;
+                        }
+
+                        if (var.values != null && var.values.Count != 0)
+                        {
+                            string v = "";
+                            foreach (var item in var.values)
+                            {
+                                if (v != "")
+                                {
+                                    v += ".";
+                                }
+
+                                v += item.Value;
+                            }
+
+                            rstr += " = " + v;
+                        }
+                        if (var.IsArg)
+                        {
+                            rstr = "(매게변수) " + rstr;
+                        }
+
+                        break;
+                    case "Container":
+                        Container obj = (Container)o;
+                        if(rstr == obj.mainname)
+                        {
+                            rstr = "object " + rstr;
+                        }
+                        else
+                        {
+                            rstr = rstr + ":" + obj.mainname;
+                        }
+                        break;
+                    case "EpScriptFunction":
+                        Function func = (Function)o;
+                        rstr = GetFuncToolTip(t).Trim();
+                        break;
+                    case "ImportedNameSpace":
+                        ImportedNameSpace importedNameSpace = (ImportedNameSpace)o;
+                        rstr = "import " + importedNameSpace.mainname + " as " + importedNameSpace.shortname;
+                        break;
+                }
+            }
+
+            //Block var = null;
+            //Container obj = null;
+            //Function func = null;
+            //ImportedNameSpace importedNameSpace = null;
+            return rstr;
+        }
     }
 }

@@ -21,13 +21,33 @@ namespace BingsuCodeEditorTest.epScript
 
         public override string GetFIleContent(string pullpath)
         {
-            throw new NotImplementedException();
+            switch (pullpath)
+            {
+                case "functest":
+                    return "function test(a,b){}";
+                case "a":
+                    return "import b as b1;";
+                case "b":
+                    return "import c as c1;";
+                case "c":
+                    return "var ctest;";
+                case "d.f":
+                    return "var ctest;";
+                case "DEFAULTFUNCTIONLIST":
+                    return System.IO.File.ReadAllText("epscriptfunction.txt");
+            }
+            return "var test1;";
         }
 
         public override List<string> GetFileList(string basefilename = "")
         {
             List<string> rlist = new List<string>();
-            rlist.Add("TriggerEditor.SCArchive");
+            //rlist.Add("TriggerEditor.SCArchive");
+            rlist.Add("a");
+            rlist.Add("b");
+            rlist.Add("c");
+            rlist.Add("d.f");
+            rlist.Add("functest");
 
             return rlist;
         }

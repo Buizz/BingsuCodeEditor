@@ -1,0 +1,18 @@
+﻿<UserControl x:Class="BingsuCodeEditor.OptionControlItem"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BingsuCodeEditor" xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d">
+    <StackPanel Orientation="Horizontal" Margin="8,8,8,8">
+        <TextBlock Width="75" x:Name="tbColorName" VerticalAlignment="Center" HorizontalAlignment="Right" TextAlignment="Right" Margin="0,0,8,0"/>
+        <Button x:Name="Colorize" Click="Colorize_Click" Margin="0,0,0,0">
+        </Button>
+        <Popup x:Name="ColorPickerPopup" StaysOpen="False">
+            <materialDesign:Card >
+                <local:ColorPicker x:Name="ColorPicker" ColorSelect="ColorPicker_ColorSelect" Foreground="{DynamicResource MaterialDesignBody}" Background="{DynamicResource MaterialDesignPaper}" Padding="4,4,4,4"/>
+            </materialDesign:Card>
+        </Popup>
+    </StackPanel>
+</UserControl>

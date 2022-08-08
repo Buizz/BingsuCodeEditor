@@ -26,26 +26,29 @@ namespace BingsuCodeEditor.AutoCompleteToken
         //변수 명
         public string blockname;
 
+        public bool IsArg;
 
-        List<CodeAnalyzer.TOKEN> values;
+
+        public List<CodeAnalyzer.TOKEN> values;
 
 
         public PreCompletionData preCompletion;
 
-        public Block(string blockdefine, string blockname, string blocktype = "", List<CodeAnalyzer.TOKEN> values = null)
+        public Block(string blockdefine, string blockname, string blocktype = "", List<CodeAnalyzer.TOKEN> values = null, bool IsArg = false)
         {
             this.blockdefine = blockdefine;
             this.blocktype = blocktype;
             this.blockname = blockname;
             this.values = values;
+            this.IsArg = IsArg;
 
             if(blockdefine == "var")
             {
-                preCompletion = new ObjectItem(CompletionWordType.Variable, blockname);
+                preCompletion = new ObjectItem(CompletionWordType.Variable, blockname, block:this);
             }
             else
             {
-                preCompletion = new ObjectItem(CompletionWordType.Const, blockname);
+                preCompletion = new ObjectItem(CompletionWordType.Const, blockname, block: this);
             }
         }
     }

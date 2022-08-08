@@ -31,9 +31,12 @@ namespace BingsuCodeEditorTest
         {
             InitializeComponent();
 
+
             importManager = new epsImportManager();
             MainTabablzControl.NewItemFactory = NewItemFunc;
             //CodeEditor.AddAdditionalstring("default", "function ab");
+
+          
         }
 
         private void Window_Deactivated(object sender, EventArgs e)
@@ -41,48 +44,65 @@ namespace BingsuCodeEditorTest
             //CodeEditor.Deactivated();
         }
 
-        private bool IsDark;
+        private bool IsDark = true;
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
+            IsDark = !IsDark;
 
+            SetTheme();
+        }
+
+        private void SetTheme()
+        {
             PaletteHelper paletteHelper = new PaletteHelper();
             ITheme theme = paletteHelper.GetTheme();
-            if (!IsDark)
+            if (IsDark)
             {
                 theme.SetBaseTheme(Theme.Dark);
                 paletteHelper.SetTheme(theme);
                 //CodeEditor.IsDark = true;
-                IsDark = true;
             }
             else
             {
                 theme.SetBaseTheme(Theme.Light);
                 paletteHelper.SetTheme(theme);
                 //CodeEditor.IsDark = false;
-                IsDark = false;
             }
-
         }
+
 
         private void NewItem_Click(object sender, RoutedEventArgs e)
         {
-
             //TabablzControl.AddItem(NewItemFunc(),null , AddLocationHint.First);
-
-            MainTabablzControl.Items.Add(NewItemFunc());
+            TabItem tab = (TabItem)NewItemFunc();
+            MainTabablzControl.Items.Add(tab);
+            MainTabablzControl.SelectedItem = tab;
         }
 
         private object NewItemFunc()
         {
             TabItem tab = new TabItem();
             BingsuCodeEditor.CodeTextEditor codeTextEditor = new BingsuCodeEditor.CodeTextEditor();
-            codeTextEditor.Syntax = BingsuCodeEditor.CodeTextEditor.CodeType.epScript;
+            codeTextEditor.Syntax = BingsuCodeEditor.CodeTextEditor.CodeType.Lua;
+            codeTextEditor.SetFilePath = "Tool.build";
+            codeTextEditor.IsDark = true;
             codeTextEditor.SetImportManager(importManager);
+
+            codeTextEditor.OptionFilePath = @"F:\Users\Desktop\테스트\";
+            codeTextEditor.LoadOption();
 
             tab.Content = codeTextEditor;
             tab.Header = "새 파일";
 
             return tab;
+        }
+
+        private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            SetTheme();
+            TabItem tab = (TabItem)NewItemFunc();
+            MainTabablzControl.Items.Add(tab);
+            MainTabablzControl.SelectedItem = tab;
         }
     }
 }

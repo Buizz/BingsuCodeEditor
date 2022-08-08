@@ -26,6 +26,8 @@ namespace BingsuCodeEditor
     }
     public abstract class TokenAnalyzer
     {
+
+
         protected List<TOKEN> tklist;
 
         protected int index;
@@ -50,10 +52,13 @@ namespace BingsuCodeEditor
         }
 
 
-        public TOKEN GetSafeTokenIten(bool GoToReverse = false)
+        public TOKEN GetSafeTokenIten(bool GoToReverse = false, int _i = 0)
         {
             PassComment(GoToReverse);
-  
+            if (tklist.Count > index + _i)
+            {
+                return tklist[index + _i];
+            }
             return tklist[index];
         }
 
@@ -139,7 +144,10 @@ namespace BingsuCodeEditor
         /// <returns></returns>
         public TOKEN GetCurrentToken(bool GoToReverse = false)
         {
-            IsEndOfList(true);
+            if (IsEndOfList())
+            {
+                return null;
+            }
 
             TOKEN rtk = GetSafeTokenIten(GoToReverse);
 
@@ -164,11 +172,14 @@ namespace BingsuCodeEditor
             while (true)
             {
 
-                TOKEN tk = GetCurrentToken(IsReverse);
-                if (tk.Type == TOKEN_TYPE.Identifier)
+                TOKEN tk = GetSafeTokenIten(IsReverse);
+                if (CheckCurrentToken(TOKEN_TYPE.Identifier))
                 {
                     rlist.Add(tk);
+                    tk = GetSafeTokenIten(IsReverse);
                 }
+
+
                 if (tk.Type == TOKEN_TYPE.Number)
                 {
                     rlist.Add(tk);
@@ -188,19 +199,13 @@ namespace BingsuCodeEditor
             return rlist;
         }
 
-        /// <summary>
-        /// target으롭부터 작성중인 함수를 판별합니다.
-        /// 이중 구조의 경우 주의하여야 합니다.
-        /// </summary>
-        public abstract Function GetWritedFunction(TOKEN target, out int pos);
-        
 
         /// <summary>
         /// 토큰 네임스페이스를 가져옵니다.
         /// a.b.c.d등 .과 키로 이루어진 리스트입니다.
         /// </summary>
         /// <returns></returns>
-        public List<TOKEN> GetTokenListFromTarget(TOKEN target, bool IsReverse = false, bool saveIndex = true)
+        public List<TOKEN> GetTokenListFromTarget(TOKEN target, bool IsReverse = false, bool saveIndex = true, bool IsNamespace = false)
         {
             List<TOKEN> rlist = new List<TOKEN>();
             //토큰 네임스페이스를 가져옵니다.
@@ -227,7 +232,53 @@ namespace BingsuCodeEditor
                 }
                 TOKEN tk = GetCurrentToken(IsReverse);
 
-                if(tk.Type != TOKEN_TYPE.Identifier)
+                if (IsNamespace && tk.Type == TOKEN_TYPE.Symbol && tk.Value == ".")
+                {
+                    rlist.Add(tk);
+                    tk = GetCurrentToken(IsReverse);
+                }
+
+
+                if (IsReverse)
+                {
+                    if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == ")")
+                    {
+                        int bracecount = 1;
+                        while (true)
+                        {
+                            if (index >= tklist.Count || index < 0)
+                            {
+                                break;
+                            }
+                            IsEndOfList(true);
+
+                            tk = GetCurrentToken(IsReverse);
+
+                            if (tk.Type == TOKEN_TYPE.Symbol)
+                            {
+                                switch (tk.Value)
+                                {
+                                    case ")":
+                                        bracecount++;
+                                        break;
+                                    case "(":
+                                        bracecount--;
+                                        break;
+                                }
+                            }
+                            if (bracecount == 0)
+                            {
+                                tk = GetCurrentToken(IsReverse);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+
+
+
+                if (tk.Type != TOKEN_TYPE.Identifier)
                 {
                     break;
                 }
@@ -262,7 +313,7 @@ namespace BingsuCodeEditor
         /// 만약 옳은 토큰일 경우 다음 인덱스로 진행합니다.
         /// </summary>
         /// <returns></returns>
-        public bool CheckCurrentToken(TOKEN_TYPE ttype, string value = null, bool IsReverse = false)
+        public bool CheckCurrentToken(TOKEN_TYPE ttype, string value = null, bool IsReverse = false, bool IsDirect = false)
         {
             //if (IsError)
             //{
@@ -273,6 +324,18 @@ namespace BingsuCodeEditor
 
 
             TOKEN ntk = GetSafeTokenIten();
+
+            if (IsDirect)
+            {
+                TOKEN ltk = GetSafeTokenIten(_i: 1);
+
+                if(ntk.EndOffset != ltk.StartOffset)
+                {
+                    return false;
+                }
+            }
+
+
 
             if (ttype != ntk.Type)
             {

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static BingsuCodeEditor.CodeAnalyzer;
 
-namespace BingsuCodeEditor.EpScript
+namespace BingsuCodeEditor.Lua
 {
     public class LuaTokenAnalyzer : TokenAnalyzer
     {
@@ -57,126 +57,12 @@ namespace BingsuCodeEditor.EpScript
                     case TOKEN_TYPE.KeyWord:
                         switch (tk.Value)
                         {
-                            case "const":
-                            case "var":
-                                List<Block> b = BlockAnalyzer(cc, scope, tk, startindex, main: rcontainer);
-
-
-                                foreach (var item in b)
-                                {
-                                    item.scope = scope;
-
-
-                                    if (cc.CheckIdentifier(scope, item.blockname))
-                                    {
-                                        ThrowException("변수 " + item.blockname + "는 이미 선언되어 있습니다.", tk, 1);
-                                    }
-
-
-                                    if (forstart)
-                                    {
-                                        forblocks.Add(item);
-                                    }
-
-                                    //자동완성에만 영향을 줘야됨..
-                                    //범위를 벗어날 경우 오브젝트에 넣지 않는다.
-                                    //if (isinstartoffset)
-                                    //{
-                                    //    cc.vars.Add(item);
-                                    //}
-                                    cc.vars.Add(item);
-                                }
-                                break;
-                            case "foreach":
-                                if (!CheckCurrentToken(TOKEN_TYPE.Symbol, "("))
-                                {
-                                    ThrowException("foreach문이 잘못되었습니다. (가 와야합니다.", tk);
-                                }
-                                forblocks.Clear();
-                                forstart = true;
-                                while (true)
-                                {
-                                    tk = GetCurrentToken();
-
-                                    if(tk.Type != TOKEN_TYPE.Identifier)
-                                    {
-                                        ThrowException("foreach 변수 자리에는 식별자를 선언해야 합니다.", tk);
-
-                                        break;
-                                    }
-                                    Block item = new Block("const", tk.Value);
-
-                                    forblocks.Add(item);
-
-                                    cc.vars.Add(item);
-                                    if (!CheckCurrentToken(TOKEN_TYPE.Symbol, ","))
-                                    {
-                                        break;
-                                    }
-                                }
-
-                                break;
                             case "for":
                                 forblocks.Clear();
                                 forstart = true;
 
                                 break;
-                            case "import":
-                                //import File as t;
-                                //import File;
-                                int importstart = tk.EndOffset;
-
-                                tk = GetCurrentToken();
-                                List<TOKEN> t = GetTokenListFromTarget(tk, saveIndex:false, IsNamespace: true);
-
-                                
-                                int importend = t.Last().EndOffset + 1;
-
-                        
-
-
-                                string filename = "";
-                                //tk = GetCurrentToken();
-                                foreach (var item in t)
-                                {
-                                    if(filename != "")
-                                    {
-                                        filename += ".";
-                                    }
-                                    filename += item.Value;
-                                }
-
-
-                                string nspace;
-
-                                if (CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
-                                {
-                                    //특별 지정자 없이 임포트
-                                    cc.importedNameSpaces.Add(new ImportedNameSpace(filename, ""));
-                                }
-                                else if(CheckCurrentToken(TOKEN_TYPE.KeyWord, "as"))
-                                {
-                                    //특별 지정자
-                                    tk = GetCurrentToken();
-                                    nspace = tk.Value;
-                                    if (!CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
-                                    {
-                                        ThrowException("import문이 정상적으로 종료되지 않았습니다.", tk);
-                                    }
-                                    cc.importedNameSpaces.Add(new ImportedNameSpace(filename, nspace));
-                                }
-                                else
-                                {
-                                    //잘못된 지정자
-                                    ThrowException("import문이 정상적으로 종료되지 않았습니다.", tk);
-                                }
-                                if (importstart <= startindex && startindex <= importend)
-                                {
-                                    rcontainer.cursorLocation = CursorLocation.ImportFile;
-                                }
-                                //임포트 매니저에게 파일 이름 확인 시키기.
-                                //본인의 이름과 파일 이름을 넘겨야함.
-                                break;
+                           
                             case "function":
                                 Function function = FunctionAnalyzer(startindex, scope);
 

@@ -12,6 +12,7 @@
         xmlns:dockablz="http://dragablz.net/winfx/xaml/dockablz"
         xmlns:dragablz="http://dragablz.net/winfx/xaml/dragablz"
         Deactivated="Window_Deactivated"
+                      Loaded="MetroWindow_Loaded"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Window.Resources>

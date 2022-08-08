@@ -76,10 +76,10 @@ namespace BingsuCodeEditor
                 this.Visibility = Visibility.Hidden;
             }
 
-            this.SizeToContent = SizeToContent.Height;
+            this.SizeToContent = SizeToContent.WidthAndHeight;
             this.MinHeight = 15;
-            this.Width = 175;
-            this.MinWidth = 30;
+            this.Width = 240;
+            this.MinWidth = 80;
             this.Height = 270;
 
 

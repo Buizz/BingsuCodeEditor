@@ -12,16 +12,22 @@ namespace BingsuCodeEditor
         public CompletionWordType completionWordType;
 
 
-        public PreCompletionData(CompletionWordType completionType, string name)
+        public PreCompletionData(CompletionWordType completionType, string name, string outputstring = "", string desc = "")
         {
             this.completionWordType = completionType;
             this.name = name;
+            this._outputstring = outputstring;
+            this._desc = desc;
+
+
         }
 
         //키워드 이름
         protected string name;
+        protected string _outputstring;
+        protected string _desc;
         public abstract string listheader { get; }
-        public abstract string ouputstring { get; }
+        public abstract string outputstring { get; }
         public abstract string desc { get; }
 
 

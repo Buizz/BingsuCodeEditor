@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BingsuCodeEditor.EpScript
+namespace BingsuCodeEditor.Lua
 {
     internal class LuaFunction : Function
     {

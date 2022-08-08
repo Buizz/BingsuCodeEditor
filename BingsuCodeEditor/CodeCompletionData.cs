@@ -53,7 +53,8 @@ namespace BingsuCodeEditor
         public string Text
         {
             get {
-                return preCompletionData.ouputstring;
+                if(preCompletionData != null) return preCompletionData.outputstring;
+                return "";
             }
             private set {
 
@@ -63,18 +64,47 @@ namespace BingsuCodeEditor
         // Use this property if you want to show a fancy UIElement in the list.
         public object Content
         {
-            get { return preCompletionData.listheader; }
+            get { if (preCompletionData != null) return preCompletionData.listheader;
+                return "";
+            }
         }
 
         public object Description
         {
-            get { return preCompletionData.desc; }
+            get { if (preCompletionData != null) return preCompletionData.desc;
+                return "";
+            }
         }
 
 
         public double Priority
         {
-            get { return preCompletionData.Priority; }
+            get {
+                //switch (preCompletionData.completionWordType)
+                //{
+                //    case CompletionWordType.Variable:
+                //        return 0;
+                //    case CompletionWordType.Const:
+                //        return 1;
+                //    case CompletionWordType.Action:
+                //        return 2;
+                //    case CompletionWordType.Condiction:
+                //        return 3;
+                //    case CompletionWordType.KeyWord:
+                //        return 4;
+                //    case CompletionWordType.Function:
+                //        return 5;
+                //    case CompletionWordType.nameSpace:
+                //        return 6;
+                //    case CompletionWordType.Setting:
+                //        return 7;
+                //}
+
+
+                if (preCompletionData != null)
+                    return preCompletionData.Priority;
+                return 100;
+            }
         }
 
 

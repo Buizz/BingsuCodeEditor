@@ -52,8 +52,8 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ICSharpCode.AvalonEdit, Version=6.1.1.20, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
-      <HintPath>..\packages\AvalonEdit.6.1.1\lib\net45\ICSharpCode.AvalonEdit.dll</HintPath>
+    <Reference Include="ICSharpCode.AvalonEdit, Version=6.1.3.50, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
+      <HintPath>..\packages\AvalonEdit.6.1.3.50\lib\net45\ICSharpCode.AvalonEdit.dll</HintPath>
     </Reference>
     <Reference Include="MaterialDesignColors, Version=2.0.0.2422, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
       <HintPath>..\packages\MaterialDesignColors.2.0.0\lib\net452\MaterialDesignColors.dll</HintPath>
@@ -83,7 +83,12 @@
     <Compile Include="AutoCompleteToken\Container.cs" />
     <Compile Include="AutoCompleteToken\Function.cs" />
     <Compile Include="AutoCompleteToken\ImportedNameSpace.cs" />
+    <Compile Include="CodeTextEditorOption.cs" />
+    <Compile Include="ColorPicker.xaml.cs">
+      <DependentUpon>ColorPicker.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CompletionWindowBase.cs" />
+    <Compile Include="EpScript\EpScriptDefaultCompletionData.cs" />
     <Compile Include="EpScript\EpScriptFunction.cs" />
     <Compile Include="EpScript\EpScriptTokenAnalyzer.cs" />
     <Compile Include="ExtensionMethods.cs" />
@@ -91,6 +96,15 @@
     <Compile Include="LineColorDrawer\ErrorUnderLine.cs" />
     <Compile Include="LineColorDrawer\MarkSameWord.cs" />
     <Compile Include="LineColorDrawer\MarkSnippetWord.cs" />
+    <Compile Include="Lua\LuaDefaultCompletionData.cs" />
+    <Compile Include="Lua\LuaFunction.cs" />
+    <Compile Include="Lua\LuaTokenAnalyzer.cs" />
+    <Compile Include="OptionControl.xaml.cs">
+      <DependentUpon>OptionControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OptionControlItem.xaml.cs">
+      <DependentUpon>OptionControlItem.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PreCompletionData.cs" />
     <Compile Include="ResourceManager.cs" />
     <Compile Include="TokenAnalyzer.cs" />
@@ -111,6 +125,18 @@
       <DependentUpon>CodeTextEditor.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="ColorPicker.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OptionControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OptionControlItem.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">

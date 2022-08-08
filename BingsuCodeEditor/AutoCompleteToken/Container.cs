@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ICSharpCode.AvalonEdit.CodeCompletion;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,14 +22,21 @@ namespace BingsuCodeEditor.AutoCompleteToken
             public bool IsInnerFuncinfor = false;
             public List<TOKEN> funcename;
             public int argindex;
-            public string argtype;
         }
         public InnerFuncInfor innerFuncInfor;
 
         public string folderpath;
 
+        public bool IsObject;
         public string mainname;
         public string shortname;
+
+        public string GetInitObjectNameSpacee()
+        {
+            return "st.O" + mainname;
+        }
+
+
         //각각의 콘테이너는 별칭을 가짐.
         //Ex
         //	1. Import main as m;
@@ -61,22 +69,97 @@ namespace BingsuCodeEditor.AutoCompleteToken
         /// </summary>
         /// <param name="scope"></param>
         /// <returns></returns>
-        public bool CheckIdentifier(string scope, string funcname)
+        public bool CheckIdentifier(string scope, string funcname, bool IsExtra = false)
         {
-            Block var = vars.Find(x => (x.blockname == funcname && scope.Contains(x.scope)));
-            Container obj = objs.Find(x => (x.mainname == funcname));
-            Function func = funcs.Find(x => (x.funcname == funcname && scope.Contains(x.scope)));
+            Block var;
+
+
+            Container m = this;
+            if (scope.IndexOf("st.O") != -1)
+            {
+                //string[] scopes = scope.Split('.');
+                //string initscope = scopes[0] + "." + scopes[1];
+
+                string objname = scope.Split('.')[1].Substring(1);
+
+                Container _obj = objs.Find(x => (x.mainname == objname));
+
+                if (_obj != null)
+                {
+                    m = _obj;
+                }
+            }
+
+
+            if (funcname == "this")
+            {
+                return true;
+            }
+            else
+            {
+                var = m.vars.Find(x => (x.blockname == funcname && scope.Contains(x.scope)));
+            }
+
+            Container obj = m.objs.Find(x => (x.mainname == funcname));
+            Function func = m.funcs.Find(x => (x.funcname == funcname && scope.Contains(x.scope)));
 
             ImportedNameSpace importedNameSpace = importedNameSpaces.Find(x => (x.shortname == funcname));
 
             if(var == null && obj == null && func == null && importedNameSpace == null)
             {
+                if (!IsExtra)
+                {
+                    if(CodeAnalyzer.importManager != null && CodeAnalyzer.importManager.IsCachedContainer(CodeAnalyzer.DEFAULTFUNCFILENAME))
+                    {
+                        return CodeAnalyzer.importManager.GetContainer(CodeAnalyzer.DEFAULTFUNCFILENAME).CheckIdentifier("st", funcname, true);
+
+                    }
+                }
+
                 return false;
             }
 
             return true;
         }
 
+
+        public void GetAllItems(IList<ICompletionData> data, string scope, bool noargFlag = false)
+        {
+            foreach (var item in importedNameSpaces)
+            {
+                if (string.IsNullOrEmpty(item.shortname))
+                {
+                    continue;
+                }
+                data.Add(new CodeCompletionData(item.preCompletion));
+            }
+
+            foreach (var item in funcs.FindAll(x => scope.Contains(x.scope)))
+            {
+                data.Add(new CodeCompletionData(item.preCompletion));
+            }
+
+            foreach (var item in objs)
+            {
+                data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Variable, item.mainname)));
+            }
+            if (noargFlag)
+            {
+                foreach (var item in vars.FindAll(x => scope.Contains(x.scope) && !x.IsArg))
+                {
+                    data.Add(new CodeCompletionData(item.preCompletion));
+                }
+            }
+            else
+            {
+                foreach (var item in vars.FindAll(x => scope.Contains(x.scope)))
+                {
+                    data.Add(new CodeCompletionData(item.preCompletion));
+                }
+            }
+     
+
+        }
 
     }
 }
