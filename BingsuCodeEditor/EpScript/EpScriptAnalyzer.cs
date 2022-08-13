@@ -1,4 +1,5 @@
 ﻿using BingsuCodeEditor.AutoCompleteToken;
+using BingsuCodeEditor.Lua;
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using System;
@@ -11,6 +12,47 @@ namespace BingsuCodeEditor.EpScript
 {
     partial class EpScriptAnalyzer : CodeAnalyzer
     {
+        public static ImportManager importManager;
+        public static string DEFAULTFUNCFILENAME = "DEFAULTFUNCTIONLIST";
+        public static Container _DefaultFuncContainer;
+        public static Container DefaultFuncContainer
+        {
+            get
+            {
+                return _DefaultFuncContainer;
+            }
+        }
+
+        public override ImportManager ChildImportManager
+        {
+            get
+            {
+                return EpScriptAnalyzer.importManager;
+            }
+        }
+
+        public override void SetImportManager(ImportManager importManager)
+        {
+            EpScriptAnalyzer.importManager = importManager;
+
+            if (!importManager.IsCachedContainer(DEFAULTFUNCFILENAME))
+            {
+                Container c = this.GetContainer(importManager.GetFIleContent(DEFAULTFUNCFILENAME));
+                importManager.UpdateContainer(DEFAULTFUNCFILENAME, c);
+            }
+            if (_DefaultFuncContainer == null)
+            {
+                _DefaultFuncContainer = importManager.GetContainer(DEFAULTFUNCFILENAME);
+
+                foreach (var item in _DefaultFuncContainer.funcs)
+                {
+                    if (!string.IsNullOrEmpty(item.comment)) item.ReadComment("ko-KR");
+                }
+            }
+
+        }
+
+
         public EpScriptAnalyzer(TextEditor textEditor) : base(textEditor, false)
         {
             string[] keywords = {"object", "static", "once", "if", "else", "while", "for", "function", "foreach",
@@ -51,11 +93,17 @@ namespace BingsuCodeEditor.EpScript
             FuncPreChar.Add("@");
 
 
-            tokenAnalyzer = new LuaTokenAnalyzer();
-            secondtokenAnalyzer = new LuaTokenAnalyzer();
+            tokenAnalyzer = new EpScriptTokenAnalyzer(this);
+            secondtokenAnalyzer = new EpScriptTokenAnalyzer(this);
             codeFoldingManager = new EpScriptFoldingManager(textEditor);
+
+
+            luaAnalyzer = new LuaAnalyzer(textEditor);
+            luaTokenAnalyzer = new LuaTokenAnalyzer(luaAnalyzer);
         }
 
+        public LuaAnalyzer luaAnalyzer;
+        public LuaTokenAnalyzer luaTokenAnalyzer;
 
 
         public override void AutoInsert(string text)
@@ -110,6 +158,7 @@ namespace BingsuCodeEditor.EpScript
             string block = t.ToString();
 
 
+            outindex = -1;
             if (t == '"')
             {
                 block = "";
@@ -153,12 +202,21 @@ namespace BingsuCodeEditor.EpScript
             }
             else if (t == '/')
             {
+                if (index + 1 >= tlen)
+                {
+                    return null;
+                }
                 char nt = text[index + 1];
 
                 if (nt == '/')
                 {
                     //LineCommnet 개행 문자까지 반복 (\r)
-                    t = text[++index];
+                    index++;
+                    if (index >= tlen)
+                    {
+                        return null;
+                    }
+                    t = text[index];
                     do
                     {
                         block += t.ToString();
@@ -218,13 +276,22 @@ namespace BingsuCodeEditor.EpScript
             }
             else if (t == '<')
             {
+                if (index + 1 >= tlen)
+                {
+                    return null;
+                }
                 char nt = text[index + 1];
 
                 if (nt == '?')
                 {
                     //MulitComment */가 나올 떄 까지 반복
                     char lastchar = ' ';
-                    t = text[++index];
+                    index++;
+                    if (index>= tlen)
+                    {
+                        return null;
+                    }
+                    t = text[index];
                     do
                     {
                         block += t.ToString();
@@ -257,7 +324,6 @@ namespace BingsuCodeEditor.EpScript
                 }
             }
 
-            outindex = -1;
             return null;
         }
 
@@ -345,19 +411,19 @@ namespace BingsuCodeEditor.EpScript
                     importedNameSpace = ccon.importedNameSpaces.Find(x => (x.shortname == objname));
                 }
 
-                if(CodeAnalyzer.DefaultFuncContainer != null)
+                if(EpScriptAnalyzer.DefaultFuncContainer != null)
                 {
                     if (var == null)
                     {
-                        var = CodeAnalyzer.DefaultFuncContainer.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
+                        var = EpScriptAnalyzer.DefaultFuncContainer.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
                     }
                     if (obj == null)
                     {
-                        obj = CodeAnalyzer.DefaultFuncContainer.objs.Find(x => (x.mainname == objname));
+                        obj = EpScriptAnalyzer.DefaultFuncContainer.objs.Find(x => (x.mainname == objname));
                     }
                     if (func == null)
                     {
-                        func = CodeAnalyzer.DefaultFuncContainer.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
+                        func = EpScriptAnalyzer.DefaultFuncContainer.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
                     }
                 }
               
@@ -566,9 +632,9 @@ namespace BingsuCodeEditor.EpScript
                         }
                         _obj = GetObjectFromName(list, ccon, FindType.Obj);
 
-                        if(_obj == null && CodeAnalyzer.DefaultFuncContainer != null)
+                        if(_obj == null && EpScriptAnalyzer.DefaultFuncContainer != null)
                         {
-                            _obj = GetObjectFromName(list, CodeAnalyzer.DefaultFuncContainer, FindType.Obj);
+                            _obj = GetObjectFromName(list, EpScriptAnalyzer.DefaultFuncContainer, FindType.Obj);
                         }
 
 
@@ -581,17 +647,17 @@ namespace BingsuCodeEditor.EpScript
                     {
                         //그 외
                         _obj = GetObjectFromName(var.values, ccon, FindType.Obj);
-                        if (_obj == null && CodeAnalyzer.DefaultFuncContainer != null)
+                        if (_obj == null && EpScriptAnalyzer.DefaultFuncContainer != null)
                         {
-                            _obj = GetObjectFromName(var.values, CodeAnalyzer.DefaultFuncContainer, FindType.Obj);
+                            _obj = GetObjectFromName(var.values, EpScriptAnalyzer.DefaultFuncContainer, FindType.Obj);
                         }
                         if (_obj == null)
                         {
                             //함수 일 가능성이 있음
                             _obj = GetObjectFromName(var.values, ccon, FindType.Func);
-                            if (_obj == null && CodeAnalyzer.DefaultFuncContainer != null)
+                            if (_obj == null && EpScriptAnalyzer.DefaultFuncContainer != null)
                             {
-                                _obj = GetObjectFromName(var.values, CodeAnalyzer.DefaultFuncContainer, FindType.Func);
+                                _obj = GetObjectFromName(var.values, EpScriptAnalyzer.DefaultFuncContainer, FindType.Func);
                             }
                             if (_obj != null)
                             {
@@ -684,7 +750,18 @@ namespace BingsuCodeEditor.EpScript
         public override bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
         {
             string scope = maincontainer.currentScope;
+            
+            TOKEN _t = GetToken(0);
+            if(_t.Type == TOKEN_TYPE.Special)
+            {
+                //lua함수
 
+                luaAnalyzer.Apply(_t.Value, 0);
+
+                luaAnalyzer.GetCompletionList(data, IsNameSpaceOpen);
+
+                return true;
+            }
 
 
             Container container = maincontainer;

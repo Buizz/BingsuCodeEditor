@@ -17,29 +17,18 @@ namespace BingsuCodeEditor
             this.textEditor = textEditor;
             this.IsSpaceCheck = IsSpaceCheck;
 
+
+            maincontainer = new AutoCompleteToken.Container(this);
             Template = new Dictionary<string, string>();
         }
-        public void SetImportManager(ImportManager importManager)
+
+        public abstract ImportManager ChildImportManager
         {
-            CodeAnalyzer.importManager = importManager;
-
-            if (!importManager.IsCachedContainer(DEFAULTFUNCFILENAME))
-            {
-                Container c = this.GetContainer(importManager.GetFIleContent(DEFAULTFUNCFILENAME));
-                importManager.UpdateContainer(DEFAULTFUNCFILENAME, c);
-            }
-            if (_DefaultFuncContainer == null)
-            {
-                _DefaultFuncContainer = importManager.GetContainer(DEFAULTFUNCFILENAME);
-
-                foreach (var item in _DefaultFuncContainer.funcs)
-                {
-                    if (!string.IsNullOrEmpty(item.comment)) item.ReadComment("ko-KR");
-                }
-            }
-
+            get;
         }
 
+
+        public abstract void SetImportManager(ImportManager importManager);
 
         public string folder
         {
@@ -54,15 +43,15 @@ namespace BingsuCodeEditor
         public string FilePath = "";
         public void RefershImportContainer(Container container)
         {
-            if (importManager == null) return;
-            string pullpath = importManager.GetPullPath(FilePath);
+            if (ChildImportManager == null) return;
+            string pullpath = ChildImportManager.GetPullPath(FilePath);
 
-            if (importManager.IsFileExist(pullpath))
+            if (ChildImportManager.IsFileExist(pullpath))
             {
-                if (!importManager.IsCachedContainer(pullpath))
+                if (!ChildImportManager.IsCachedContainer(pullpath))
                 {
                     //파일이 변형되었을 경우
-                    importManager.UpdateContainer(pullpath, container);
+                    ChildImportManager.UpdateContainer(pullpath, container);
                 }                
             }
         }
@@ -70,16 +59,7 @@ namespace BingsuCodeEditor
 
         private bool IsSpaceCheck;
 
-        public static ImportManager importManager;
-        public static string DEFAULTFUNCFILENAME = "DEFAULTFUNCTIONLIST";
-        public static Container _DefaultFuncContainer;
-        public static Container DefaultFuncContainer
-        {
-            get
-            {
-                return _DefaultFuncContainer;
-            }
-        }
+
         public List<string> FuncPreChar = new List<string>();
         public bool CheckIsLetter(string t)
         {
@@ -131,7 +111,7 @@ namespace BingsuCodeEditor
 
 
         #region Container관리
-        public AutoCompleteToken.Container maincontainer = new AutoCompleteToken.Container();
+        public AutoCompleteToken.Container maincontainer;
 
         public Container GetContainer(string filetext)
         {
@@ -862,7 +842,10 @@ namespace BingsuCodeEditor
             //여기다가 토큰을 분석하자
             TokenAnalyze(caretoffset);
 
-            codeFoldingManager.FoldingUpdate(Tokens, text.Length);
+            if(codeFoldingManager != null)
+            {
+                codeFoldingManager.FoldingUpdate(Tokens, text.Length);
+            }
 
             //에러판단
 

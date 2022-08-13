@@ -10,26 +10,24 @@ namespace BingsuCodeEditor.Lua
 {
     public class LuaTokenAnalyzer : TokenAnalyzer
     {
+        public LuaTokenAnalyzer(CodeAnalyzer codeAnalyzer) : base(codeAnalyzer)
+        {
+        }
+
         public override Container ConatainerAnalyzer(int startindex = int.MaxValue)
         {
             IsError = false;
 
             Container rcontainer = new Container();
-            Container obj = null;
             Container cc = rcontainer;
 
 
             bool isinstartoffset = true;
 
             int currentscope = 0;
-            bool forstart = false;
             string scope = "st";
             string lastblockscope = "st";
             
-
-            List<Block> forblocks = new List<Block>();
-
-
 
             TOKEN tk = null;
 
@@ -57,13 +55,14 @@ namespace BingsuCodeEditor.Lua
                     case TOKEN_TYPE.KeyWord:
                         switch (tk.Value)
                         {
-                            case "for":
-                                forblocks.Clear();
-                                forstart = true;
-
-                                break;
-                           
                             case "function":
+
+                                string lastscope = scope;
+
+                                currentscope++;
+                                scope += "." + currentscope;
+
+
                                 Function function = FunctionAnalyzer(startindex, scope);
 
                                 //if(rcontainer.funcs.Find(x=> ((x.funcname == function.funcname) && (x.IsPredefine == false))) != null)
@@ -71,35 +70,31 @@ namespace BingsuCodeEditor.Lua
                                 //    ThrowException("함수 " + function.funcname + "는 중복 선언되었습니다.", tk, 1);
                                 //}
 
-                                if (cc.CheckIdentifier(scope, function.funcname))
+                                if (cc.CheckIdentifier(lastscope, function.funcname))
                                 {
                                     ThrowException("함수 " + function.funcname + "는 이미 선언되어 있습니다.", tk, 1);
                                 }
 
-                                function.scope = scope;
+                                function.scope = lastscope;
 
 
-                                //범위를 벗어날 경우 오브젝트에 넣지 않는다.
-                                if (isinstartoffset)
+                   
+                                if (function.cursorLocation != CursorLocation.None)
                                 {
-                                    if(function.cursorLocation != CursorLocation.None)
-                                    {
-                                        cc.cursorLocation = function.cursorLocation;
-                                        rcontainer.cursorLocation = function.cursorLocation;
-                                    }
-
-                                    if (!function.IsInCursor)
-                                    {
-                                        cc.funcs.Add(function);
-                                    }
+                                    cc.cursorLocation = function.cursorLocation;
+                                    rcontainer.cursorLocation = function.cursorLocation;
                                 }
+
+                                cc.funcs.Add(function);
                                 //매게변수 추가
                                 foreach (var item in function.args)
                                 {
                                     Block bl = new Block("var", item.argname, item.argtype, IsArg: true);
-                                    bl.scope = scope + "." + (currentscope + 1);
+                                    bl.scope = scope;
                                     cc.vars.Add(bl);
                                 }
+
+
 
                                 //function fname(args){}
                                 ///******/function fname(args){}
@@ -119,115 +114,25 @@ namespace BingsuCodeEditor.Lua
                                  * 로케이션입니다.
                                 ***/
                                 break;
-                            case "object":
-                                tk = GetCurrentToken();
-                                tk.scope = scope;
-                                if(tk == null)
-                                {
-                                    cc.cursorLocation = CursorLocation.ObjectDefine;
-                                    continue;
-                                }
-                                if (tk.StartOffset <= startindex && startindex <= tk.EndOffset)
-                                {
-                                    cc.cursorLocation = CursorLocation.ObjectDefine;
-                                }
-                                if (tk.Type != TOKEN_TYPE.Identifier)
-                                {
-                                    ThrowException("Object의 이름에는 식별자가 와야 합니다.", tk);
-                                    continue;
-                                }
-                                
-
-                                string objname = tk.Value;
-
-
-                                if (cc.CheckIdentifier(scope, objname))
-                                {
-                                    ThrowException("Object " + objname + "는 이미 선언되어 있습니다.", tk, 1);
-                                    continue;
-                                }
-
-                                if (!CheckCurrentToken(TOKEN_TYPE.Symbol, "{"))
-                                {
-                                    ThrowException("Object는 '{'로 시작해야합니다.", tk);
-                                    continue;
-                                }
-                                else
-                                {
-                                    scope += "." + "O" + objname;
-                                }
-
-                                obj = new Container();
-                                obj.mainname = objname;
-                                obj.IsObject = true;
-                                obj.cursorLocation = cc.cursorLocation;
-
-                                cc = obj;
-                                //object linkedList{
-                                //    var front : linkedUnit;
-                                //    var rear : linkedUnit;
-                                //    var size;
-                                //    function append(un : linkedUnit){
-                                //        this.size++;
-                                //        if(!this.front){
-                                //            this.front=un;
-                                //            this.rear=un;
-                                //        }
-                                //        else{
-                                //            this.rear.next=un;
-                                //            this.rear=un;
-                                //        }
-                                //    }
-                                //};
-
-                                break;
-                        }
-
-                        break;
-                    case TOKEN_TYPE.Symbol:
-                        //심불 {} ;
-                        //스코프를 정의,
-                        switch (tk.Value)
-                        {
-                            case "{":
+                            case "if":
+                            case "while":
+                            case "repeat":
+                            case "for":
                                 //새 스코프를 정의
                                 currentscope++;
                                 scope += "." + currentscope;
 
-
-                                if (forstart)
-                                {
-                                    foreach (var item in forblocks)
-                                    {
-                                        item.scope = scope;
-                                    }
-
-                                    forstart = false;
-                                    //포문 끝
-                                }
                                 break;
-                            case "}":
+                            case "end":
+                            case "until":
                                 //이전 스코프로 되돌림
                                 int t = currentscope.ToString().Length + 1;
 
-                                if (obj != null)
-                                {
-                                    if (scope == "st.O" + obj.mainname)
-                                    {
-                                        if (!CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
-                                        {
-                                            ThrowException("Object는  ;로 끝나야 합니다.", tk);
-                                        }
-                                        cc = rcontainer;
-
-                                        cc.objs.Add(obj);
-                                        obj = null;
-                                    }
-                                }
+                         
                                 if (scope == "st")
                                 {
                                     //닫을 수 없는데 닫음
-                                    ThrowException("'{}'가 제대로 닫히지 않았습니다.", tk);
+                                    ThrowException("'end'등 스코프가 마무리되지 않았습니다.", tk);
                                 }
                                 else
                                 {
@@ -265,7 +170,7 @@ namespace BingsuCodeEditor.Lua
             
             if (scope != "st")
             {
-                ThrowException("'{}'가 제대로 닫히지 않았습니다.", tk);
+                ThrowException("'end'등 스코프가 마무리되지 않았습니다.", tk);
             }
 
 
@@ -273,105 +178,6 @@ namespace BingsuCodeEditor.Lua
         }
 
 
-
-        public List<Block> BlockAnalyzer(Container container, string scope, TOKEN ctk, int startindex, Container main = null)
-        {
-            List<Block> blocks = new List<Block>();
-
-            int tindex = index;
-
-            //var vname = 값;
-            //var front: linkedUnit;
-            //const vname = 값;
-            string type = ctk.Value;
-            string varconst = type;
-
-            TOKEN tk;
-
-            List<TOKEN> varvalue = null;
-            while (true)
-            {
-                tk = GetCurrentToken();
-                if (tk.Type != TOKEN_TYPE.Identifier)
-                {
-                    ThrowException("변수 선언은 식별자가 와야합니다.", tk);
-                }
-
-                string varname = tk.Value;
-                string vartype = "";
-                tk.scope = scope;
-
-                if (CheckCurrentToken(TOKEN_TYPE.Symbol, ":"))
-                {
-                    //타입과 같이 선언한 경우
-                    tk = GetCurrentToken();
-                    vartype = tk.Value;
-                }
-
-                blocks.Add(new Block(varconst, varname, vartype, varvalue));
-                if (CheckCurrentToken(TOKEN_TYPE.Symbol, ","))
-                {
-                    //다중 선언일 경우
-                }
-                else
-                {
-                    //아닐 경우
-                    break;
-                }
-            }
-      
-
-
-
-
-            if (CheckCurrentToken(TOKEN_TYPE.Symbol, "="))
-            {
-                int index = 0;
-                while (true)
-                {
-                    tk = GetCurrentToken();
-                    varvalue = IdentifierFAnalyzer(container, scope, tk, startindex, main: main);
-                    if (blocks.Count <= index)
-                    {
-                        ThrowException("대입 식의 수가 맞지 않습니다.", tk);
-                        break;
-                    }
-                    blocks[index++].values = varvalue;
-
-                    if(!CheckCurrentToken(TOKEN_TYPE.Symbol, ","))
-                    {
-                        break;
-                    }
-                }
-               
-
-            }
-            else
-            {
-                if (varconst == "const")
-                {
-                    //const일 경우는 선언만 있으면 오류 출력
-                    ThrowException("const는 선언 후 대입해줘야 합니다.", tk);
-                }
-            }
-
-
-            //new Block(varconst, varname, vartype, varvalue);
-            //const t = func();
-            //const t = func1() + func2();
-            //const t = (func1() + func2());
-
-            //선언한 경우
-            //while (!CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
-            //{
-            //    //문장의 끝이 아닌 동안 진행
-            //    tk = GetCurrentToken();
-
-            //}
-            //문장의 끝
-
-            return blocks;
-        }
 
         public List<TOKEN> IdentifierFAnalyzer(Container container, string scope, TOKEN ctk, int startindex, int argindex = -1, Container main = null)
         {
@@ -381,18 +187,6 @@ namespace BingsuCodeEditor.Lua
             int argstartindex = ctk.StartOffset;
             List<TOKEN> tlist = new List<TOKEN>();
 
-            if(ctk.Type != TOKEN_TYPE.Identifier)
-            {
-                if (ctk.Type == TOKEN_TYPE.Symbol && ctk.Value == "[")
-                {
-                    tlist.Add(new TOKEN(0, TOKEN_TYPE.Identifier, "EUDArray", 0));
-                }
-                else if (ctk.Type == TOKEN_TYPE.Number)
-                {
-                    tlist.Add(new TOKEN(0, TOKEN_TYPE.Number, ctk.Value, 0));
-                }
-                return tlist;
-            }
        
 
 
@@ -403,9 +197,12 @@ namespace BingsuCodeEditor.Lua
                 ctk.argindex = argindex;
             }
 
-            if(fname != "this" && !container.CheckIdentifier(scope, fname))
+            if(!container.CheckIdentifier(scope, fname))
             {
-                ThrowException(fname + "는 선언되지 않았습니다.", ctk);
+                Block block = new Block("var", fname);
+                block.scope = scope;
+                container.vars.Add(block);
+                //ThrowException(fname + "는 선언되지 않았습니다.", ctk);
             }
 
             TOKEN tk = null;//GetCurrentToken();
@@ -522,11 +319,6 @@ namespace BingsuCodeEditor.Lua
             string funcname = "";
             int findex = CurrentInedx;
 
-            if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == "$") //특수함수
-            {
-                funcname += "$";
-                tk = GetCurrentToken();
-            }
 
             if (tk.Type != TOKEN_TYPE.Identifier)
             {
@@ -596,27 +388,9 @@ namespace BingsuCodeEditor.Lua
                     goto EndLabel;
                 }
 
-                recheck:
-
-                tk = GetCommentTokenIten();
-                if(tk.Type != TOKEN_TYPE.Symbol && tk.Type != TOKEN_TYPE.Comment)
-                {
-                    //무조건 심불이 와야됨
-                    argendoffset = tk.EndOffset;
-                    ThrowException("잘못된 인자 선언입니다. ) , :가 와야합니다.", tk);
-                    goto EndLabel;
-                }
-                else if (tk.Type == TOKEN_TYPE.Comment)
-                {
-                    //특수처리된 타입
-                    arg.argtype = tk.Value;
-                    tk = GetCurrentToken();
-                }
-                else
-                {
-                    tk = GetCurrentToken();
-                }
-
+             
+                tk = GetCurrentToken();
+                
 
                 if (tk.Value == ")")
                 {
@@ -633,33 +407,7 @@ namespace BingsuCodeEditor.Lua
                     tk = GetCurrentToken();
                     arg.InitValue = tk.Value;
                 }
-                else if (tk.Value == ":")
-                {
-                    tk = GetCommentTokenIten();
-                    if(tk.Type == TOKEN_TYPE.Identifier)
-                    {
-                        //일반 타입
-                        arg.argtype = tk.Value;
-                    }
-                    else
-                    {
-                        if (tk.StartOffset <= startindex && startindex <= tk.EndOffset)
-                        {
-                            cl = CursorLocation.FunctionArgType;
-                        }
-                        argendoffset = tk.EndOffset;
-                        ThrowException("인자 타입을 선언해야 합니다.", tk);
-                        goto EndLabel;
-                    }
-
-                    if (tk.StartOffset <= startindex && startindex <= tk.EndOffset)
-                    {
-                        cl = CursorLocation.FunctionArgType;
-                    }
-
-                    GetCurrentToken();
-                    goto recheck;
-                }
+                
 
 
                 function.args.Add(arg);
@@ -667,92 +415,7 @@ namespace BingsuCodeEditor.Lua
 
             findex = CurrentInedx;
 
-            if (!IsEndOfList())
-            {
-                int brackcount = 0;
-                int funcstartoffset = 0;
-                int funcendoffset = 0;
-
-
-                tk = GetCurrentToken();
-                tk.scope = scope;
-
-
-                if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == ":")
-                {
-                    if (IsEndOfList())
-                    {
-                        ThrowException("반환 타입이 와야 합니다.", tk);
-                        goto EndLabel;
-                    }
-                    tk = GetCurrentToken();
-
-                    function.returntype = tk.Value;
-
-                    if (IsEndOfList())
-                    {
-                        ThrowException("반환 타입이 와야 합니다.", tk);
-                        goto EndLabel;
-                    }
-                    findex = CurrentInedx;
-                    tk = GetCurrentToken();
-                }
-
-
-                if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == ";")
-                {
-                    //그냥 끝내기
-                    function.IsPredefine = true;
-                    goto EndLabel;
-                }
-                else if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == "{")
-                {
-                    brackcount += 1;
-                    funcstartoffset = tk.StartOffset;
-                }
-                else
-                {
-                    ThrowException("함수의 선언이 잘못되었습니다.", tk);
-                    goto EndLabel;
-                }
-                if (IsEndOfList())
-                {
-                    ThrowException("함수의 선언이 잘못되었습니다.", tk);
-                    goto EndLabel;
-                }
-                tk = GetCurrentToken();
-                tk.scope = scope;
-                while (true)
-                {
-                    if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == "{")
-                    {
-                        brackcount += 1;
-                    }
-                    else if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == "}")
-                    {
-                        brackcount -= 1;
-                    }
-
-                    if(brackcount == 0)
-                    {
-                        funcendoffset = tk.StartOffset;
-
-                        if (funcstartoffset <= startindex && startindex <= funcendoffset)
-                        {
-                            function.IsInCursor = true;
-                        }
-                        break;
-                    }
-
-                    if (IsEndOfList())
-                    {
-                        ThrowException("괄호가 제대로 마무리 되지 않았습니다.", tk);
-                        goto EndLabel;
-                    }
-                    tk = GetCurrentToken();
-                }
-            }
-
+      
             EndLabel:
 
 

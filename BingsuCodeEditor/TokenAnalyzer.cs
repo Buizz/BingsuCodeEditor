@@ -26,6 +26,11 @@ namespace BingsuCodeEditor
     }
     public abstract class TokenAnalyzer
     {
+        protected CodeAnalyzer codeAnalyzer;
+        public TokenAnalyzer(CodeAnalyzer codeAnalyzer)
+        {
+            this.codeAnalyzer = codeAnalyzer;
+        }
 
 
         protected List<TOKEN> tklist;
@@ -55,11 +60,21 @@ namespace BingsuCodeEditor
         public TOKEN GetSafeTokenIten(bool GoToReverse = false, int _i = 0)
         {
             PassComment(GoToReverse);
+
+
+
+
             if (tklist.Count > index + _i)
             {
                 return tklist[index + _i];
             }
-            return tklist[index];
+
+            if (tklist.Count > index)
+            {
+                return tklist[index];
+            }
+
+            return null;
         }
 
 
@@ -324,12 +339,13 @@ namespace BingsuCodeEditor
 
 
             TOKEN ntk = GetSafeTokenIten();
-
+            if (ntk == null) return false;
             if (IsDirect)
             {
                 TOKEN ltk = GetSafeTokenIten(_i: 1);
+                if (ltk == null) return false;
 
-                if(ntk.EndOffset != ltk.StartOffset)
+                if (ntk.EndOffset != ltk.StartOffset)
                 {
                     return false;
                 }

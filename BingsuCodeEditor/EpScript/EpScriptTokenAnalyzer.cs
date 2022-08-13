@@ -8,13 +8,17 @@ using static BingsuCodeEditor.CodeAnalyzer;
 
 namespace BingsuCodeEditor.EpScript
 {
-    public class LuaTokenAnalyzer : TokenAnalyzer
+    public class EpScriptTokenAnalyzer : TokenAnalyzer
     {
+        public EpScriptTokenAnalyzer(CodeAnalyzer codeAnalyzer) : base(codeAnalyzer)
+        {
+        }
+
         public override Container ConatainerAnalyzer(int startindex = int.MaxValue)
         {
             IsError = false;
 
-            Container rcontainer = new Container();
+            Container rcontainer = new Container(codeAnalyzer);
             Container obj = null;
             Container cc = rcontainer;
 

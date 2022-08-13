@@ -15,15 +15,10 @@
 	<Color name="Hex" foreground="#2DF8B8" />
 	<Color name="Digit" foreground="#FFE08C" />
 
-
 	<!-- This is the main ruleset. -->
 	<RuleSet>
-		<!-- PHP 초록 계열-->
-		<Span color="LuaMacro" multiline="true" begin="&lt;\?" end="\?&gt;"/>
-
-
-		<Span color="Comment" begin="//" />
-		<Span color="Comment" multiline="true" begin="/\*" end="\*/" />
+		<Span color="Comment" multiline="true" begin="--\[=*\[" end="\]=*\]" />
+		<Span color="Comment" begin="--" />
 
 		<!-- 함수 파란계열(시스템 색, 문법등)-->
 		<Keywords color="KeyWord">

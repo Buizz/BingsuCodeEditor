@@ -34,7 +34,8 @@ namespace BingsuCodeEditorTest.epScript
                 case "d.f":
                     return "var ctest;";
                 case "DEFAULTFUNCTIONLIST":
-                    return System.IO.File.ReadAllText("epscriptfunction.txt");
+                    return "var ctest;";
+                    //return System.IO.File.ReadAllText("epscriptfunction.txt");
             }
             return "var test1;";
         }

@@ -55,8 +55,12 @@ namespace BingsuCodeEditor.AutoCompleteToken
 
         public List<Function> funcs;
 
-        public Container()
+        private CodeAnalyzer codeAnalyzer;
+
+        public Container(CodeAnalyzer codeAnalyzer)
         {
+            this.codeAnalyzer = codeAnalyzer;
+
             importedNameSpaces = new List<ImportedNameSpace>();
             innerFuncInfor = new InnerFuncInfor();
             vars = new List<Block>();
@@ -109,9 +113,9 @@ namespace BingsuCodeEditor.AutoCompleteToken
             {
                 if (!IsExtra)
                 {
-                    if(CodeAnalyzer.importManager != null && CodeAnalyzer.importManager.IsCachedContainer(CodeAnalyzer.DEFAULTFUNCFILENAME))
+                    if(codeAnalyzer.ChildImportManager != null && codeAnalyzer.ChildImportManager.IsCachedContainer(CodeAnalyzer.DEFAULTFUNCFILENAME))
                     {
-                        return CodeAnalyzer.importManager.GetContainer(CodeAnalyzer.DEFAULTFUNCFILENAME).CheckIdentifier("st", funcname, true);
+                        return codeAnalyzer.ChildImportManager.GetContainer(CodeAnalyzer.DEFAULTFUNCFILENAME).CheckIdentifier("st", funcname, true);
 
                     }
                 }

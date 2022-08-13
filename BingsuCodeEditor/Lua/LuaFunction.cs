@@ -10,7 +10,7 @@ namespace BingsuCodeEditor.Lua
     internal class LuaFunction : Function
     {
 
-        private void SetSummary(string type, string sectype, string content)
+        private void SetSummary(string type, string sectype, string content, string argtype)
         {
             switch (type)
             {
@@ -33,7 +33,16 @@ namespace BingsuCodeEditor.Lua
                     funcsummary = content;
                     break;
                 case "@param":
-                    if(!argsummary.ContainsKey(sectype)) argsummary.Add(sectype, content);
+                    if (!argsummary.ContainsKey(sectype)) {
+                        argsummary.Add(sectype, content);
+                    }
+                    Arg arg = args.Find((x) => x.argname == sectype);
+
+                    if(arg != null)
+                    {
+                        arg.argtype = argtype;
+                    }
+
                     break;
             }
 
@@ -44,29 +53,37 @@ namespace BingsuCodeEditor.Lua
         {
             argsummary.Clear();
             /***
-             * @Type
-             * A
-             * @Summary.ko-KR
-             * [Time]만큼 기다립니다.(사용하지 마세요)
-             * @Summary.en-US
-             * Wait for [Time] milliseconds. (Not recommended to use)
-             * 
-             * @param.Time.ko-KR
-             * 기다리는 시간입니다.
-             * @param.Time.en-US
-             * 기다리는 시간입니다.
+--[================================[
+@Language.ko-KR
+@Summary
+[Player]의 [Unit]의 유닛보유수를 [Amount]만큼 [Modifier]합니다.
+@Group
+유닛보유수
+@param.Unit.TrgUnit
+@param.Player.TrgPlayer
+@param.Modifier.TrgModifier
+@param.Amount.Number
+
+
+@Language.en-US
+@Summary
+[Player]의 [Unit]의 유닛보유수를 [Amount]만큼 [Modifier]합니다.
+@Group
+유닛보유수
+@param.Unit.TrgUnit
+@param.Player.TrgPlayer
+@param.Modifier.TrgModifier
+@param.Amount.Number
+]================================]
             ***/
-            //function Wait(Time) { }
             if (string.IsNullOrEmpty(comment)) return;
 
-            string c = this.comment.Replace("/***", "");
-            c = c.Replace("***/", "");
-            c = c.Replace(" * ", "");
+            string c = this.comment.Trim();
 
             string[] line = c.Split('\n');
 
-
             string ctype = "";
+            string cargtype = "";
             string csectype = "";
             string clan = "";
             string content = "";
@@ -79,19 +96,25 @@ namespace BingsuCodeEditor.Lua
 
                 switch (o[0].Trim())
                 {
-                    case "@Type":
+                    case "@Language":
+                        clan = o.Last().Trim();
+                        break;
                     case "@Summary":
                     case "@param":
-                        if(ctype != "") {
+                        if (ctype != "")
+                        {
                             //마지막으로 읽은 ctype정리하기.
-                            if (ctype == "@Type" || clan == launage)
+                            if (clan == launage)
                             {
-                                SetSummary(ctype, csectype, content.Trim());
+                                SetSummary(ctype, csectype, content.Trim(), cargtype.Trim());
                             }
                         }
                         ctype = o[0].Trim();
-                        clan = o.Last().Trim();
-                        if (o[0].Trim() == "@param") csectype = o[1];
+                        if (o[0].Trim() == "@param")
+                        {
+                            csectype = o[1];
+                            cargtype = o[2];
+                        }
 
                         content = "";
                         break;
@@ -102,9 +125,9 @@ namespace BingsuCodeEditor.Lua
             }
 
             //마지막으로 읽은 ctype정리하기.
-             if (ctype == "@Type"  || clan == launage)
+            if (clan == launage)
             {
-                SetSummary(ctype, csectype, content.Trim());
+                SetSummary(ctype, csectype, content.Trim(), cargtype.Trim());
             }
 
 

@@ -780,6 +780,8 @@ namespace BingsuCodeEditor
                 {
                     return false;
                 }
+
+
                 if (codeAnalyzer.Template.ContainsKey(tk.Value))
                 {
                     string temp = codeAnalyzer.Template[tk.Value];
@@ -955,7 +957,7 @@ namespace BingsuCodeEditor
             if(token != null)
             {
                 if (token.Type == CodeAnalyzer.TOKEN_TYPE.Comment || token.Type == CodeAnalyzer.TOKEN_TYPE.LineComment
-                    || token.Type == CodeAnalyzer.TOKEN_TYPE.String || token.Type == CodeAnalyzer.TOKEN_TYPE.Special)
+                    || token.Type == CodeAnalyzer.TOKEN_TYPE.String)
                 {
                     if (completionWindow != null)
                     {

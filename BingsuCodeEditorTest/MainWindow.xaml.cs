@@ -83,7 +83,7 @@ namespace BingsuCodeEditorTest
         {
             TabItem tab = new TabItem();
             BingsuCodeEditor.CodeTextEditor codeTextEditor = new BingsuCodeEditor.CodeTextEditor();
-            codeTextEditor.Syntax = BingsuCodeEditor.CodeTextEditor.CodeType.Lua;
+            codeTextEditor.Syntax = BingsuCodeEditor.CodeTextEditor.CodeType.epScript;
             codeTextEditor.SetFilePath = "Tool.build";
             codeTextEditor.IsDark = true;
             codeTextEditor.SetImportManager(importManager);

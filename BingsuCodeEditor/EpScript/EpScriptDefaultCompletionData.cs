@@ -7,7 +7,7 @@ using static BingsuCodeEditor.CodeAnalyzer;
 
 namespace BingsuCodeEditor.EpScript
 {
-    public static class LuaDefaultCompletionData
+    public static class EpScriptDefaultCompletionData
     {
         private static Dictionary<string, List<CodeCompletionData>> DefaultCompletionData = new Dictionary<string, List<CodeCompletionData>>();
 
