@@ -40,11 +40,11 @@ namespace BingsuCodeEditor.EpScript
             while (!IsEndOfList())
             {
                 tk = GetCurrentToken();
-                tk.scope = scope;
                 if(tk == null)
                 {
                     break;
                 }
+                tk.scope = scope;
                 if (tk.StartOffset > startindex && isinstartoffset)
                 {
                     isinstartoffset = false;
@@ -239,12 +239,12 @@ namespace BingsuCodeEditor.EpScript
                                 break;
                             case "object":
                                 tk = GetCurrentToken();
-                                tk.scope = scope;
                                 if(tk == null)
                                 {
                                     cc.cursorLocation = CursorLocation.ObjectDefine;
                                     continue;
                                 }
+                                tk.scope = scope;
                                 if (tk.StartOffset <= startindex && startindex <= tk.EndOffset)
                                 {
                                     cc.cursorLocation = CursorLocation.ObjectDefine;
@@ -275,7 +275,7 @@ namespace BingsuCodeEditor.EpScript
                                     scope += "." + "O" + objname;
                                 }
 
-                                obj = new Container();
+                                obj = new Container(codeAnalyzer);
                                 obj.mainname = objname;
                                 obj.IsObject = true;
                                 obj.cursorLocation = cc.cursorLocation;
@@ -410,6 +410,7 @@ namespace BingsuCodeEditor.EpScript
             while (true)
             {
                 tk = GetCurrentToken();
+                if (tk == null) return blocks;
                 if (tk.Type != TOKEN_TYPE.Identifier)
                 {
                     ThrowException("변수 선언은 식별자가 와야합니다.", tk);
@@ -493,13 +494,17 @@ namespace BingsuCodeEditor.EpScript
 
         public List<TOKEN> IdentifierFAnalyzer(Container container, string scope, TOKEN ctk, int startindex, int argindex = -1, Container main = null)
         {
+            List<TOKEN> tlist = new List<TOKEN>();
+
+            if (ctk == null) return tlist;
+
             string fname = ctk.Value;
             ctk.scope = scope;
 
             int argstartindex = ctk.StartOffset;
-            List<TOKEN> tlist = new List<TOKEN>();
 
-            if(ctk.Type != TOKEN_TYPE.Identifier)
+
+            if (ctk.Type != TOKEN_TYPE.Identifier)
             {
                 if (ctk.Type == TOKEN_TYPE.Symbol && ctk.Value == "[")
                 {
@@ -523,7 +528,10 @@ namespace BingsuCodeEditor.EpScript
 
             if(fname != "this" && !container.CheckIdentifier(scope, fname))
             {
-                ThrowException(fname + "는 선언되지 않았습니다.", ctk);
+                if(!(fname.Length != 0 && fname[0] == '@'))
+                {
+                    ThrowException(fname + "는 선언되지 않았습니다.", ctk);
+                }
             }
 
             TOKEN tk = null;//GetCurrentToken();

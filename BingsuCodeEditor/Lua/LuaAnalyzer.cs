@@ -13,16 +13,16 @@ namespace BingsuCodeEditor.Lua
     {
         public static ImportManager importManager;
         public static string DEFAULTFUNCFILENAME = "DEFAULTFUNCTIONLIST";
-        public static List<Container> _DefaultFuncContainers;
-        public static List<Container> DefaultFuncContainers
+        public static Container _DefaultFuncContainer;
+        public static Container DefaultFuncContainer
         {
             get
             {
-                return _DefaultFuncContainers;
+                return _DefaultFuncContainer;
             }
         }
 
-        public override ImportManager ChildImportManager
+        public override ImportManager StaticImportManager
         {
             get
             {
@@ -30,23 +30,38 @@ namespace BingsuCodeEditor.Lua
             }
         }
 
+        public override Container GetDefaultContainer
+        {
+            get
+            {
+                return _DefaultFuncContainer;
+            }
+        }
+
         public override void SetImportManager(ImportManager importManager)
         {
             LuaAnalyzer.importManager = importManager;
 
-            if (!importManager.IsCachedContainer(DEFAULTFUNCFILENAME))
-            {
-                Container c = this.GetContainer(importManager.GetFIleContent(DEFAULTFUNCFILENAME));
-                importManager.UpdateContainer(DEFAULTFUNCFILENAME, c);
-            }
             if (_DefaultFuncContainer == null)
             {
-                _DefaultFuncContainer = importManager.GetContainer(DEFAULTFUNCFILENAME);
+                _DefaultFuncContainer = new Container(this);
+
+                foreach (var item in importManager.GetFIleList())
+                {
+                    Container c = GetContainer(importManager.GetFIleContent(item));
+
+                    _DefaultFuncContainer.funcs.AddRange(c.funcs);
+                }
 
                 foreach (var item in _DefaultFuncContainer.funcs)
                 {
                     if (!string.IsNullOrEmpty(item.comment)) item.ReadComment("ko-KR");
                 }
+            }
+
+            if (!importManager.IsCachedContainer(DEFAULTFUNCFILENAME))
+            {
+                importManager.UpdateContainer(DEFAULTFUNCFILENAME, _DefaultFuncContainer);
             }
 
         }
@@ -91,8 +106,8 @@ namespace BingsuCodeEditor.Lua
             }
 
 
-            tokenAnalyzer = new LuaTokenAnalyzer();
-            secondtokenAnalyzer = new LuaTokenAnalyzer();
+            tokenAnalyzer = new LuaTokenAnalyzer(this);
+            secondtokenAnalyzer = new LuaTokenAnalyzer(this);
             //codeFoldingManager = new LuaFoldingManager(textEditor);
         }
         public override void AutoInsert(string text)
@@ -337,7 +352,7 @@ namespace BingsuCodeEditor.Lua
 
                             if (fname == "")
                             {
-                                foreach (var item in importManager.GetFileList())
+                                foreach (var item in importManager.GetImportedFileList())
                                 {
                                     data.Add(new CodeCompletionData(new ImportFileItem(CompletionWordType.nameSpace, item)));
                                 }
@@ -345,7 +360,7 @@ namespace BingsuCodeEditor.Lua
                             }
                             else
                             {
-                                foreach (var item in importManager.GetFileList())
+                                foreach (var item in importManager.GetImportedFileList())
                                 {
                                     string tstr = item;
                                     if (tstr.StartsWith(fname))
@@ -396,7 +411,7 @@ namespace BingsuCodeEditor.Lua
                 if (cursorLocation == CursorLocation.ImportFile && importManager != null)
                 {
                     bool IsImport = false;
-                    List<string> filelist = importManager.GetFileList(maincontainer.folderpath);
+                    List<string> filelist = importManager.GetImportedFileList(maincontainer.folderpath);
                     List<string> autocmpfilelist = new List<string>();
                     foreach (var item in filelist)
                     {
@@ -869,9 +884,9 @@ namespace BingsuCodeEditor.Lua
                         }
                         _obj = GetObjectFromName(list, ccon, FindType.Obj);
 
-                        if (_obj == null && CodeAnalyzer.DefaultFuncContainer != null)
+                        if (_obj == null && DefaultFuncContainer != null)
                         {
-                            _obj = GetObjectFromName(list, CodeAnalyzer.DefaultFuncContainer, FindType.Obj);
+                            _obj = GetObjectFromName(list, DefaultFuncContainer, FindType.Obj);
                         }
 
 
@@ -884,17 +899,17 @@ namespace BingsuCodeEditor.Lua
                     {
                         //그 외
                         _obj = GetObjectFromName(var.values, ccon, FindType.Obj);
-                        if (_obj == null && CodeAnalyzer.DefaultFuncContainer != null)
+                        if (_obj == null && DefaultFuncContainer != null)
                         {
-                            _obj = GetObjectFromName(var.values, CodeAnalyzer.DefaultFuncContainer, FindType.Obj);
+                            _obj = GetObjectFromName(var.values, DefaultFuncContainer, FindType.Obj);
                         }
                         if (_obj == null)
                         {
                             //함수 일 가능성이 있음
                             _obj = GetObjectFromName(var.values, ccon, FindType.Func);
-                            if (_obj == null && CodeAnalyzer.DefaultFuncContainer != null)
+                            if (_obj == null && DefaultFuncContainer != null)
                             {
-                                _obj = GetObjectFromName(var.values, CodeAnalyzer.DefaultFuncContainer, FindType.Func);
+                                _obj = GetObjectFromName(var.values, DefaultFuncContainer, FindType.Func);
                             }
                             if (_obj != null)
                             {

@@ -372,7 +372,7 @@ namespace BingsuCodeEditor.LineColorDrawer
 
         void ApplyChanges(VisualLineElement element)
         {
-            element.TextRunProperties.SetBackgroundBrush(new SolidColorBrush(Color.FromArgb(128, 255, 200, 200)));
+            element.TextRunProperties.SetBackgroundBrush(new SolidColorBrush(Color.FromArgb(64, 230, 200, 200)));
             // This is where you do anything with the line
             //element.TextRunProperties.SetForegroundBrush(Brushes.Red);
         }

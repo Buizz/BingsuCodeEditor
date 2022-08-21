@@ -1,21 +1,20 @@
 ﻿<?xml version="1.0"?>
 <SyntaxDefinition name="EPS HighlightingLight" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
-    <Color name="Comment" foreground="#0a5903" />
-    <Color name="String" foreground="#f65108" />
+    <Color name="Comment" foreground="#0A5903" />
+    <Color name="String" foreground="#F65108" />
     <Color name="LuaMacro" foreground="#A566FF" />
-    <Color name="KeyWord" foreground="#6799FF" />
-    <Color name="CallFunction" foreground="#FFA7A7" />
-    <Color name="VarType" foreground="#CEF279" />
-    <Color name="Literal" foreground="#CEF279" />
+    <Color name="KeyWord" foreground="#1C59D7" />
+    <Color name="CallFunction" foreground="#DD2D2D" />
+    <Color name="VarType" foreground="#55BD21" />
+    <Color name="Literal" foreground="#55BD21" />
     <Color name="Operator" foreground="#F15F5F" />
     <Color name="Highlight" foreground="#F15F5F" />
-    <Color name="Object" foreground="#D1B2FF" />
-    <Color name="Function" foreground="#D1B2FF" />
-    <Color name="Array" foreground="#CEF279" />
-    <Color name="Hex" foreground="#2DF8B8" />
-    <Color name="Digit" foreground="#FFE08C" />
-	
-    <!-- This is the main ruleset. -->
+    <Color name="Object" foreground="#8E47F9" />
+    <Color name="Function" foreground="#8E47F9" />
+    <Color name="Array" foreground="#55BD21" />
+    <Color name="Hex" foreground="#2DC494" />
+    <Color name="Digit" foreground="#E6B739" />
+	<!-- This is the main ruleset. -->
     <RuleSet>
     <!-- PHP 초록 계열-->
     <Span color="LuaMacro" multiline="true" begin="&lt;\?" end="\?&gt;" />

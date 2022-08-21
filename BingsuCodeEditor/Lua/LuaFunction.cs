@@ -82,38 +82,57 @@ namespace BingsuCodeEditor.Lua
 
             string[] line = c.Split('\n');
 
-            string ctype = "";
-            string cargtype = "";
-            string csectype = "";
+            if(c.IndexOf("[Player]의 [Unit]의 유닛보유수를 [Amount]만큼 [Modifier]합니다.") != -1)
+            {
+
+            }
+
+
+            string summaryType = "";
+            string argType = "";
+            string argName = "";
             string clan = "";
             string content = "";
+
             for (int i = 0; i < line.Count(); i++)
             {
                 if (string.IsNullOrEmpty(line[i])) continue;
                 string[] o = line[i].Split('.');
 
+                string currentType = o[0].Trim();
 
-
-                switch (o[0].Trim())
+                switch (currentType)
                 {
                     case "@Language":
-                        clan = o.Last().Trim();
-                        break;
-                    case "@Summary":
-                    case "@param":
-                        if (ctype != "")
+                        if (summaryType != "")
                         {
+                            //체크되어있을 경우
                             //마지막으로 읽은 ctype정리하기.
                             if (clan == launage)
                             {
-                                SetSummary(ctype, csectype, content.Trim(), cargtype.Trim());
+                                SetSummary(summaryType, argName, content.Trim(), argType);
                             }
                         }
-                        ctype = o[0].Trim();
-                        if (o[0].Trim() == "@param")
+                        clan = o.Last().Trim();
+                        break;
+                    case "@Group":
+                    case "@Summary":
+                    case "@param":
+                        //summaryType일 경우.
+                        if (summaryType != "")
                         {
-                            csectype = o[1];
-                            cargtype = o[2];
+                            //체크되어있을 경우
+                            //마지막으로 읽은 ctype정리하기.
+                            if (clan == launage)
+                            {
+                                SetSummary(summaryType, argName, content.Trim(), argType);
+                            }
+                        }
+                        summaryType = currentType;
+                        if (currentType == "@param")
+                        {
+                            argName = o[1].Trim();
+                            argType = o[2].Trim();
                         }
 
                         content = "";
@@ -127,7 +146,7 @@ namespace BingsuCodeEditor.Lua
             //마지막으로 읽은 ctype정리하기.
             if (clan == launage)
             {
-                SetSummary(ctype, csectype, content.Trim(), cargtype.Trim());
+                SetSummary(summaryType, argName, content.Trim(), argType);
             }
 
 

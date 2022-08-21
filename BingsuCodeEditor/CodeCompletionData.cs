@@ -50,10 +50,13 @@ namespace BingsuCodeEditor
             }
         }
 
+
+        public string preText = "";
+
         public string Text
         {
             get {
-                if(preCompletionData != null) return preCompletionData.outputstring;
+                if(preCompletionData != null) return preText + preCompletionData.outputstring;
                 return "";
             }
             private set {
@@ -64,7 +67,7 @@ namespace BingsuCodeEditor
         // Use this property if you want to show a fancy UIElement in the list.
         public object Content
         {
-            get { if (preCompletionData != null) return preCompletionData.listheader;
+            get { if (preCompletionData != null) return preText + preCompletionData.listheader;
                 return "";
             }
         }

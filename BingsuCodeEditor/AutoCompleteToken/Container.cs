@@ -113,10 +113,11 @@ namespace BingsuCodeEditor.AutoCompleteToken
             {
                 if (!IsExtra)
                 {
-                    if(codeAnalyzer.ChildImportManager != null && codeAnalyzer.ChildImportManager.IsCachedContainer(CodeAnalyzer.DEFAULTFUNCFILENAME))
-                    {
-                        return codeAnalyzer.ChildImportManager.GetContainer(CodeAnalyzer.DEFAULTFUNCFILENAME).CheckIdentifier("st", funcname, true);
 
+                    if(codeAnalyzer.StaticImportManager != null )
+                    {
+                        Container importcontainer = codeAnalyzer.GetDefaultContainer;
+                        if(importcontainer != null) return importcontainer.CheckIdentifier("st", funcname, true);
                     }
                 }
 

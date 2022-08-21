@@ -18,6 +18,15 @@ namespace BingsuCodeEditor
 
 
         /// <summary>
+        /// 기본 함수 파일들을 가져오는 함수
+        /// </summary>
+        /// <returns></returns>
+        public abstract List<string> GetFIleList();
+
+
+        public CodeTextEditor.CodeType CodeType;
+
+        /// <summary>
         /// 파일이 캐시되어있는지 확인
         /// </summary>
         /// <param name="filename"></param>
@@ -86,7 +95,7 @@ namespace BingsuCodeEditor
         /// <returns></returns>
         public bool IsFileExist(string filename, string basefilename = "")
         {
-            return GetFileList(basefilename).IndexOf(filename) != -1;
+            return GetImportedFileList(basefilename).IndexOf(filename) != -1;
         }
 
         /// <summary>
@@ -94,7 +103,7 @@ namespace BingsuCodeEditor
         /// </summary>
         /// <param name="filename">현재 파일의 이름입니다.</param>
         /// <returns></returns>
-        public abstract List<string> GetFileList(string basefilename = "");
+        public abstract List<string> GetImportedFileList(string basefilename = "");
 
 
         /// <summary>
@@ -109,7 +118,7 @@ namespace BingsuCodeEditor
             string redo = "..";
 
 
-            List<string> flist = GetFileList();
+            List<string> flist = GetImportedFileList();
 
 
             //연결 했을때 풀네임

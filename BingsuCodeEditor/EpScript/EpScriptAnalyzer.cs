@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Markup;
+using System.Windows.Media;
 
 namespace BingsuCodeEditor.EpScript
 {
@@ -23,7 +25,7 @@ namespace BingsuCodeEditor.EpScript
             }
         }
 
-        public override ImportManager ChildImportManager
+        public override ImportManager StaticImportManager
         {
             get
             {
@@ -31,25 +33,40 @@ namespace BingsuCodeEditor.EpScript
             }
         }
 
+
+        public override Container GetDefaultContainer
+        {
+            get
+            {
+                return _DefaultFuncContainer;
+            }
+        }
+
         public override void SetImportManager(ImportManager importManager)
         {
-            EpScriptAnalyzer.importManager = importManager;
-
-            if (!importManager.IsCachedContainer(DEFAULTFUNCFILENAME))
+            if(importManager.CodeType == CodeTextEditor.CodeType.epScript)
             {
-                Container c = this.GetContainer(importManager.GetFIleContent(DEFAULTFUNCFILENAME));
-                importManager.UpdateContainer(DEFAULTFUNCFILENAME, c);
-            }
-            if (_DefaultFuncContainer == null)
-            {
-                _DefaultFuncContainer = importManager.GetContainer(DEFAULTFUNCFILENAME);
+                EpScriptAnalyzer.importManager = importManager;
 
-                foreach (var item in _DefaultFuncContainer.funcs)
+                if (!importManager.IsCachedContainer(DEFAULTFUNCFILENAME))
                 {
-                    if (!string.IsNullOrEmpty(item.comment)) item.ReadComment("ko-KR");
+                    Container c = this.GetContainer(importManager.GetFIleContent(DEFAULTFUNCFILENAME));
+                    importManager.UpdateContainer(DEFAULTFUNCFILENAME, c);
+                }
+                if (_DefaultFuncContainer == null)
+                {
+                    _DefaultFuncContainer = importManager.GetContainer(DEFAULTFUNCFILENAME);
+
+                    foreach (var item in _DefaultFuncContainer.funcs)
+                    {
+                        if (!string.IsNullOrEmpty(item.comment)) item.ReadComment("ko-KR");
+                    }
                 }
             }
-
+            else if (importManager.CodeType == CodeTextEditor.CodeType.Lua)
+            {
+                luaAnalyzer.SetImportManager(importManager);
+            }
         }
 
 
@@ -345,6 +362,8 @@ namespace BingsuCodeEditor.EpScript
             //}
             if (objectname.Count == 0) return null;
 
+
+
             Container ccon = startcontainer;
             Container objcon = null;
             string folderpath = folder;
@@ -353,6 +372,16 @@ namespace BingsuCodeEditor.EpScript
             while (true)
             {
                 string objname = objectname[index];
+
+                //lua함수 처리기
+
+                if (objname.Length != 0 && objname[0] == '@')
+                {
+                    //lua함수인 경우
+                    string realfunname = objname.Replace("@", "");
+                    return luaAnalyzer.GetDefaultContainer.funcs.Find(x => (x.funcname == realfunname && lscope.Contains(x.scope)));
+                }
+
 
 
 
@@ -747,19 +776,38 @@ namespace BingsuCodeEditor.EpScript
             return GetObjectFromName(strs, startcontainer, findType, data, scope);
         }
 
+
+        public override void Apply(string text, int caretoffset)
+        {
+            base.Apply(text, caretoffset);
+
+            TOKEN _t = GetToken(0);
+            if (_t != null && _t.Type == TOKEN_TYPE.Special)
+            {
+                //lua함수
+                luaAnalyzer.Apply(_t.Value, caretoffset - _t.StartOffset);
+
+                if (luaAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
+                {
+                    List<TOKEN> tlist = luaAnalyzer.maincontainer.innerFuncInfor.funcename;
+                    tlist.First().Value = "@" + tlist.First().Value;
+                    maincontainer.innerFuncInfor.IsInnerFuncinfor= luaAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor;
+                    maincontainer.innerFuncInfor.funcename = tlist;
+                    maincontainer.innerFuncInfor.argindex = luaAnalyzer.maincontainer.innerFuncInfor.argindex;
+                }
+            }
+        }
+
+
         public override bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
         {
             string scope = maincontainer.currentScope;
             
             TOKEN _t = GetToken(0);
-            if(_t.Type == TOKEN_TYPE.Special)
+            if(_t != null && _t.Type == TOKEN_TYPE.Special)
             {
                 //lua함수
-
-                luaAnalyzer.Apply(_t.Value, 0);
-
                 luaAnalyzer.GetCompletionList(data, IsNameSpaceOpen);
-
                 return true;
             }
 
@@ -789,6 +837,14 @@ namespace BingsuCodeEditor.EpScript
 
             switch (cursorLocation)
             {
+                case CursorLocation.FunctionName:
+                    data.Add(new CodeCompletionData(new KewWordItem(CompletionWordType.Variable, "onPluginStart")));
+                    data.Add(new CodeCompletionData(new KewWordItem(CompletionWordType.Variable, "beforeTriggerExec")));
+                    data.Add(new CodeCompletionData(new KewWordItem(CompletionWordType.Variable, "afterTriggerExec")));
+                    data.Add(new CodeCompletionData(new KewWordItem(CompletionWordType.Variable, "constructor")));
+                    data.Add(new CodeCompletionData(new KewWordItem(CompletionWordType.Variable, "destructor")));
+
+                    return true;
                 case CursorLocation.ImportFile:
                     //파일들이 뜨게 하는 것
                     if (importManager != null)
@@ -812,7 +868,7 @@ namespace BingsuCodeEditor.EpScript
 
                             if(fname == "")
                             {
-                                foreach (var item in importManager.GetFileList())
+                                foreach (var item in importManager.GetImportedFileList())
                                 {
                                     data.Add(new CodeCompletionData(new ImportFileItem(CompletionWordType.nameSpace, item)));
                                 }
@@ -820,7 +876,7 @@ namespace BingsuCodeEditor.EpScript
                             }
                             else
                             {
-                                foreach (var item in importManager.GetFileList())
+                                foreach (var item in importManager.GetImportedFileList())
                                 {
                                     string tstr = item;
                                     if (tstr.StartsWith(fname))
@@ -871,7 +927,7 @@ namespace BingsuCodeEditor.EpScript
                 if(cursorLocation == CursorLocation.ImportFile && importManager != null)
                 {
                     bool IsImport = false;
-                    List<string> filelist = importManager.GetFileList(maincontainer.folderpath);
+                    List<string> filelist = importManager.GetImportedFileList(maincontainer.folderpath);
                     List<string> autocmpfilelist = new List<string>();
                     foreach (var item in filelist)
                     {
@@ -965,6 +1021,14 @@ namespace BingsuCodeEditor.EpScript
             DefaultFuncContainer.GetAllItems(data, "st");
 
 
+            Container con = luaAnalyzer.GetDefaultContainer;
+            foreach (var item in con.funcs.FindAll(x => "st".Contains(x.scope)))
+            {
+                CodeCompletionData ccdata = new CodeCompletionData(item.preCompletion);
+                ccdata.preText = "@";
+
+                data.Add(ccdata);
+            }
 
             return true;
         }

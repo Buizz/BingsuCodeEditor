@@ -193,6 +193,9 @@
   <ItemGroup>
     <Resource Include="Resources\Function.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="ICSharpCode.AvalonEdit.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.4.0.0\build\MaterialDesignThemes.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

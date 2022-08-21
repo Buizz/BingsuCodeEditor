@@ -58,14 +58,32 @@ namespace BingsuCodeEditor
             BText.Text = B.ToString();
             AText.Text = A.ToString();
 
+            //RGBCode.Text = "#" + R.ToString("X") + G.ToString("X") + B.ToString("X");
+
+
+
             ColorToHSV(color, ref Saturation, ref Value);
+
+            ColorHSVRefresh();
+
 
             double RealWidth = SVPanel.ActualWidth;
             double RealHeight = SVPanel.ActualHeight;
             PickerStylus.Margin = new Thickness(Saturation * RealWidth - 7, (1 - Value) * RealHeight - 7, 0, 0);
-
-            ColorHSVRefresh();
         }
+
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            Color MainColor = Color.FromRgb(R, G, B);
+
+            ColorToHSV(MainColor, ref Saturation, ref Value);
+            double RealWidth = SVPanel.ActualWidth;
+            double RealHeight = SVPanel.ActualHeight;
+            PickerStylus.Margin = new Thickness(Saturation * RealWidth - 7, (1 - Value) * RealHeight - 7, 0, 0);
+        }
+
+
 
         public event RoutedEventHandler ColorSelect;
 
@@ -149,6 +167,7 @@ namespace BingsuCodeEditor
             GText.Text = PG.ToString();
             BText.Text = PB.ToString();
 
+            RGBCode.Text = "#" + R.ToString("X") + G.ToString("X") + B.ToString("X");
 
             TextBoxuseable = true;
 
@@ -169,6 +188,8 @@ namespace BingsuCodeEditor
 
             LastColor.Background = new SolidColorBrush(Color.FromArgb(A, R, G, B));
             ColorSelect.Invoke(Color.FromArgb(A, R, G, B), new RoutedEventArgs());
+
+            RGBCode.Text = "#" + R.ToString("X") + G.ToString("X") + B.ToString("X");
         }
 
         private bool HueBarDrag = false;
@@ -393,6 +414,29 @@ namespace BingsuCodeEditor
             }
         }
 
+        private void RGBCodeText_TextChanged(object sender, KeyEventArgs e)
+        {
+            if (TextBoxuseable & e.Key == Key.Enter)
+            {
+                object c = ColorConverter.ConvertFromString(RGBCode.Text);
+                if(c == null)
+                {
+                    RGBCode.Text = "#" + R.ToString("X") + G.ToString("X") + B.ToString("X");
+                    return;
+                }
+                Color color = (Color) c;
+
+
+
+                R = color.R;
+                G = color.G;
+                B = color.B;
+
+
+                ColorRGBRefresh();
+            }
+        }
+
         private void RText_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
             if (TextBoxuseable)
@@ -495,6 +539,39 @@ namespace BingsuCodeEditor
             }
         }
 
+
+        private void RGBCodeText_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (TextBoxuseable)
+            {
+
+                object c;
+
+                try
+                {
+                    c = ColorConverter.ConvertFromString(RGBCode.Text);
+                }
+                catch (Exception)
+                {
+                    RGBCode.Text = "#" + R.ToString("X") + G.ToString("X") + B.ToString("X");
+                    return;
+                }
+
+
+                Color color = (Color)c;
+
+
+
+                R = color.R;
+                G = color.G;
+                B = color.B;
+
+
+                ColorRGBRefresh();
+            }
+        }
+
+
         private void UserControl_PreviewMouseMove(object sender, MouseEventArgs e)
         {
             if (SVPanelDrag)
@@ -541,5 +618,6 @@ namespace BingsuCodeEditor
                 ColorSelect.Invoke(Color.FromArgb(A, R, G, B), e);
             }
         }
+
     }
 }

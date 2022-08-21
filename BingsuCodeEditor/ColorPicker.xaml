@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" PreviewMouseMove="UserControl_PreviewMouseMove" PreviewMouseUp="UserControl_PreviewMouseUp"
+             Loaded="UserControl_Loaded"
              Width="258" Height="153">
     <Grid >
         <Grid.RowDefinitions>
@@ -16,6 +17,9 @@
             <ColumnDefinition Width="23"/>
             <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
+
+        <TextBox Grid.Row="1" Grid.Column="2" x:Name="RGBCode" Text="#FFFFFF" PreviewKeyDown="RGBCodeText_TextChanged" LostKeyboardFocus="RGBCodeText_LostKeyboardFocus"/>
+
         <Border Grid.Row="0" Grid.Column="0" Margin="1">
             <Grid x:Name="SVPanel" PreviewMouseLeftButtonDown="SVPanel_PreviewMouseLeftButtonDown" PreviewMouseMove="SVPanel_PreviewMouseMove" PreviewMouseLeftButtonUp="SVPanel_PreviewMouseLeftButtonUp">
                 <Canvas x:Name="BaseColor" Background="Red"/>

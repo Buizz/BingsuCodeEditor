@@ -194,17 +194,15 @@ namespace BingsuCodeEditor
                     tk = GetSafeTokenIten(IsReverse);
                 }
 
-
+                if (IsEndOfList(true))
+                {
+                    break;
+                }
                 if (tk.Type == TOKEN_TYPE.Number)
                 {
                     rlist.Add(tk);
                     return rlist;
                 }
-                if (IsEndOfList(true))
-                {
-                    break;
-                }
-
                 if (!CheckCurrentToken(TOKEN_TYPE.Symbol, "."))
                 {
                     break;

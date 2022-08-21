@@ -22,10 +22,18 @@ namespace BingsuCodeEditor
             Template = new Dictionary<string, string>();
         }
 
-        public abstract ImportManager ChildImportManager
+        public abstract ImportManager StaticImportManager
         {
             get;
         }
+
+
+
+        public abstract Container GetDefaultContainer
+        {
+            get;
+        }
+
 
 
         public abstract void SetImportManager(ImportManager importManager);
@@ -43,15 +51,15 @@ namespace BingsuCodeEditor
         public string FilePath = "";
         public void RefershImportContainer(Container container)
         {
-            if (ChildImportManager == null) return;
-            string pullpath = ChildImportManager.GetPullPath(FilePath);
+            if (StaticImportManager == null) return;
+            string pullpath = StaticImportManager.GetPullPath(FilePath);
 
-            if (ChildImportManager.IsFileExist(pullpath))
+            if (StaticImportManager.IsFileExist(pullpath))
             {
-                if (!ChildImportManager.IsCachedContainer(pullpath))
+                if (!StaticImportManager.IsCachedContainer(pullpath))
                 {
                     //파일이 변형되었을 경우
-                    ChildImportManager.UpdateContainer(pullpath, container);
+                    StaticImportManager.UpdateContainer(pullpath, container);
                 }                
             }
         }
@@ -233,6 +241,24 @@ namespace BingsuCodeEditor
 
         public abstract void AutoInsert(string text);
         public abstract bool AutoRemove();
+
+
+
+        public string GetDirectWord(int offset = -1, int len = 10)
+        {
+            string rstr = "";
+            for (int i = 0; i < len; i++)
+            {
+                string t = GetDirectText(offset - i);
+
+                if (string.IsNullOrWhiteSpace(t)) return rstr;
+
+
+                rstr = t + rstr;
+            }
+
+            return rstr;
+        }
 
         public string GetDirectText(int offset = 0)
         {
@@ -806,7 +832,7 @@ namespace BingsuCodeEditor
         }
 
 
-        public void Apply(string text, int caretoffset)
+        public virtual void Apply(string text, int caretoffset)
         {
             workComplete = false;
             LastAnalyzeText = text;
@@ -887,8 +913,10 @@ namespace BingsuCodeEditor
             }
 
 
-
+           
             Function func = (Function)GetObjectFromName(tklist, maincontainer, FindType.Func);
+            
+            
             if (func == null)
             {
                 return funcname + "()\n" + "설명이 없습니다.";

@@ -26,6 +26,9 @@
                         <TextBlock Text="열:" x:Name="TBColumnText"/>
                         <TextBlock Text="1" x:Name="TBColumnValue"/>
                     </StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="" x:Name="ErrorText" Foreground="#DDFF0000"/>
+                    </StackPanel>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal"  Height="28" HorizontalAlignment="Right" >

@@ -11,9 +11,11 @@ using ICSharpCode.AvalonEdit.Rendering;
 using ICSharpCode.AvalonEdit.Search;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -45,6 +47,8 @@ namespace BingsuCodeEditor
 
         private DispatcherTimer dispatcherTimer;
         private CodeAnalyzer codeAnalyzer;
+
+        private BackgroundWorker bg;
         private Thread thread;
 
 
@@ -167,167 +171,194 @@ namespace BingsuCodeEditor
             dispatcherTimer.Stop();
             codeAnalyzer = null;
         }
+
+        DateTime bgStartTime;
         private void DispatcherTimer_Tick(object sender, EventArgs e)
         {
-            if (codeAnalyzer != null && (thread == null || !thread.IsAlive))
+            if (codeAnalyzer != null && (bg == null || !bg.IsBusy))
             {
                 string codeText = aTextEditor.Text;
                 int offset = aTextEditor.CaretOffset;
 
+                bg = new BackgroundWorker();
 
-                thread = new Thread(async () =>
+                bg.WorkerSupportsCancellation = true;
+                bg.DoWork += Bg_DoWork;
+                bg.RunWorkerCompleted += Bg_RunWorkerCompleted;
+
+                object[] args = { codeText, offset };
+
+                bgStartTime = DateTime.Now;
+                bg.RunWorkerAsync(args);
+            }else if (bg != null && bg.IsBusy)
+            {
+                if (DateTime.Now.Subtract(bgStartTime).TotalSeconds > 10)
                 {
-                    DateTime dateTime = DateTime.Now;
+                    bg.CancelAsync();
+                    ErrorText.Text = "컴파일 시간 초과 : 에디터를 재시작하세요.";
 
-                    //코드 분석 실행
-                    if (codeAnalyzer.WorkCompete)
+                }
+            }
+        }
+
+        private void Bg_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if(e.Error != null)
+            {
+                //에러가 생길경우
+                ErrorText.Text = e.Error.Message;
+            }
+
+        }
+
+        private void Bg_DoWork(object sender, DoWorkEventArgs e)
+        {
+            object[] args = (object[])e.Argument;
+
+            string codeText = (string)args[0];
+            int offset = (int)args[1];
+
+            DateTime dateTime = DateTime.Now;
+
+            //코드 분석 실행
+            if (codeAnalyzer.WorkCompete)
+            {
+                codeAnalyzer.Apply(codeText, offset);
+                CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
+
+                //codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor
+
+                bool isFuncInternall = false;
+                string functooltip = "";
+                int funclabelstartoffset = 0;
+                if (codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
+                {
+                    isFuncInternall = true;
+                    //int argindex = codeAnalyzer.maincontainer.innerFuncInfor.argindex;
+                    funclabelstartoffset = codeAnalyzer.maincontainer.innerFuncInfor.funcename.First().StartOffset;
+
+
+                    functooltip = codeAnalyzer.GetFuncToolTip().Trim();
+
+                    //string currentfuncname = "";
+                    //foreach (var item in codeAnalyzer.maincontainer.innerFuncInfor.funcename)
+                    //{
+                    //    if(currentfuncname != "")
+                    //    {
+                    //        currentfuncname += ".";
+                    //    }
+                    //    currentfuncname += item.Value;
+                    //}
+                    //툴팁텍스트를 아에 만들어서 보내자.
+
+                }
+
+                aTextEditor.Dispatcher.Invoke(new Action(() =>
+                {
+                    if (OpenSiginal)
                     {
-                        codeAnalyzer.Apply(codeText, offset);
-                        CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
-
-                        //codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor
-
-                        bool isFuncInternall = false;
-                        string functooltip = "";
-                        int funclabelstartoffset = 0;
-                        if (codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
+                        if (OpenIsNameSpaceOpen)
                         {
-                            isFuncInternall = true;
-                            //int argindex = codeAnalyzer.maincontainer.innerFuncInfor.argindex;
-                            funclabelstartoffset = codeAnalyzer.maincontainer.innerFuncInfor.funcename.First().StartOffset;
-
-
-                            functooltip = codeAnalyzer.GetFuncToolTip().Trim();
-
-                            //string currentfuncname = "";
-                            //foreach (var item in codeAnalyzer.maincontainer.innerFuncInfor.funcename)
-                            //{
-                            //    if(currentfuncname != "")
-                            //    {
-                            //        currentfuncname += ".";
-                            //    }
-                            //    currentfuncname += item.Value;
-                            //}
-                            //툴팁텍스트를 아에 만들어서 보내자.
-
-                        }
-                        
-                        try
-                        {
-                            await aTextEditor.Dispatcher.InvokeAsync(new Action(() =>
+                            if (tk != null)
                             {
-                                if (OpenSiginal)
-                                {
-                                    if (OpenIsNameSpaceOpen)
-                                    {
-                                        if (tk != null)
-                                        {
-                                            completionWindowOpen(OpenInput, OpenIsNameSpaceOpen, OpenNoStartWithStartText);
-                                            OpenSiginal = false;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        completionWindowOpen(OpenInput, OpenIsNameSpaceOpen, OpenNoStartWithStartText);
-                                        OpenSiginal = false;
-                                    }
-                                }
-
-
-                                TimeSpan interval = DateTime.Now.Subtract(dateTime);
-                                if (dateTime > markSameWordTimer)
-                                {
-                                    highLightSelectItem();
-                                }
-                                dispatcherTimer.Interval = TimeSpan.FromMilliseconds(interval.TotalMilliseconds * 2);
-
-                                if (IsKeyDown)
-                                {
-                                    IsKeyDown = false;
-                                    
-                                    if (isFuncInternall)
-                                    {
-                                        functooltipTextBox.Text = functooltip;
-
-
-
-                                        OpenTooltipBox(funclabelstartoffset);
-                                    }
-                                }
-
-                                if (!codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
-                                {
-                                    CloseTooltipBox();
-                                }
-
-
-
-
-
-                                #region ######################################################DEBUG######################################################
-                                //오류 그리기
-                                //DrawRedLine(0, 10);
-
-                                aTextEditor.TextArea.TextView.Redraw();
-
-                                //테스트 트리거
-                                string debug = "";
-                                
-                                //CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(-1);
-                                //ToolTip.AppendText(codeAnalyzer.GetTokenCount() + ":" + "Caret:" + aTextEditor.CaretOffset.ToString());
-                                //if (token != null)
-                                //{
-                                //    ToolTip.AppendText("  " + token.StartOffset + ", " + token.EndOffset);
-                                //    ToolTip.AppendText(", " + token.Value);
-                                //}
-                                if (tk != null)
-                                {
-                                    debug += "TokenIndex : " + tk.Value.Replace("\r\n", "") + "\n";
-                                }
-                                else
-                                {
-                                debug += "TokenIndex : null\n";
-                                }
-
-                                debug += "cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n";
-                                //if (codeAnalyzer.tokenAnalyzer.IsError)
-                                //{
-                                //    foreach (var item in codeAnalyzer.tokenAnalyzer.ErrorList)
-                                //    {
-                                //        ToolTip.AppendText("Error : " + item.Message + "줄 : " + item.Line + "  열 : " + item.Column + "\n");
-                                //    }
-                                //}
-
-                                //for (int i = -1; i <= 1; i++)
-                                //{
-                                //    ToolTip.AppendText(i + " : ");
-                                //    CodeAnalyzer.TOKEN ftk = codeAnalyzer.GetToken(i);
-                                //    if(ftk == null)
-                                //    {
-                                //        ToolTip.AppendText("null");
-                                //    }
-                                //    else
-                                //    {
-                                //        ToolTip.AppendText(ftk.Value);
-                                //    }
-                                //    ToolTip.AppendText("\n");
-                                //}
-                                debug += "  " + interval.ToString();
-
-                                //TestLog.Text = debug;
-                                //ErrorLogList.Items.Clear();
-
-                                //ErrorLogList.Items.Add(codeAnalyzer.tokenAnalyzer.ErrorMessage);
-                                #endregion
-                            }), DispatcherPriority.Normal);
+                                completionWindowOpen(OpenInput, OpenIsNameSpaceOpen, OpenNoStartWithStartText);
+                                OpenSiginal = false;
+                            }
                         }
-                        catch (TaskCanceledException)
+                        else
                         {
-
+                            completionWindowOpen(OpenInput, OpenIsNameSpaceOpen, OpenNoStartWithStartText);
+                            OpenSiginal = false;
                         }
                     }
-                });
-                thread.Start();
+
+
+                    TimeSpan interval = DateTime.Now.Subtract(dateTime);
+                    if (dateTime > markSameWordTimer)
+                    {
+                        highLightSelectItem();
+                    }
+                    dispatcherTimer.Interval = TimeSpan.FromMilliseconds(interval.TotalMilliseconds * 2);
+
+                    if (IsKeyDown)
+                    {
+                        IsKeyDown = false;
+
+                        if (isFuncInternall)
+                        {
+                            functooltipTextBox.Text = functooltip;
+
+
+
+                            OpenTooltipBox(funclabelstartoffset);
+                        }
+                    }
+
+                    if (!codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
+                    {
+                        CloseTooltipBox();
+                    }
+
+
+
+
+
+                    #region ######################################################DEBUG######################################################
+                    //오류 그리기
+                    //DrawRedLine(0, 10);
+
+                    aTextEditor.TextArea.TextView.Redraw();
+
+                    //테스트 트리거
+                    string debug = "";
+
+                    //CodeAnalyzer.TOKEN token = codeAnalyzer.GetToken(-1);
+                    //ToolTip.AppendText(codeAnalyzer.GetTokenCount() + ":" + "Caret:" + aTextEditor.CaretOffset.ToString());
+                    //if (token != null)
+                    //{
+                    //    ToolTip.AppendText("  " + token.StartOffset + ", " + token.EndOffset);
+                    //    ToolTip.AppendText(", " + token.Value);
+                    //}
+                    if (tk != null)
+                    {
+                        debug += "TokenIndex : " + tk.Value.Replace("\r\n", "") + "\n";
+                    }
+                    else
+                    {
+                        debug += "TokenIndex : null\n";
+                    }
+
+                    debug += "cursorLocation : " + codeAnalyzer.cursorLocation.ToString() + "\n";
+                    //if (codeAnalyzer.tokenAnalyzer.IsError)
+                    //{
+                    //    foreach (var item in codeAnalyzer.tokenAnalyzer.ErrorList)
+                    //    {
+                    //        ToolTip.AppendText("Error : " + item.Message + "줄 : " + item.Line + "  열 : " + item.Column + "\n");
+                    //    }
+                    //}
+
+                    //for (int i = -1; i <= 1; i++)
+                    //{
+                    //    ToolTip.AppendText(i + " : ");
+                    //    CodeAnalyzer.TOKEN ftk = codeAnalyzer.GetToken(i);
+                    //    if(ftk == null)
+                    //    {
+                    //        ToolTip.AppendText("null");
+                    //    }
+                    //    else
+                    //    {
+                    //        ToolTip.AppendText(ftk.Value);
+                    //    }
+                    //    ToolTip.AppendText("\n");
+                    //}
+                    debug += "  " + interval.ToString();
+
+                    //TestLog.Text = debug;
+                    //ErrorLogList.Items.Clear();
+
+                    //ErrorLogList.Items.Add(codeAnalyzer.tokenAnalyzer.ErrorMessage);
+                    #endregion
+                }), DispatcherPriority.Normal);
             }
         }
         #endregion
@@ -431,8 +462,6 @@ namespace BingsuCodeEditor
         #endregion
 
         #region #############외부연결함수#############
-
-
         public event EventHandler Text_Change;
         public void Deactivated()
         {
@@ -707,12 +736,29 @@ namespace BingsuCodeEditor
             dispatcherTimer.Interval = TimeSpan.FromMilliseconds(100);
 
             dispatcherTimer.Tick += DispatcherTimer_Tick;
+            dispatcherTimer.Dispatcher.UnhandledException += Dispatcher_UnhandledException;
             dispatcherTimer.Start();
 
 
             aTextEditor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
             aTextEditor.TextArea.TextEntered += TextArea_TextEntered;
             aTextEditor.TextArea.TextEntering += TextArea_TextEntering;
+        }
+
+        private void Dispatcher_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            if(dispatcherTimer != null)
+            {
+                dispatcherTimer.Tick -= DispatcherTimer_Tick;
+                dispatcherTimer.Dispatcher.UnhandledException -= Dispatcher_UnhandledException;
+
+                dispatcherTimer = new DispatcherTimer();
+                dispatcherTimer.Interval = TimeSpan.FromMilliseconds(100);
+
+                dispatcherTimer.Tick += DispatcherTimer_Tick;
+                dispatcherTimer.Dispatcher.UnhandledException += Dispatcher_UnhandledException;
+                dispatcherTimer.Start();
+            }
         }
 
         private void Functooltip_Unloaded(object sender, RoutedEventArgs e)
@@ -775,16 +821,11 @@ namespace BingsuCodeEditor
 
             if (IsSingleSelected())
             {
-                CodeAnalyzer.TOKEN tk = codeAnalyzer.GetToken(0);
-                if(tk == null)
-                {
-                    return false;
-                }
+                string key = codeAnalyzer.GetDirectWord();
 
-
-                if (codeAnalyzer.Template.ContainsKey(tk.Value))
+                if (codeAnalyzer.Template.ContainsKey(key))
                 {
-                    string temp = codeAnalyzer.Template[tk.Value];
+                    string temp = codeAnalyzer.Template[key];
 
                     string tabonce = gettabspace(true);
                     string tab = gettabspace(false);
@@ -795,7 +836,7 @@ namespace BingsuCodeEditor
 
                     int line = aTextEditor.Document.GetLineByOffset(aTextEditor.CaretOffset).LineNumber;
 
-                    temp = markSnippetWord.Start(tk.Value, temp, line);
+                    temp = markSnippetWord.Start(key, temp, line);
 
                     aTextEditor.Document.Insert(aTextEditor.CaretOffset, temp);
                     
@@ -984,6 +1025,7 @@ namespace BingsuCodeEditor
                     break;
                 case CodeAnalyzer.CursorLocation.FunctionArgType:
                 case CodeAnalyzer.CursorLocation.ImportFile:
+                case CodeAnalyzer.CursorLocation.FunctionName:
 
 
 
@@ -993,7 +1035,6 @@ namespace BingsuCodeEditor
                 case CodeAnalyzer.CursorLocation.FunctionArgName:
                 case CodeAnalyzer.CursorLocation.VarName:
                 case CodeAnalyzer.CursorLocation.ObjectDefine:
-                case CodeAnalyzer.CursorLocation.FunctionName:
                     return;
             }
 

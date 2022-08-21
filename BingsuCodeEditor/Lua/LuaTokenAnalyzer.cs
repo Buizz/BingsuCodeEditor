@@ -18,7 +18,7 @@ namespace BingsuCodeEditor.Lua
         {
             IsError = false;
 
-            Container rcontainer = new Container();
+            Container rcontainer = new Container(codeAnalyzer);
             Container cc = rcontainer;
 
 
