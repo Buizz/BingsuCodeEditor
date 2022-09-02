@@ -507,7 +507,17 @@ namespace BingsuCodeEditor
             Lua
         }
 
-
+        public string SelectedText
+        {
+            get
+            {
+                return aTextEditor.SelectedText;
+            }
+            set
+            {
+                aTextEditor.SelectedText = value;
+            }
+        }
         public string Text
         {
             get
@@ -518,6 +528,33 @@ namespace BingsuCodeEditor
             {
                 aTextEditor.Text = value;
             }
+        }
+
+        public struct CustomShortCut
+        {
+            public CustomShortCut(Key SystemKey, Key Key, RoutedEventHandler eventhandle)
+            {
+                this.SystemKey = SystemKey;
+                this.Key = Key;
+                this.eventhandle = eventhandle;
+            }
+
+            public Key SystemKey;
+            public Key Key;
+            public RoutedEventHandler eventhandle;
+        }
+
+        public List<CustomShortCut> ShortCutList = new List<CustomShortCut>();
+        public void AddCustomMenuBtn(string header, string shortcut, Key systemKey, Key key, RoutedEventHandler clickEvent)
+        {
+            MenuItem menuItem = new MenuItem();
+            menuItem.Header = header;
+            menuItem.InputGestureText = shortcut;
+            menuItem.Click += clickEvent;
+
+            ShortCutList.Add(new CustomShortCut(systemKey, key, clickEvent));
+
+            contextMenu.Items.Add(menuItem);
         }
 
 
@@ -1224,6 +1261,7 @@ namespace BingsuCodeEditor
                                    
                     // Whenever a non-letter is typed while the completion window is open,
                     // insert the currently selected element.
+                    
                     completionWindow.CompletionList.RequestInsertion(e);
                 }
             }
@@ -1564,7 +1602,11 @@ namespace BingsuCodeEditor
         private bool IsKeyDown = false;
         private void aTextEditor_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            //1
+            if(e.SystemKey != Key.LeftCtrl && e.Key != Key.LeftCtrl)
+            {
+
+            }
+
 
             string input = e.Key.ToString();
             if (!LeftCtrlDown && !LeftShiftDown)
@@ -1611,6 +1653,14 @@ namespace BingsuCodeEditor
                     if (LeftAltDown && !LeftShiftDown)
                     {
                         LineChange(false);
+                    }
+                    break;
+                case Key.ImeProcessed:
+                    if (LeftCtrlDown)
+                    {
+                        TBCtrlValue.Visibility = Visibility.Collapsed;
+                        LeftCtrlDown = false;
+                        codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, CodeAnalyzer.CommentType.Toggle);
                     }
                     break;
             }
@@ -1753,6 +1803,16 @@ namespace BingsuCodeEditor
                         SearchPanelOpen();
                     }
                     break;
+                //case Key.ImeProcessed:
+                case Key.OemQuestion:
+                    if (LeftCtrlDown)
+                    {
+                        TBCtrlValue.Visibility = Visibility.Collapsed;
+                        LeftCtrlDown = false;
+                        codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, CodeAnalyzer.CommentType.Toggle);
+                        e.Handled = true;
+                    }
+                    break;
                 case Key.Escape:
                     if (IsSearchPanelOpen)
                     {
@@ -1783,18 +1843,113 @@ namespace BingsuCodeEditor
                         if (fstr == "{")
                         {
                             e.Handled = true;
-                            codeAnalyzer.DirectInsetText("\n" + tabstr + tabonce, IsMove: true);
+                            codeAnalyzer.DirectInsetTextFromCaret("\n" + tabstr + tabonce, IsMove: true);
 
                             if (bstr == "}")
                             {
-                                codeAnalyzer.DirectInsetText("\n" + tabstr, IsMove: false);
+                                codeAnalyzer.DirectInsetTextFromCaret("\n" + tabstr, IsMove: false);
                             }
                         }
                     }
                     break;
             }
+            if(e.Key.ToString().Length == 1)
+            {
+                if(ShortCut(e.Key)) e.Handled = true;
+            }
 
             IsKeyDown = true;
+        }
+
+
+        private Key LastKey;
+        private Key LastSystemKey;
+        private bool ShortCut(Key key)
+        {
+            foreach (var item in ShortCutList)
+            {
+                if (item.Key == key)
+                {
+                    if (LeftCtrlDown && item.SystemKey == Key.LeftCtrl)
+                    {
+                        item.eventhandle.Invoke(this, new RoutedEventArgs());
+                        return true;
+                    }
+                }               
+            }
+
+
+            if(key != Key.K && LastKey == Key.None)
+            {
+                return false;
+            }
+
+
+            //LeftCtrlDown  LeftCtrlDown  LeftAltDown
+            switch(LastKey)
+            {
+                case Key.K:
+                    switch (key)
+                    {
+                        case Key.U:
+                            //주석 온
+                            codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, CodeAnalyzer.CommentType.Clear);
+                            LastKey = Key.None;
+                            LastSystemKey = Key.None;
+                            ShortCutText.Text = "";
+                            return true;
+                        case Key.C:
+                            //주석 오프
+                            codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, CodeAnalyzer.CommentType.Set);
+                            LastKey = Key.None;
+                            LastSystemKey = Key.None;
+                            ShortCutText.Text = "";
+                            return true;
+                    }
+                    break;
+            }
+   
+            
+
+
+            if (LastKey == Key.None)
+            {
+                if (LeftCtrlDown)
+                {
+                    LastKey = key;
+                    ShortCutText.Text = "(" + LastKey.ToString();
+                    LastSystemKey = Key.LeftCtrl;
+                    ShortCutText.Text += " + " + LastSystemKey.ToString();
+                    ShortCutText.Text += ")를 눌렀습니다.";
+                }
+                else
+                {
+                    ShortCutText.Text = "";
+                }
+
+            }
+            else
+            {
+                ShortCutText.Text = "(" + LastKey.ToString();
+                if (LastSystemKey != Key.None)
+                {
+                    ShortCutText.Text += " + " + LastSystemKey.ToString();
+                }
+
+
+                ShortCutText.Text += "," + key.ToString();
+                if (LeftCtrlDown)
+                {
+                    ShortCutText.Text += " + " + Key.LeftCtrl.ToString();
+                }
+
+
+                ShortCutText.Text += ")는 단축키가 아닙니다.";
+                LastKey = Key.None;
+                LastSystemKey = Key.None;
+                if (!LeftCtrlDown) return true;
+            }
+            return false;
         }
 
 

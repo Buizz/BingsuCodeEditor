@@ -18,7 +18,7 @@ namespace BingsuCodeEditor.EpScript
 
         private static string[] default_argtypes =
         {
-            "TrgAllyStatus", "TrgComparison", "TrgCount", "TrgModifier", "TrgOrder",
+            "TrgString", "TrgAllyStatus", "TrgComparison", "TrgCount", "TrgModifier", "TrgOrder",
             "TrgPlayer", "TrgProperty", "TrgPropState", "TrgResource", "TrgScore", "TrgSwitchAction", "TrgSwitchState",
             "TrgAIScript"
         };
@@ -100,18 +100,18 @@ namespace BingsuCodeEditor.EpScript
             }
 
             {
-                List<string> keywordlist = new List<string>();
-
-                keywordlist.AddRange(default_argtypes);
-                keywordlist.AddRange(default_dynamicargtypes);
-                keywordlist.AddRange(added_argtypes);
-                keywordlist.AddRange(added_dynamicargtypes);
-
                 List<CodeCompletionData> completionDatas = new List<CodeCompletionData>();
-                foreach (var item in keywordlist)
-                {
+                completionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Setting, "EUDFuncPtr", "EUDFuncPtr")));
+
+                foreach (var item in default_argtypes)
                     completionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Setting, item, item)));
-                }
+                foreach (var item in default_dynamicargtypes)
+                    completionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Setting, item, item)));
+                foreach (var item in added_argtypes)
+                    completionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Setting, item,"/*" + item + "*/")));
+                foreach (var item in added_dynamicargtypes)
+                    completionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Setting, item, "/*" + item + "*/")));
+
                 DefaultCompletionData.Add("ARGKEYWORDLIST", completionDatas);
             }
         }

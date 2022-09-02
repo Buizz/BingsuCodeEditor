@@ -35,6 +35,15 @@ namespace BingsuCodeEditor
         }
 
 
+        public enum CommentType
+        {
+            Set,
+            Clear,
+            Toggle
+        }
+        public abstract void SetCommentLine(int start, int end, CommentType commentType);
+
+
 
         public abstract void SetImportManager(ImportManager importManager);
 
@@ -274,7 +283,37 @@ namespace BingsuCodeEditor
             return textEditor.Document.GetCharAt(caret + offset).ToString();
         }
 
+
+
+
         public void DirectInsetText(string text, int offset = 0, bool IsMove = false)
+        {
+            if (textEditor.Document.TextLength < offset)
+            {
+                return;
+            }
+            if (IsMove)
+            {
+                textEditor.Document.Insert(offset, text, ICSharpCode.AvalonEdit.Document.AnchorMovementType.AfterInsertion);
+            }
+            else
+            {
+                textEditor.Document.Insert(offset, text, ICSharpCode.AvalonEdit.Document.AnchorMovementType.BeforeInsertion);
+            }
+        }
+
+        public void DirectRemoveText(int len, int offset = 0)
+        {
+            if (textEditor.Document.TextLength < offset + len ||
+                0 > offset)
+            {
+                return;
+            }
+
+            textEditor.Document.Remove(offset, len);
+        }
+
+        public void DirectInsetTextFromCaret(string text, int offset = 0, bool IsMove = false)
         {
             int caret = textEditor.CaretOffset;
 
@@ -292,7 +331,7 @@ namespace BingsuCodeEditor
             }
         }
 
-        public void DirectRemoveText(int len, int offset = 0)
+        public void DirectRemoveTextFromCaret(int len, int offset = 0)
         {
             int caret = textEditor.CaretOffset;
 
@@ -318,19 +357,19 @@ namespace BingsuCodeEditor
                 case "{":
                     if (IsLineEnd || next == "}")
                     {
-                        DirectInsetText("}");
+                        DirectInsetTextFromCaret("}");
                     }
                     break;
                 case "[":
                     if (IsLineEnd || next == "]")
                     {
-                        DirectInsetText("]");
+                        DirectInsetTextFromCaret("]");
                     }
                     break;
                 case "(":
                     if (IsLineEnd || next == ")")
                     {
-                        DirectInsetText(")");
+                        DirectInsetTextFromCaret(")");
                     }
                     break;
                 case "}":
@@ -338,14 +377,14 @@ namespace BingsuCodeEditor
                 case ")":
                     if (!IsLineEnd && next == input)
                     {
-                        DirectRemoveText(1);
+                        DirectRemoveTextFromCaret(1);
                     }
                     break;
                 case "\"":
                 case "\'":
                     if (IsLineEnd)
                     {
-                        DirectInsetText(input);
+                        DirectInsetTextFromCaret(input);
                     }
                     //else if (!IsLineEnd
                     //    && ctoken.Type == CodeAnalyzer.TOKEN_TYPE.String
@@ -356,12 +395,12 @@ namespace BingsuCodeEditor
                     //    textEditor.SelectionLength = 0;
                     //}
                     break;
-                case ";":
-                    if(next == ")")
-                    {
-                        textEditor.CaretOffset++;
-                    }
-                    break;
+                //case ";":
+                //    if(next == ")")
+                //    {
+                //        textEditor.CaretOffset++;
+                //    }
+                //    break;
             }
         }
 
@@ -393,13 +432,13 @@ namespace BingsuCodeEditor
                 || (fstr == "[" && bstr == "]")
                 || (fstr == "(" && bstr == ")"))
             {
-                DirectRemoveText(2, -1);
+                DirectRemoveTextFromCaret(2, -1);
                 return true;
             }
 
             if (bstr == "\"\"")
             {
-                DirectRemoveText(2, -1);
+                DirectRemoveTextFromCaret(2, -1);
                 return true;
             }
 

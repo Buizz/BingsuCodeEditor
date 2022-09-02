@@ -189,10 +189,17 @@ namespace BingsuCodeEditor
             Close();
             // The window must close before Complete() is called.
             // If the Complete callback pushes stacked input handlers, we don't want to pop those when the CC window closes.
-            var item = completionList.SelectedItem;
+            CodeCompletionData item = (CodeCompletionData)completionList.SelectedItem;
             if (item != null)
             {
-                item.Complete(this.TextArea, new AnchorSegment(this.TextArea.Document, this.StartOffset, this.EndOffset - this.StartOffset), e);
+                if(item.Text.IndexOf("/") != -1)
+                {
+                    item.Complete(this.TextArea, new AnchorSegment(this.TextArea.Document, this.StartOffset - 1, this.EndOffset - this.StartOffset + 1), e);
+                }
+                else
+                {
+                    item.Complete(this.TextArea, new AnchorSegment(this.TextArea.Document, this.StartOffset, this.EndOffset - this.StartOffset), e);
+                }
             }
         }
 

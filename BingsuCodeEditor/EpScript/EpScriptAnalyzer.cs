@@ -966,21 +966,19 @@ namespace BingsuCodeEditor.EpScript
                 case CursorLocation.VarTypeDefine:
                     if(cursorLocation == CursorLocation.FunctionArgType)
                     {
-                        foreach (var item in LuaDefaultCompletionData.GetCompletionKeyWordList())
+                        foreach (var item in EpScriptDefaultCompletionData.GetCompletionKeyWordList())
                         {
                             data.Add(item);
                         } 
                     }
-                    else
+
+                    foreach (var item in container.objs)
                     {
-                        foreach (var item in container.objs)
-                        {
-                            data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Variable, item.mainname)));
-                        }
-                        foreach (var item in DefaultFuncContainer.objs)
-                        {
-                            data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Variable, item.mainname)));
-                        }
+                        data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Variable, item.mainname)));
+                    }
+                    foreach (var item in DefaultFuncContainer.objs)
+                    {
+                        data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Variable, item.mainname)));
                     }
 
                     return true;
@@ -1257,6 +1255,94 @@ namespace BingsuCodeEditor.EpScript
             //Function func = null;
             //ImportedNameSpace importedNameSpace = null;
             return rstr;
+        }
+
+        public override void SetCommentLine(int start, int end, CommentType commentType)
+        {
+            int startLine = textEditor.Document.GetLineByOffset(start).LineNumber - 1;
+            int endLine = textEditor.Document.GetLineByOffset(end).LineNumber - 1;
+
+            int minspacecount = int.MaxValue;
+            bool IsAllComment = true;
+            for (int i = startLine; i <= endLine; i++)
+            {
+                string line = textEditor.Document.GetText(textEditor.Document.Lines[i].Offset, textEditor.Document.Lines[i].TotalLength);
+
+                bool IsComment = false;
+                int commentcount = 0;
+                int spacecount = 0;
+                bool checksapce = false;
+                foreach (var c in line)
+                {
+                    if (char.IsWhiteSpace(c))
+                    {
+                        spacecount += 1;
+                    }
+                    else
+                    {
+                        if (!checksapce)
+                        {
+                            checksapce = true;
+                            if (c == '/')
+                            {
+                                commentcount++;
+                            }
+                            else { break; }
+                        }
+                        else
+                        {
+                            if(c == '/')
+                            {
+                                commentcount++;
+                                if(commentcount == 2)
+                                {
+                                    IsComment = true;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+
+                    }
+                }
+
+                if(spacecount <= minspacecount)
+                {
+                    minspacecount = spacecount;
+                }
+                if(!IsComment)
+                {
+                    IsAllComment = false;
+                }
+            }
+
+            for (int i = startLine; i <= endLine; i++)
+            {
+                int startoffset = textEditor.Document.Lines[i].Offset;
+                switch (commentType)
+                {
+                    case CommentType.Set:
+                        DirectInsetText("//", startoffset + minspacecount);
+                        break;
+                    case CommentType.Clear:
+                        DirectRemoveText(2, startoffset + minspacecount);
+                        break;
+                    case CommentType.Toggle:
+                        if (!IsAllComment)
+                        {
+                            DirectInsetText("//", startoffset + minspacecount);
+                        }
+                        else
+                        {
+                            DirectRemoveText(2, startoffset + minspacecount);
+                        }
+                        break;
+                }
+            }
+
         }
     }
 }

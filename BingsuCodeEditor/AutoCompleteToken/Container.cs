@@ -141,7 +141,10 @@ namespace BingsuCodeEditor.AutoCompleteToken
 
             foreach (var item in funcs.FindAll(x => scope.Contains(x.scope)))
             {
-                data.Add(new CodeCompletionData(item.preCompletion));
+                if (!item.IsInCursor)
+                {
+                    data.Add(new CodeCompletionData(item.preCompletion));
+                }
             }
 
             foreach (var item in objs)

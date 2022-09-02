@@ -1067,5 +1067,10 @@ namespace BingsuCodeEditor.Lua
             //ImportedNameSpace importedNameSpace = null;
             return rstr;
         }
+
+        public override void SetCommentLine(int start, int end, CommentType commentType)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

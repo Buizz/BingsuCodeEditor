@@ -205,12 +205,11 @@ namespace BingsuCodeEditor.EpScript
                                         cc.cursorLocation = function.cursorLocation;
                                         rcontainer.cursorLocation = function.cursorLocation;
                                     }
-
-                                    if (!function.IsInCursor)
-                                    {
-                                        cc.funcs.Add(function);
-                                    }
                                 }
+                                cc.funcs.Add(function);
+                                //if (!function.IsInCursor)
+                                //{
+                                //}
                                 //매게변수 추가
                                 foreach (var item in function.args)
                                 {
@@ -735,7 +734,7 @@ namespace BingsuCodeEditor.EpScript
                 else if (tk.Type == TOKEN_TYPE.Comment)
                 {
                     //특수처리된 타입
-                    arg.argtype = tk.Value;
+                    arg.argtype = tk.Value.Replace("/", "").Replace("*", "");
                     tk = GetCurrentToken();
                 }
                 else
@@ -762,14 +761,17 @@ namespace BingsuCodeEditor.EpScript
                 else if (tk.Value == ":")
                 {
                     tk = GetCommentTokenIten();
-                    if(tk.Type == TOKEN_TYPE.Identifier)
+                    int typestartindex = tk.StartOffset;
+                    int typeendindex = tk.EndOffset;
+
+                    if (tk.Type == TOKEN_TYPE.Identifier)
                     {
                         //일반 타입
                         arg.argtype = tk.Value;
                     }
                     else
                     {
-                        if (tk.StartOffset <= startindex && startindex <= tk.EndOffset)
+                        if (typestartindex <= startindex && startindex <= typeendindex)
                         {
                             cl = CursorLocation.FunctionArgType;
                         }
@@ -778,14 +780,53 @@ namespace BingsuCodeEditor.EpScript
                         goto EndLabel;
                     }
 
-                    if (tk.StartOffset <= startindex && startindex <= tk.EndOffset)
+                    if (typestartindex <= startindex && startindex <= typeendindex)
                     {
                         cl = CursorLocation.FunctionArgType;
                     }
 
-                    GetCurrentToken();
+                    tk = GetCurrentToken();
+
+                    TOKEN nt = GetSafeTokenIten();
+                    if(nt.Type == TOKEN_TYPE.Symbol && nt.Value == "(")
+                    {
+                        //타입이 함수일 경우
+                        int bracecount = 1;
+
+                        GetCurrentToken();
+                        while (true)
+                        {
+                            nt = GetCurrentToken();
+
+                            if (IsEndOfList())
+                            {
+                                ThrowException("괄호가 닫히지 않았습니다.", nt);
+                                goto EndLabel;
+                            }
+
+                            if (nt.Type == TOKEN_TYPE.Symbol && nt.Value == "(")
+                            {
+                                bracecount ++;
+                            }
+                            else if (nt.Type == TOKEN_TYPE.Symbol && nt.Value == ")")
+                            {
+                                bracecount--;
+                            }
+                            if(bracecount == 0)
+                            {
+                                break;
+                            }
+                        }
+
+
+                    }
+
+
                     goto recheck;
                 }
+
+
+
 
 
                 function.args.Add(arg);
