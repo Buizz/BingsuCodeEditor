@@ -123,10 +123,26 @@ namespace BingsuCodeEditor.EpScript
         public LuaTokenAnalyzer luaTokenAnalyzer;
 
 
-        public override void AutoInsert(string text)
+        public override bool AutoInsert(string text)
         {
             if(textEditor.SelectionLength == 0)
             {
+                if (text == "Oem1")
+                {
+                    string linetext = LineDirectString(true);
+
+                    if (linetext.IndexOf("for") == -1)
+                    {
+                        if(GetDirectText(0) == ")")
+                        {
+                            textEditor.CaretOffset += 1;
+                            DirectInsetTextFromCaret(";", 0, true);
+                            return true;
+                        }
+
+                    }
+
+                }
                 //if(text == "*")
                 //{
                 //    TOKEN tk = GetToken(0);
@@ -158,6 +174,7 @@ namespace BingsuCodeEditor.EpScript
 
 
             }
+            return false;
         }
 
         public override bool AutoRemove()
@@ -1080,7 +1097,7 @@ namespace BingsuCodeEditor.EpScript
 
             if(ctoken != null)
             {
-                if(ctoken.Type == TOKEN_TYPE.Symbol && ctoken.Value == ";")
+                if(ctoken.Type == TOKEN_TYPE.Symbol && (ctoken.Value == ";" || ctoken.Value == ")"))
                 {
                     ctoken = GetToken(-1);
                     btoken = GetToken(-2);
@@ -1105,7 +1122,6 @@ namespace BingsuCodeEditor.EpScript
                             break;
                         case "function":
                             cl = CursorLocation.FunctionName;
-                            break;
                             break;
                         case "object":
                             cl = CursorLocation.ObjectDefine;

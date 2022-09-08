@@ -248,7 +248,7 @@ namespace BingsuCodeEditor
         public abstract TOKEN TokenBlockAnalyzer(string text, int index, out int outindex, int caretoffset);
 
 
-        public abstract void AutoInsert(string text);
+        public abstract bool AutoInsert(string text);
         public abstract bool AutoRemove();
 
 

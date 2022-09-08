@@ -6,6 +6,7 @@ using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Editing;
+using ICSharpCode.AvalonEdit.Folding;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Rendering;
 using ICSharpCode.AvalonEdit.Search;
@@ -751,6 +752,10 @@ namespace BingsuCodeEditor
 
             functooltip.Content = functooltipTextBox;
 
+            aTextEditor.SetValue(FoldingMargin.FoldingMarkerBrushProperty, Brushes.LightGray);
+            aTextEditor.SetValue(FoldingMargin.SelectedFoldingMarkerBrushProperty, Brushes.LightPink);
+            aTextEditor.SetValue(FoldingMargin.SelectedFoldingMarkerBackgroundBrushProperty, Brushes.LightGray);
+
 
             aTextEditor.Options.ConvertTabsToSpaces = true;
             aTextEditor.TextArea.SelectionCornerRadius = 0.1;
@@ -1279,7 +1284,6 @@ namespace BingsuCodeEditor
             {
                 codeAnalyzer.AutoDefaultInsert(e.Text);
             }
-
             if (!LeftCtrlDown && !LeftShiftDown)
             {
                 if (e.Text == ".")
@@ -1327,8 +1331,6 @@ namespace BingsuCodeEditor
                     }
                 }
             }
-        
-            codeAnalyzer.AutoInsert(e.Text);
         }
 
         private void aTextEditor_TextChanged(object sender, EventArgs e)
@@ -1857,6 +1859,8 @@ namespace BingsuCodeEditor
             {
                 if(ShortCut(e.Key)) e.Handled = true;
             }
+
+            e.Handled = codeAnalyzer.AutoInsert(e.Key.ToString());
 
             IsKeyDown = true;
         }

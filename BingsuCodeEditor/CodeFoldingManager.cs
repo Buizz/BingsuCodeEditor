@@ -13,7 +13,7 @@ namespace BingsuCodeEditor
     public abstract class CodeFoldingManager
     {
         private FoldingManager foldingManager;
-        private TextEditor textEditor;
+        protected TextEditor textEditor;
 
         public CodeFoldingManager(TextEditor aTextEditor)
         {
@@ -37,6 +37,7 @@ namespace BingsuCodeEditor
             List<NewFolding> newFoldings = new List<NewFolding>();
             FodlingExec(Tokens, len, newFoldings);
 
+            newFoldings.Sort((x, y) => x.StartOffset.CompareTo(y.StartOffset));
 
             int lencash = len;
             try

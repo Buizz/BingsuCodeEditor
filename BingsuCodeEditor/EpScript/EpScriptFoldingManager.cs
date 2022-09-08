@@ -16,8 +16,29 @@ namespace BingsuCodeEditor.EpScript
 
         public override void FodlingExec(List<CodeAnalyzer.TOKEN> Tokens, int len, List<NewFolding> Foldings)
         {
+            Stack<int> startOffset = new Stack<int>();
+            for (int i = 0; i < Tokens.Count; i++)
+            {
+                CodeAnalyzer.TOKEN tk = Tokens[i];
+                if (tk.Type == CodeAnalyzer.TOKEN_TYPE.Symbol)
+                {
+                    if (tk.Value == "{")
+                    {
+                        startOffset.Push(tk.StartOffset);
+                    }
+                    else if (tk.Value == "}")
+                    {
+                        if (startOffset.Count == 0) return;
+                        int st = startOffset.Pop();
+                        int et = tk.EndOffset;
+
+                        Foldings.Add(new NewFolding(st, et));
+                    }
+                }
+            }
+
+
             //TODO : 폴딩 로직 짜야됨
-            Foldings.Add(new NewFolding(0, len));
         }
     }
 }

@@ -110,9 +110,9 @@ namespace BingsuCodeEditor.Lua
             secondtokenAnalyzer = new LuaTokenAnalyzer(this);
             //codeFoldingManager = new LuaFoldingManager(textEditor);
         }
-        public override void AutoInsert(string text)
+        public override bool AutoInsert(string text)
         {
-            return;
+            return false;
         }
 
         public override bool AutoRemove()
