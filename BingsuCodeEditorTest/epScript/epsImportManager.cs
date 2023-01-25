@@ -40,7 +40,7 @@ namespace BingsuCodeEditorTest.epScript
             return "var test1;";
         }
 
-        public override List<string> GetFileList(string basefilename = "")
+        public override List<string> GetFIleList()
         {
             List<string> rlist = new List<string>();
             //rlist.Add("TriggerEditor.SCArchive");
@@ -53,6 +53,9 @@ namespace BingsuCodeEditorTest.epScript
             return rlist;
         }
 
-
+        public override List<string> GetImportedFileList(string basefilename = "")
+        {
+            throw new NotImplementedException();
+        }
     }
 }

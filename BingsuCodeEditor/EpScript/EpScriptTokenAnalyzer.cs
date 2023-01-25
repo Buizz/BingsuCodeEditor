@@ -96,20 +96,29 @@ namespace BingsuCodeEditor.EpScript
                                 {
                                     ThrowException("foreach문이 잘못되었습니다. (가 와야합니다.", tk);
                                 }
+                                int foreachstart = tk.EndOffset;
                                 forblocks.Clear();
                                 forstart = true;
                                 while (true)
                                 {
                                     tk = GetCurrentToken();
 
+                                    if(tk == null)
+                                    {
+                                        ThrowException("foreach 변수 자리에는 식별자를 선언해야 합니다.", tk);
+                                        break;
+                                    }
                                     if(tk.Type != TOKEN_TYPE.Identifier)
                                     {
                                         ThrowException("foreach 변수 자리에는 식별자를 선언해야 합니다.", tk);
 
                                         break;
                                     }
+
+
                                     Block item = new Block("const", tk.Value);
 
+                                    item.scope = scope;
                                     forblocks.Add(item);
 
                                     cc.vars.Add(item);
@@ -118,6 +127,20 @@ namespace BingsuCodeEditor.EpScript
                                         break;
                                     }
                                 }
+                                if (foreachstart <= startindex && startindex <= tk.EndOffset)
+                                {
+                                    cc.cursorLocation = CursorLocation.ForEachDefine;
+                                }
+
+                                tk = GetSafeTokenIten();
+                                if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == ":")
+                                {
+                                    if (tk.StartOffset <= startindex && startindex <= tk.EndOffset + 2)
+                                    {
+                                        cc.cursorLocation = CursorLocation.ForFuncDefine;
+                                    }
+                                }
+
 
                                 break;
                             case "for":

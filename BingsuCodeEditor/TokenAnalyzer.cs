@@ -61,7 +61,10 @@ namespace BingsuCodeEditor
         {
             PassComment(GoToReverse);
 
-
+            if(index < 0)
+            {
+                return null;
+            }
 
 
             if (tklist.Count > index + _i)
@@ -397,6 +400,12 @@ namespace BingsuCodeEditor
             {
                 return index;
             }
+
+            if (index >= tklist.Count || index < 0)
+            {
+                return index;
+            }
+
             while (tklist[index].Type == TOKEN_TYPE.Comment || tklist[index].Type == TOKEN_TYPE.LineComment)
             {
                 if (GoToReverse)

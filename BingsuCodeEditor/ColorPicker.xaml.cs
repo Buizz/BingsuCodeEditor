@@ -46,7 +46,7 @@ namespace BingsuCodeEditor
         {
             SVPanelDrag = false;
 
-            FristColor.Background = new SolidColorBrush(color);
+            FirstColor.Background = new SolidColorBrush(color);
 
             R = color.R;
             G = color.G;

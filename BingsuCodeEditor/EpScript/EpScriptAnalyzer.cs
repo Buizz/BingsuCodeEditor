@@ -849,9 +849,6 @@ namespace BingsuCodeEditor.EpScript
             }
 
 
-
-
-
             switch (cursorLocation)
             {
                 case CursorLocation.FunctionName:
@@ -997,6 +994,14 @@ namespace BingsuCodeEditor.EpScript
                     {
                         data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Variable, item.mainname)));
                     }
+
+                    return true;
+                case CursorLocation.ForFuncDefine:
+                    //data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "EUDLoopUnit2")));
+                    //data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "EUDLoopNewUnit")));
+                    //data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "UnitGroup.cploop")));
+                    //data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "EUDLoopPlayer")));
+                    DefaultFuncContainer.GetAllItems(data, "st");
 
                     return true;
             }

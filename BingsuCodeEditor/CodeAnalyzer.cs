@@ -122,7 +122,9 @@ namespace BingsuCodeEditor
             VarTypeDefine,
             VarName,
             ObjectDefine,
-            CallFunction
+            CallFunction,
+            ForEachDefine,
+            ForFuncDefine
         }
 
 

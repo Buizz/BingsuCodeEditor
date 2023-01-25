@@ -1069,11 +1069,10 @@ namespace BingsuCodeEditor
                 case CodeAnalyzer.CursorLocation.ImportFile:
                 case CodeAnalyzer.CursorLocation.FunctionName:
 
-
-
                 case CodeAnalyzer.CursorLocation.ImportNameSpace:
                 case CodeAnalyzer.CursorLocation.Keyword:
                     break;
+                case CodeAnalyzer.CursorLocation.ForEachDefine:
                 case CodeAnalyzer.CursorLocation.FunctionArgName:
                 case CodeAnalyzer.CursorLocation.VarName:
                 case CodeAnalyzer.CursorLocation.ObjectDefine:
@@ -1163,8 +1162,8 @@ namespace BingsuCodeEditor
 
             //TextViewPosition StartPostion = aTextEditor.TextArea.Caret.Position;
 
-            TextViewPosition StartPostion = new TextViewPosition(aTextEditor.Document.GetLocation(startoffset));
-            StartPostion.VisualColumn -= 1;
+            TextViewPosition StartPosition = new TextViewPosition(aTextEditor.Document.GetLocation(startoffset));
+            StartPosition.VisualColumn -= 1;
 
             //Point p = aTextEditor.TextArea.TextView.GetVisualPosition(StartPostion, VisualYPosition.LineTop);
             //OrginXPos = p.X + 36;
@@ -1176,8 +1175,8 @@ namespace BingsuCodeEditor
 
             Point visualLocation, visualLocationTop;
 
-            visualLocation = textView.GetVisualPosition(StartPostion, VisualYPosition.LineBottom);
-            visualLocationTop = textView.GetVisualPosition(StartPostion, VisualYPosition.LineTop);
+            visualLocation = textView.GetVisualPosition(StartPosition, VisualYPosition.LineBottom);
+            visualLocationTop = textView.GetVisualPosition(StartPosition, VisualYPosition.LineTop);
 
             // PointToScreen returns device dependent units (physical pixels)
             Point location = textView.PointToScreen(visualLocation - textView.ScrollOffset);
@@ -1860,7 +1859,11 @@ namespace BingsuCodeEditor
                 if(ShortCut(e.Key)) e.Handled = true;
             }
 
-            e.Handled = codeAnalyzer.AutoInsert(e.Key.ToString());
+            bool rval = codeAnalyzer.AutoInsert(e.Key.ToString());
+            if(!e.Handled)
+            {
+                e.Handled = rval;
+            }
 
             IsKeyDown = true;
         }
