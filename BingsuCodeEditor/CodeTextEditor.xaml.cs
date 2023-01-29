@@ -167,6 +167,13 @@ namespace BingsuCodeEditor
         }
 
 
+
+        private void UserControl_LostFocus(object sender, RoutedEventArgs e)
+        {
+            Deactivated();
+        }
+
+
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             dispatcherTimer.Stop();
@@ -470,6 +477,8 @@ namespace BingsuCodeEditor
             LeftCtrlDown = false;
             TBShiftValue.Visibility = Visibility.Collapsed;
             LeftShiftDown = false;
+            TBAltValue.Visibility = Visibility.Collapsed;   
+            LeftAltDown = false;
         }
 
         public void CultureSetting()
@@ -2293,6 +2302,12 @@ namespace BingsuCodeEditor
             }
         }
 
+
+
+
+
         #endregion
+
+ 
     }
 }

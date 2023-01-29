@@ -390,6 +390,7 @@ namespace BingsuCodeEditor.EpScript
             {
                 string objname = objectname[index];
 
+                if (objname == null) objname = "";
                 //lua함수 처리기
 
                 if (objname.Length != 0 && objname[0] == '@')

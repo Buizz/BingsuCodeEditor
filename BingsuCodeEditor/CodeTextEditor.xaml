@@ -9,7 +9,8 @@
              Background="{DynamicResource MaterialDesignPaper}"
              TextElement.Foreground="{DynamicResource MaterialDesignBody}"
              Unloaded="UserControl_Unloaded"
-             mc:Ignorable="d" 
+             LostFocus="UserControl_LostFocus"
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <DockPanel>
@@ -74,7 +75,7 @@
                                        TextChanged="aTextEditor_TextChanged" PreviewMouseWheel="aTextEditor_PreviewMouseWheel" FontFamily="D2Coding"
                                        Background="{DynamicResource MaterialDesignPaper}" TextElement.Foreground="{DynamicResource MaterialDesignBody}"
                                        ShowLineNumbers="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                                   
+                                       
                                        MouseHover="aTextEditor_MouseHover"
                                        MouseHoverStopped="aTextEditor_MouseHoverStopped"
                                        >
