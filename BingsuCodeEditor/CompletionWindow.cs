@@ -127,8 +127,17 @@ namespace BingsuCodeEditor
 
         void completionList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            string input = this.TextArea.Document.GetText(StartOffset, this.TextArea.Caret.Offset - StartOffset);
+            int t;
+            if (int.TryParse(input, out t))
+            {
+                Close();
+                return;
+            }
+
             tooltipOpen();
             ListVisbleChange();
+            
         }
 
         void tooltipOpen()

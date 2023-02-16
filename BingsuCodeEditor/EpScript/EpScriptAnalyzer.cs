@@ -449,6 +449,7 @@ namespace BingsuCodeEditor.EpScript
                     var = objcon.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
                     obj = objcon.objs.Find(x => (x.mainname == objname));
                     func = objcon.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
+                    importedNameSpace = ccon.importedNameSpaces.Find(x => (x.shortname == objname));
                 }
                 else
                 {

@@ -237,7 +237,7 @@ namespace BingsuCodeEditor.EpScript
                                 foreach (var item in function.args)
                                 {
                                     Block bl = new Block("var", item.argname, item.argtype, IsArg: true);
-                                    bl.scope = scope + "." + (currentscope + 1);
+                                    bl.scope = scope + "." + (currentscope + 1).ToString().PadLeft(4, '0');
                                     cc.vars.Add(bl);
                                 }
 
@@ -332,7 +332,8 @@ namespace BingsuCodeEditor.EpScript
                             case "{":
                                 //새 스코프를 정의
                                 currentscope++;
-                                scope += "." + currentscope;
+
+                                scope += "." + (currentscope).ToString().PadLeft(4, '0');
 
 
                                 if (forstart)
@@ -911,6 +912,12 @@ namespace BingsuCodeEditor.EpScript
                     goto EndLabel;
                 }
                 tk = GetCurrentToken();
+
+                if (tk == null)
+                {
+                    ThrowException("함수의 선언이 잘못되었습니다.", tk);
+                    goto EndLabel;
+                }
                 tk.scope = scope;
                 while (true)
                 {
