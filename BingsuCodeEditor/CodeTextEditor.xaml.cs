@@ -431,6 +431,17 @@ namespace BingsuCodeEditor
             optionControl.Visibility = Visibility.Visible;
         }
 
+        public void TabSizeTextBoxRefresh()
+        {
+            if (aTextEditor.Options.ConvertTabsToSpaces)
+            {
+                tabSize.Content = "SpaceSize : " + aTextEditor.Options.IndentationSize;
+            }
+            else
+            {
+                tabSize.Content = "TabSize : " + aTextEditor.Options.IndentationSize;
+            }
+        }
         private void btnTabSize_Click(object sender, RoutedEventArgs e)
         {
             int intendsize = aTextEditor.Options.IndentationSize;
