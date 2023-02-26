@@ -16,7 +16,6 @@ namespace BingsuCodeEditor.AutoCompleteToken
 
         public CursorLocation cursorLocation;
 
-
         public class InnerFuncInfor
         {
             public bool IsInnerFuncinfor = false;
@@ -77,7 +76,6 @@ namespace BingsuCodeEditor.AutoCompleteToken
         {
             Block var;
 
-
             Container m = this;
             if (scope.IndexOf("st.O") != -1)
             {
@@ -124,7 +122,6 @@ namespace BingsuCodeEditor.AutoCompleteToken
             {
                 if (!IsExtra)
                 {
-
                     if(codeAnalyzer.StaticImportManager != null )
                     {
                         Container importcontainer = codeAnalyzer.GetDefaultContainer;

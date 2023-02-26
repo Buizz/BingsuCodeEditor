@@ -36,6 +36,8 @@ namespace BingsuCodeEditor.AutoCompleteToken
         public bool IsInCursor = false;
         public bool IsPredefine = false;
 
+        public bool IsStatic = false;
+
         //함수 이름
         public string special;
         public string funcname;

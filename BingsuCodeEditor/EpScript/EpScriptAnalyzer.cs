@@ -604,6 +604,10 @@ namespace BingsuCodeEditor.EpScript
                             data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "cast")));
                             data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "alloc")));
                             data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "free")));
+                            foreach (var t in obj.funcs.FindAll(x => (x.IsStatic && obj.GetInitObjectNameSpacee().Contains(x.scope)))){
+
+                                data.Add(new CodeCompletionData(t.preCompletion));
+                            }
                         }
                         else if (findType == FindType.Obj || findType == FindType.All)
                         {
@@ -620,7 +624,6 @@ namespace BingsuCodeEditor.EpScript
                     }
                     else
                     {
-
                         if (index + 1 < objectname.Count)
                         {
                             string last = objectname[index + 1];
@@ -652,6 +655,11 @@ namespace BingsuCodeEditor.EpScript
                                     objcon = obj;
                                     index += 2;
                                 }
+                            }
+                            else
+                            {
+                                //스태틱 함수 일 수도 있음
+                                return obj.funcs.Find(x => (x.funcname == last && obj.GetInitObjectNameSpacee().Contains(x.scope)));
                             }
                         }
                         else

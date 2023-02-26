@@ -237,7 +237,7 @@ namespace BingsuCodeEditor
                 //codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor
 
                 bool isFuncInternall = false;
-                string functooltip = "";
+                string functooltiptext = "";
                 int funclabelstartoffset = 0;
                 if (codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
                 {
@@ -246,7 +246,7 @@ namespace BingsuCodeEditor
                     funclabelstartoffset = codeAnalyzer.maincontainer.innerFuncInfor.funcename.First().StartOffset;
 
 
-                    functooltip = codeAnalyzer.GetFuncToolTip().Trim();
+                    functooltiptext = codeAnalyzer.GetFuncToolTip().Trim();
 
                     //string currentfuncname = "";
                     //foreach (var item in codeAnalyzer.maincontainer.innerFuncInfor.funcename)
@@ -292,13 +292,23 @@ namespace BingsuCodeEditor
                     {
                         IsKeyDown = false;
 
+
                         if (isFuncInternall)
                         {
-                            functooltipTextBox.Text = functooltip;
+                            functooltipTextBox.Text = functooltiptext;
 
 
 
-                            OpenTooltipBox(funclabelstartoffset);
+                            if (IsKeyUDDown)
+                            {
+                                CloseTooltipBox();
+                                OpenTooltipBox(funclabelstartoffset);
+                                IsKeyUDDown = false;
+                            }
+                            else
+                            {
+                                OpenTooltipBox(funclabelstartoffset);
+                            }
                         }
                     }
 
@@ -1169,7 +1179,10 @@ namespace BingsuCodeEditor
 
         private void OpenTooltipBox(int startoffset)
         {
-            if (functooltip.IsLoaded) return;
+            if (!IsKeyUDDown)
+            {
+                if (functooltip.IsLoaded) return;
+            }
 
             if (functooltip.IsOpen)
             {
@@ -1621,6 +1634,7 @@ namespace BingsuCodeEditor
 
 
         private bool IsKeyDown = false;
+        private bool IsKeyUDDown = false;
         private void aTextEditor_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if(e.SystemKey != Key.LeftCtrl && e.Key != Key.LeftCtrl)
@@ -1686,6 +1700,14 @@ namespace BingsuCodeEditor
                     break;
             }
 
+
+            if (functooltip.IsOpen)
+            {
+                if (e.Key == Key.Up || e.Key == Key.Down)
+                {
+                    IsKeyUDDown = true;
+                }
+            }
 
             if (markSnippetWord.IsSnippetStart)
             {

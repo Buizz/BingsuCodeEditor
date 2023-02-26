@@ -10,8 +10,25 @@ namespace BingsuCodeEditor.EpScript
 {
     public class EpScriptTokenAnalyzer : TokenAnalyzer
     {
+
+        private List<string> specialKeyword = new List<string>();
+
         public EpScriptTokenAnalyzer(CodeAnalyzer codeAnalyzer) : base(codeAnalyzer)
         {
+            string[] sp = {
+                "Enemy", "Ally", "AlliedVictory",
+"AtLeast", "AtMost", "Exactly",
+"All",
+"SetTo", "Add", "Subtract",
+"Move", "Patrol", "Attack",
+"P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10", "P11", "P12", "CurrentPlayer", "Foes", "Allies", "NeutralPlayers", "AllPlayers", "Force1", "Force2", "Force3", "Force4", "NonAlliedVictoryPlayers",
+"UnitProperty",
+"Enable", "Disable", "Toggle",
+"Ore", "Gas", "OreAndGas",
+"Total", "Units", "Buildings", "UnitsAndBuildings", "Kills", "Razings", "KillsAndRazings", "Custom",
+"Set", "Clear", "Toggle", "Random",
+"Set", "Cleared"};
+            specialKeyword.AddRange(sp);
         }
 
         public override Container ConatainerAnalyzer(int startindex = int.MaxValue)
@@ -548,11 +565,14 @@ namespace BingsuCodeEditor.EpScript
                 ctk.argindex = argindex;
             }
 
-            if(fname != "this" && !container.CheckIdentifier(scope, fname))
+            if(specialKeyword.IndexOf(fname) == -1)
             {
-                if(!(fname.Length != 0 && fname[0] == '@'))
+                if (fname != "this" && !container.CheckIdentifier(scope, fname))
                 {
-                    ThrowException(fname + "는 선언되지 않았습니다.", ctk);
+                    if (!(fname.Length != 0 && fname[0] == '@'))
+                    {
+                        ThrowException(fname + "는 선언되지 않았습니다.", ctk);
+                    }
                 }
             }
 
@@ -658,7 +678,11 @@ namespace BingsuCodeEditor.EpScript
 
             if(commenttoken != null)
             {
-                if(commenttoken.Type == TOKEN_TYPE.Comment)
+
+                if (commenttoken.Type == TOKEN_TYPE.KeyWord && commenttoken.Value == "static")
+                {
+                    function.IsStatic = true;
+                }else if (commenttoken.Type == TOKEN_TYPE.Comment)
                 {
                     string[] lines = commenttoken.Value.Replace("\r", "").Split('\n');
 
