@@ -45,7 +45,8 @@
         <Word>case</Word>
         <Word>break</Word>
 
-	    <Word>this</Word>
+		<Word>this</Word>
+		<Word>contiune</Word>
     </Keywords>
 
 

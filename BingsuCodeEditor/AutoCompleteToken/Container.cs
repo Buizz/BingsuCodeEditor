@@ -73,7 +73,7 @@ namespace BingsuCodeEditor.AutoCompleteToken
         /// </summary>
         /// <param name="scope"></param>
         /// <returns></returns>
-        public bool CheckIdentifier(string scope, string funcname, bool IsExtra = false)
+        public bool CheckIdentifier(string scope, string funcname, bool IsExtra = false, bool funcdefine = false)
         {
             Block var;
 
@@ -105,9 +105,20 @@ namespace BingsuCodeEditor.AutoCompleteToken
             }
 
             Container obj = m.objs.Find(x => (x.mainname == funcname));
-            Function func = m.funcs.Find(x => (x.funcname == funcname && scope.Contains(x.scope)));
+            Function func;
+            if (funcdefine == true)
+            {
+                func = m.funcs.Find(x => (x.funcname == funcname && scope.Contains(x.scope) && !x.IsPredefine));
+            }
+            else
+            {
+                func = m.funcs.Find(x => (x.funcname == funcname && scope.Contains(x.scope)));
+            }
+
 
             ImportedNameSpace importedNameSpace = importedNameSpaces.Find(x => (x.shortname == funcname));
+
+     
 
             if(var == null && obj == null && func == null && importedNameSpace == null)
             {

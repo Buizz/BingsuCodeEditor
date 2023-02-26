@@ -609,6 +609,11 @@ namespace BingsuCodeEditor.EpScript
                         {
                             return obj;
                         }
+                        else if (findType == FindType.Func)
+                        {
+                            //함수 일 경우 생성자 호출
+                            return obj.funcs.Find(x => (x.funcname == "constructor" && obj.GetInitObjectNameSpacee().Contains(x.scope)));
+                        }
 
 
                         break;
@@ -724,7 +729,7 @@ namespace BingsuCodeEditor.EpScript
                     {
                         Container varobject = (Container)_obj;
                         ccon = varobject;
-                        lscope = "st";//스코프 초기화
+                        lscope = "st.O" + varobject.mainname;//스코프 초기화
                         index++;
                         if (index == objectname.Count)
                         {

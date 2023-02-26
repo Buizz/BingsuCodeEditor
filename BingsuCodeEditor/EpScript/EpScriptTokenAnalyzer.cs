@@ -212,7 +212,7 @@ namespace BingsuCodeEditor.EpScript
                                 //    ThrowException("함수 " + function.funcname + "는 중복 선언되었습니다.", tk, 1);
                                 //}
 
-                                if (cc.CheckIdentifier(scope, function.funcname))
+                                if (cc.CheckIdentifier(scope, function.funcname, funcdefine:true))
                                 {
                                     ThrowException("함수 " + function.funcname + "는 이미 선언되어 있습니다.", tk, 1);
                                 }
@@ -240,7 +240,6 @@ namespace BingsuCodeEditor.EpScript
                                     bl.scope = scope + "." + (currentscope + 1).ToString().PadLeft(4, '0');
                                     cc.vars.Add(bl);
                                 }
-
                                 //function fname(args){}
                                 ///******/function fname(args){}
                                 /***
@@ -593,7 +592,7 @@ namespace BingsuCodeEditor.EpScript
                     switch (tk.Type)
                     {
                         case TOKEN_TYPE.Identifier:
-                            IdentifierFAnalyzer(container, scope, ctk, startindex, cargindex, main:main);
+                            IdentifierFAnalyzer(container, scope, tk, startindex, cargindex, main:main);
                             break;
                         case TOKEN_TYPE.Symbol:
                             //, ( ) 등이 있을 수 있다.
@@ -659,7 +658,66 @@ namespace BingsuCodeEditor.EpScript
 
             if(commenttoken != null)
             {
-                function.comment = commenttoken.Value;
+                if(commenttoken.Type == TOKEN_TYPE.Comment)
+                {
+                    string[] lines = commenttoken.Value.Replace("\r", "").Split('\n');
+
+                    string tabstr = "";
+                    string result = "";
+                    int index = 0;
+                    foreach (var item in lines)
+                    {
+                        string ritem = "";
+                        ritem = item;
+                        if (item.IndexOf("/***") != -1 && index == 0)
+                        {
+                            //시작 부분 찾았음
+                            index = 1;
+                        }
+
+                        int s = item.IndexOf(" * ");
+                        if (s >= 0 && index > 0)
+                        {
+                            if (s != 0)
+                            {
+                                //다음 부분
+                                if (tabstr == "")
+                                {
+                                    tabstr = item.Substring(0, s);
+                                }
+                                if (tabstr == item.Substring(0, tabstr.Length))
+                                {
+                                    //텝 부분이 똑같아야 됨
+                                    ritem = item.Substring(tabstr.Length);
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+
+                            index = +1;
+                        }
+
+                        if (item.IndexOf("***/") != -1 && index > 0)
+                        {
+                            //마지막 부분
+                            if (tabstr == item.Substring(0, tabstr.Length))
+                            {
+                                //텝 부분이 똑같아야 됨
+                                ritem = item.Substring(tabstr.Length);
+                            }
+                            index = +1;
+                        }
+
+                        result += ritem + "\n";
+                    }
+
+
+
+                    function.comment = result;
+                    function.ReadComment("ko-KR");
+                }
             }
 
             TOKEN tk = GetCurrentToken();

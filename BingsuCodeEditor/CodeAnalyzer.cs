@@ -955,7 +955,7 @@ namespace BingsuCodeEditor
 
 
            
-            Function func = (Function)GetObjectFromName(tklist, maincontainer, FindType.Func);
+            Function func = (Function)GetObjectFromName(tklist, maincontainer, FindType.Func, scope: maincontainer.currentScope);
             
             
             if (func == null)
