@@ -179,7 +179,7 @@ namespace BingsuCodeEditor
         /// a.b.c.d등 .과 키로 이루어진 리스트입니다.
         /// </summary>
         /// <returns></returns>
-        public List<TOKEN> GetTokenList(bool IsReverse = false)
+        public List<TOKEN> GetTokenList(bool IsReverse = false, bool Iscontaindot = false)
         {
             List<TOKEN> rlist = new List<TOKEN>();
             //토큰 네임스페이스를 가져옵니다.
@@ -206,10 +206,21 @@ namespace BingsuCodeEditor
                     rlist.Add(tk);
                     return rlist;
                 }
-                if (!CheckCurrentToken(TOKEN_TYPE.Symbol, "."))
+                if (Iscontaindot)
                 {
-                    break;
+                    if (!CheckCurrentToken(TOKEN_TYPE.Symbol, ".", addedlist:rlist))
+                    {
+                        break;
+                    }
                 }
+                else
+                {
+                    if (!CheckCurrentToken(TOKEN_TYPE.Symbol, "."))
+                    {
+                        break;
+                    }
+                }
+            
             }
      
             return rlist;
@@ -329,7 +340,7 @@ namespace BingsuCodeEditor
         /// 만약 옳은 토큰일 경우 다음 인덱스로 진행합니다.
         /// </summary>
         /// <returns></returns>
-        public bool CheckCurrentToken(TOKEN_TYPE ttype, string value = null, bool IsReverse = false, bool IsDirect = false)
+        public bool CheckCurrentToken(TOKEN_TYPE ttype, string value = null, bool IsReverse = false, bool IsDirect = false, List<TOKEN> addedlist = null)
         {
             //if (IsError)
             //{
@@ -374,6 +385,10 @@ namespace BingsuCodeEditor
             else
             {
                 index++;
+            }
+            if(addedlist != null)
+            {
+                addedlist.Add(ntk);
             }
             return true;
         }

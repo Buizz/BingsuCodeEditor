@@ -582,11 +582,11 @@ namespace BingsuCodeEditor.EpScript
             {
                 //.이므로 이어지는 토큰
                 tlist.AddRange(GetTokenList());
-                //tk = GetCurrentToken();
             }
 
             CheckFunc:
             //선언된 함수의 시작
+
             if (CheckCurrentToken(TOKEN_TYPE.Symbol, "("))
             {
                 int innercount = 1;
@@ -608,11 +608,11 @@ namespace BingsuCodeEditor.EpScript
                     tk.scope = scope;
                     tk.argindex = cargindex;
                     tk.funcname = tlist;
-
+                    //tlist.Add(tk);
                     switch (tk.Type)
                     {
                         case TOKEN_TYPE.Identifier:
-                            IdentifierFAnalyzer(container, scope, tk, startindex, cargindex, main:main);
+                            tlist.AddRange(IdentifierFAnalyzer(container, scope, tk, startindex, cargindex, main:main));
                             break;
                         case TOKEN_TYPE.Symbol:
                             //, ( ) 등이 있을 수 있다.
@@ -958,9 +958,9 @@ namespace BingsuCodeEditor.EpScript
                         ThrowException("반환 타입이 와야 합니다.", tk);
                         goto EndLabel;
                     }
-                    tk = GetCurrentToken();
+                    List<TOKEN> tlist = GetTokenList();
 
-                    function.returntype = tk.Value;
+                    function.returntype = tlist;
 
                     if (IsEndOfList())
                     {

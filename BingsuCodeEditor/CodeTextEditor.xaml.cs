@@ -532,10 +532,42 @@ namespace BingsuCodeEditor
             }
         }
 
+
+        public void SelectCurrentText()
+        {
+            CodeAnalyzer.TOKEN tk = codeAnalyzer.SearchToken(aTextEditor.CaretOffset, true, true);
+
+            if(tk != null)
+            {
+                if (tk.Type == CodeAnalyzer.TOKEN_TYPE.String)
+                {
+                    aTextEditor.SelectionStart = tk.StartOffset + 1;
+                    aTextEditor.SelectionLength = tk.EndOffset - tk.StartOffset - 2;
+                }
+                else
+                {
+                    aTextEditor.SelectionStart = tk.StartOffset;
+                    aTextEditor.SelectionLength = tk.EndOffset - tk.StartOffset;
+                }
+            }
+        } 
+
+
         public enum CodeType
         {
             epScript,
             Lua
+        }
+
+
+        public List<int> SaveFolding()
+        {
+            return codeAnalyzer.codeFoldingManager.SaveFodling();
+        }
+
+        public void LoadFolding(List<int> foldedList)
+        {
+            codeAnalyzer.codeFoldingManager.LoadFodling(foldedList);
         }
 
         public string SelectedText
@@ -815,7 +847,13 @@ namespace BingsuCodeEditor
             aTextEditor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
             aTextEditor.TextArea.TextEntered += TextArea_TextEntered;
             aTextEditor.TextArea.TextEntering += TextArea_TextEntering;
+
+            AddCustomMenuBtn("개요 확장/축소", "Ctrl+G", Key.LeftCtrl, Key.G, new RoutedEventHandler(new Action<object, RoutedEventArgs>((e, x) =>
+            codeAnalyzer.codeFoldingManager.FoldingFlip(aTextEditor.SelectionStart, aTextEditor.SelectionLength)
+            )));
+            contextMenu.Items.Add(new Separator());
         }
+
 
         private void Dispatcher_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {

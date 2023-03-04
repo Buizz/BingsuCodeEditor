@@ -91,7 +91,7 @@ namespace BingsuCodeEditor
         public TokenAnalyzer tokenAnalyzer;
         public TokenAnalyzer secondtokenAnalyzer;
         protected TextEditor textEditor;
-        protected CodeFoldingManager codeFoldingManager;
+        public CodeFoldingManager codeFoldingManager;
         public enum TOKEN_TYPE
         {
             String,

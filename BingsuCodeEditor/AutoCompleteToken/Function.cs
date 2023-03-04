@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Documents;
+using static BingsuCodeEditor.CodeAnalyzer;
 
 namespace BingsuCodeEditor.AutoCompleteToken
 {
@@ -46,7 +48,7 @@ namespace BingsuCodeEditor.AutoCompleteToken
         public string comment;
 
 
-        public string returntype;
+        public List<TOKEN> returntype;
 
         public List<Arg> args = new List<Arg>();
         //Arg

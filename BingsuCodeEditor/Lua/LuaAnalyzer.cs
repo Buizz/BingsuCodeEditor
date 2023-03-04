@@ -610,7 +610,17 @@ namespace BingsuCodeEditor.Lua
 
             foreach (var item in tokenlist)
             {
-                strs.Add(item.Value);
+                string rval;
+                if(strs.Count == 0 && item.Value.IndexOf("@") == 0)
+                {
+                    rval = item.Value.Replace("@", "");
+                }
+                else
+                {
+                    rval = item.Value;
+                }
+
+                strs.Add(rval);
             }
 
             return GetObjectFromName(strs, startcontainer, findType, data, scope);
@@ -751,7 +761,14 @@ namespace BingsuCodeEditor.Lua
                     else if (findType == FindType.AutoComplete)
                     {
                         //자동완성이면 해당 함수의 반환타입을 주사
-                        string rtype = func.returntype;
+                        string rtype = "";
+
+                        foreach (var item in func.returntype)
+                        {
+                            if (rtype != "") rtype += ",";
+                            rtype += item.Value;
+                        }
+
 
                         if (rtype == null) return null;
 
@@ -915,7 +932,11 @@ namespace BingsuCodeEditor.Lua
                             {
                                 Function funcobject = (Function)_obj;
                                 List<string> list = new List<string>();
-                                list.Add(funcobject.returntype);
+
+                                foreach (var item in funcobject.returntype)
+                                {
+                                    list.Add(item.Value);
+                                }
                                 //리턴값을 읽기
 
                                 _obj = GetObjectFromName(list, ccon, FindType.Obj);

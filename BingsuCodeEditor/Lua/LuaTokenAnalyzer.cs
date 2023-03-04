@@ -60,7 +60,7 @@ namespace BingsuCodeEditor.Lua
                                 string lastscope = scope;
 
                                 currentscope++;
-                                scope += "." + currentscope;
+                                scope += "." + (currentscope).ToString().PadLeft(4, '0');
 
 
                                 Function function = FunctionAnalyzer(startindex, scope);
@@ -120,7 +120,7 @@ namespace BingsuCodeEditor.Lua
                             case "for":
                                 //새 스코프를 정의
                                 currentscope++;
-                                scope += "." + currentscope;
+                                scope += "." + (currentscope).ToString().PadLeft(4, '0');
 
                                 break;
                             case "end":

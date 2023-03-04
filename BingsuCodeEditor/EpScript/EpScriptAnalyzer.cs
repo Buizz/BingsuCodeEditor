@@ -396,8 +396,11 @@ namespace BingsuCodeEditor.EpScript
                 if (objname.Length != 0 && objname[0] == '@')
                 {
                     //lua함수인 경우
-                    string realfunname = objname.Replace("@", "");
-                    return luaAnalyzer.GetDefaultContainer.funcs.Find(x => (x.funcname == realfunname && lscope.Contains(x.scope)));
+                    if(findType == FindType.Func)
+                    {
+                        string realfunname = objname.Replace("@", "");
+                        return luaAnalyzer.GetDefaultContainer.funcs.Find(x => (x.funcname == realfunname && lscope.Contains(x.scope)));
+                    }
                 }
 
 
@@ -548,9 +551,15 @@ namespace BingsuCodeEditor.EpScript
                     else if (findType == FindType.AutoComplete)
                     {
                         //자동완성이면 해당 함수의 반환타입을 주사
-                        string rtype = func.returntype;
+                        string rtype = "";
 
-                        if(rtype == null) return null;
+                        foreach (var item in func.returntype)
+                        {
+                            if (rtype != "") rtype += ",";
+                            rtype += item.Value;
+                        }
+
+                        if (rtype == null) return null;
 
                         List<string> tname = new List<string>();
                         tname.AddRange(rtype.Split('.'));
@@ -724,7 +733,11 @@ namespace BingsuCodeEditor.EpScript
                             {
                                 Function funcobject = (Function)_obj;
                                 List<string> list = new List<string>();
-                                list.Add(funcobject.returntype);
+
+                                foreach (var item in funcobject.returntype)
+                                {
+                                    list.Add(item.Value);
+                                }
                                 //리턴값을 읽기
 
                                 _obj = GetObjectFromName(list, ccon, FindType.Obj);
@@ -823,6 +836,7 @@ namespace BingsuCodeEditor.EpScript
                 {
                     List<TOKEN> tlist = luaAnalyzer.maincontainer.innerFuncInfor.funcename;
                     tlist.First().Value = "@" + tlist.First().Value;
+                    tlist.First().StartOffset += _t.StartOffset;
                     maincontainer.innerFuncInfor.IsInnerFuncinfor= luaAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor;
                     maincontainer.innerFuncInfor.funcename = tlist;
                     maincontainer.innerFuncInfor.argindex = luaAnalyzer.maincontainer.innerFuncInfor.argindex;
@@ -1250,7 +1264,7 @@ namespace BingsuCodeEditor.EpScript
                             {
                                 if (v != "")
                                 {
-                                    v += ".";
+                                    //v += ".";
                                 }
 
                                 v += item.Value;
