@@ -201,14 +201,15 @@ namespace BingsuCodeEditor
             CodeCompletionData item = (CodeCompletionData)completionList.SelectedItem;
             if (item != null)
             {
-                if(item.Text.IndexOf("/") != -1)
-                {
-                    item.Complete(this.TextArea, new AnchorSegment(this.TextArea.Document, this.StartOffset - 1, this.EndOffset - this.StartOffset + 1), e);
-                }
-                else
-                {
-                    item.Complete(this.TextArea, new AnchorSegment(this.TextArea.Document, this.StartOffset, this.EndOffset - this.StartOffset), e);
-                }
+                item.Complete(this.TextArea, new AnchorSegment(this.TextArea.Document, this.StartOffset, this.EndOffset - this.StartOffset), e);
+                //if (item.Text.IndexOf("/") != -1)
+                //{
+                //    item.Complete(this.TextArea, new AnchorSegment(this.TextArea.Document, this.StartOffset - 1, this.EndOffset - this.StartOffset + 1), e);
+                //}
+                //else
+                //{
+                //    item.Complete(this.TextArea, new AnchorSegment(this.TextArea.Document, this.StartOffset, this.EndOffset - this.StartOffset), e);
+                //}
             }
         }
 

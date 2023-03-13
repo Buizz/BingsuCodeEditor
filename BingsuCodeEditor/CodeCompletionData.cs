@@ -67,7 +67,20 @@ namespace BingsuCodeEditor
         // Use this property if you want to show a fancy UIElement in the list.
         public object Content
         {
-            get { if (preCompletionData != null) return preText + preCompletionData.listheader;
+            get {
+                if (preCompletionData != null) { 
+                    if(preCompletionData.listheader.Length > 2 && preCompletionData.listheader.First() == '"' && preCompletionData.listheader.First() == preCompletionData.listheader.Last())
+                    {
+                        return preText + preCompletionData.listheader.Substring(1, preCompletionData.listheader.Length - 2);
+                    }
+                    else
+                    {
+                        return preText + preCompletionData.listheader;
+                    }
+
+
+
+                }
                 return "";
             }
         }

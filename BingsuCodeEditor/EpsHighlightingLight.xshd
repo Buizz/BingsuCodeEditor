@@ -46,7 +46,7 @@
         <Word>break</Word>
 
 		<Word>this</Word>
-		<Word>contiune</Word>
+		<Word>continue</Word>
     </Keywords>
 
 
@@ -135,7 +135,10 @@
         <Word>Clear</Word>
         <Word>Cleared</Word>
         <Word>Toggle</Word>
-        <Word>Random</Word>
+		<Word>Random</Word>
+		
+		<Word>//region</Word>
+		<Word>//endregion</Word>
     </Keywords>
 
     <!-- 붉은 계열 -->

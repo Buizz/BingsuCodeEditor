@@ -1180,6 +1180,7 @@ namespace BingsuCodeEditor
 
             IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
 
+
             codeAnalyzer.GetCompletionList(data, IsNameSpaceOpen);
 
             //data.Add(new CodeCompletionData("function", CompletionWordType.KeyWord));

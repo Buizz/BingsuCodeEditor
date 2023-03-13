@@ -202,12 +202,15 @@ namespace BingsuCodeEditor.EpScript
                                 {
                                     //특별 지정자
                                     tk = GetCurrentToken();
-                                    nspace = tk.Value;
-                                    if (!CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
+                                    if (!CheckCurrentToken(TOKEN_TYPE.Symbol, ";") || tk == null)
                                     {
                                         ThrowException("import문이 정상적으로 종료되지 않았습니다.", tk);
                                     }
-                                    cc.importedNameSpaces.Add(new ImportedNameSpace(filename, nspace));
+                                    else
+                                    {
+                                        nspace = tk.Value;
+                                        cc.importedNameSpaces.Add(new ImportedNameSpace(filename, nspace));
+                                    }
                                 }
                                 else
                                 {
@@ -612,7 +615,8 @@ namespace BingsuCodeEditor.EpScript
                     switch (tk.Type)
                     {
                         case TOKEN_TYPE.Identifier:
-                            tlist.AddRange(IdentifierFAnalyzer(container, scope, tk, startindex, cargindex, main:main));
+                            //tlist.AddRange(IdentifierFAnalyzer(container, scope, tk, startindex, cargindex, main: main));
+                            IdentifierFAnalyzer(container, scope, tk, startindex, cargindex, main: main);
                             break;
                         case TOKEN_TYPE.Symbol:
                             //, ( ) 등이 있을 수 있다.

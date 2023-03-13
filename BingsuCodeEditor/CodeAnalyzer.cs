@@ -212,17 +212,17 @@ namespace BingsuCodeEditor
         protected List<PreCompletionData> AnalyzercompletionDatas = new List<PreCompletionData>();
 
         protected List<PreCompletionData> completionDatas = new List<PreCompletionData>();
-        public void ResetCompletionData(CompletionWordType completionWordType)
-        {
-            completionDatas.RemoveAll((t) =>
-            {
-                return t.completionWordType == completionWordType;
-            });
-        }
-        public void AddCompletionData(PreCompletionData preCompletionData)
-        {
-            completionDatas.Add(preCompletionData);
-        }
+        //public void ResetCompletionData(CompletionWordType completionWordType)
+        //{
+        //    completionDatas.RemoveAll((t) =>
+        //    {
+        //        return t.completionWordType == completionWordType;
+        //    });
+        //}
+        //public void AddCompletionData(PreCompletionData preCompletionData)
+        //{
+        //    completionDatas.Add(preCompletionData);
+        //}
 
 
 
@@ -1024,7 +1024,7 @@ namespace BingsuCodeEditor
         {
             public ObjectItem(CompletionWordType completionType, string name, Block block = null, Function function = null) : base(completionType, name)
             {
-                Priority = 1;
+                Priority = 0.5;
                 this.block = block;
                 this.function = function;
             }
@@ -1070,7 +1070,7 @@ namespace BingsuCodeEditor
         {
             public ImportFileItem(CompletionWordType completionType, string name) : base(completionType, name)
             {
-                Priority = 70;
+                Priority = 0.1;
             }
 
             //키워드 이름
@@ -1102,7 +1102,7 @@ namespace BingsuCodeEditor
         {
             public KewWordItem(CompletionWordType completionType, string name, string desc = "") : base(completionType, name, desc: desc)
             {
-                Priority = 95;
+                Priority = 0.2;
             }
 
             //키워드 이름
@@ -1141,7 +1141,7 @@ namespace BingsuCodeEditor
         {
             public CompletionItem(CompletionWordType completionType, string name, string outputstring) : base(completionType, name, outputstring)
             {
-                Priority = 1000;
+                Priority = 10000;
 
             }
 

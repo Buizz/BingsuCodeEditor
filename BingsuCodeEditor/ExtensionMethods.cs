@@ -92,5 +92,16 @@ namespace BingsuCodeEditor
 				}
 			}
 		}
-	}
+
+        /// <summary>
+        /// Forces the value to stay between minimum and maximum.
+        /// </summary>
+        /// <returns>minimum, if value is less than minimum.
+        /// Maximum, if value is greater than maximum.
+        /// Otherwise, value.</returns>
+        public static int CoerceValue(this int value, int minimum, int maximum)
+        {
+            return Math.Max(Math.Min(value, maximum), minimum);
+        }
+    }
 }

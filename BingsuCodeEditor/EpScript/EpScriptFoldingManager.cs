@@ -17,6 +17,7 @@ namespace BingsuCodeEditor.EpScript
         public override void FodlingExec(List<CodeAnalyzer.TOKEN> Tokens, int len, List<NewFolding> Foldings)
         {
             Stack<int> startOffset = new Stack<int>();
+            Stack<int> regionOffset = new Stack<int>();
             for (int i = 0; i < Tokens.Count; i++)
             {
                 CodeAnalyzer.TOKEN tk = Tokens[i];
@@ -30,6 +31,20 @@ namespace BingsuCodeEditor.EpScript
                     {
                         if (startOffset.Count == 0) return;
                         int st = startOffset.Pop();
+                        int et = tk.EndOffset;
+
+                        Foldings.Add(new NewFolding(st, et));
+                    }
+                }else if(tk.Type == CodeAnalyzer.TOKEN_TYPE.Comment)
+                {
+                    if (tk.Value == "/*region*/")
+                    {
+                        regionOffset.Push(tk.StartOffset);
+                    }
+                    else if (tk.Value == "/*endregion*/")
+                    {
+                        if (regionOffset.Count == 0) return;
+                        int st = regionOffset.Pop();
                         int et = tk.EndOffset;
 
                         Foldings.Add(new NewFolding(st, et));

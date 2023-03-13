@@ -553,13 +553,17 @@ namespace BingsuCodeEditor.EpScript
                         //자동완성이면 해당 함수의 반환타입을 주사
                         string rtype = "";
 
-                        foreach (var item in func.returntype)
+                        if(func.returntype != null)
                         {
-                            if (rtype != "") rtype += ",";
-                            rtype += item.Value;
+                            foreach (var item in func.returntype)
+                            {
+                                if (rtype != "") rtype += ",";
+                                rtype += item.Value;
+                            }
                         }
+           
 
-                        if (rtype == null) return null;
+                        if (rtype == "") return null;
 
                         List<string> tname = new List<string>();
                         tname.AddRange(rtype.Split('.'));
@@ -734,10 +738,14 @@ namespace BingsuCodeEditor.EpScript
                                 Function funcobject = (Function)_obj;
                                 List<string> list = new List<string>();
 
-                                foreach (var item in funcobject.returntype)
+                                if (funcobject.returntype != null)
                                 {
-                                    list.Add(item.Value);
+                                    foreach (var item in funcobject.returntype)
+                                    {
+                                        list.Add(item.Value);
+                                    }
                                 }
+                             
                                 //리턴값을 읽기
 
                                 _obj = GetObjectFromName(list, ccon, FindType.Obj);
