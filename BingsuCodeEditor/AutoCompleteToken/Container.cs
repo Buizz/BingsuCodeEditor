@@ -1,6 +1,7 @@
 ﻿using ICSharpCode.AvalonEdit.CodeCompletion;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -65,8 +66,10 @@ namespace BingsuCodeEditor.AutoCompleteToken
             vars = new List<Block>();
             objs = new List<Container>();
             funcs = new List<Function>();
+            identifiercache = new Dictionary<string, List<string>>();
         }
 
+        private Dictionary<string, List<string>> identifiercache;
         /// <summary>
         /// 식별자가 정의되어 있으면 true를 반환합니다.
         /// </summary>
@@ -74,6 +77,15 @@ namespace BingsuCodeEditor.AutoCompleteToken
         /// <returns></returns>
         public bool CheckIdentifier(string scope, string funcname, bool IsExtra = false, bool funcdefine = false)
         {
+            if (identifiercache.ContainsKey(scope))
+            {
+                if(identifiercache[scope].IndexOf(funcname) != -1)
+                {
+                    return true;
+                }
+            }
+
+
             Block var;
 
             Container m = this;
@@ -128,9 +140,21 @@ namespace BingsuCodeEditor.AutoCompleteToken
                         if(importcontainer != null) return importcontainer.CheckIdentifier("st", funcname, true);
                     }
                 }
-
                 return false;
             }
+
+            List<string> names;
+            if (!identifiercache.ContainsKey(scope))
+            {
+                names = new List<string>();
+                identifiercache.Add(scope, names);
+            }
+            else
+            {
+                names = identifiercache[scope];
+            }
+
+            names.Add(funcname);
 
             return true;
         }

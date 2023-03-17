@@ -9,6 +9,7 @@
              Background="{DynamicResource MaterialDesignPaper}"
              TextElement.Foreground="{DynamicResource MaterialDesignBody}"
              Unloaded="UserControl_Unloaded"
+             Loaded="UserControl_Loaded"
              LostFocus="UserControl_LostFocus"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">

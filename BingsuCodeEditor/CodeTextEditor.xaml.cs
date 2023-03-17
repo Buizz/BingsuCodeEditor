@@ -52,6 +52,7 @@ namespace BingsuCodeEditor
         private BackgroundWorker bg;
         private Thread thread;
 
+        private bool IsDebug = false;
 
         private DateTime markSameWordTimer;
 
@@ -173,11 +174,15 @@ namespace BingsuCodeEditor
             Deactivated();
         }
 
-
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            //codeAnalyzer = null;
+            dispatcherTimer.Start();
+        }
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             dispatcherTimer.Stop();
-            codeAnalyzer = null;
+            //codeAnalyzer = null;
         }
 
         DateTime bgStartTime;
@@ -216,7 +221,8 @@ namespace BingsuCodeEditor
                 //에러가 생길경우
                 ErrorText.Text = e.Error.Message;
             }
-
+            if(IsDebug)
+            ErrorText.Text = DateTime.Now.Subtract(bgStartTime).TotalMilliseconds.ToString();
         }
 
         private void Bg_DoWork(object sender, DoWorkEventArgs e)
@@ -269,13 +275,13 @@ namespace BingsuCodeEditor
                         {
                             if (tk != null)
                             {
-                                completionWindowOpen(OpenInput, OpenIsNameSpaceOpen, OpenNoStartWithStartText);
+                                completionWindowOpen(OpenInput, OpenStartIndex, OpenIsNameSpaceOpen, OpenNoStartWithStartText);
                                 OpenSiginal = false;
                             }
                         }
                         else
                         {
-                            completionWindowOpen(OpenInput, OpenIsNameSpaceOpen, OpenNoStartWithStartText);
+                            completionWindowOpen(OpenInput, OpenStartIndex, OpenIsNameSpaceOpen, OpenNoStartWithStartText);
                             OpenSiginal = false;
                         }
                     }
@@ -1061,6 +1067,7 @@ namespace BingsuCodeEditor
         private string OpenInput;
         private bool OpenIsNameSpaceOpen;
         private bool OpenNoStartWithStartText;
+        private int OpenStartIndex;
         private void CompletionWindowOpenAsync(string input, bool IsNameSpaceOpen = false, bool NoStartWithStartText = false)
         {
             OpenInput = input;
@@ -1076,14 +1083,14 @@ namespace BingsuCodeEditor
             OpenSiginal = true;
             OpenIsNameSpaceOpen = IsNameSpaceOpen;
             OpenNoStartWithStartText = NoStartWithStartText;
-
+            OpenStartIndex = aTextEditor.CaretOffset;
             //completionWindowOpen(input, IsNameSpaceOpen);
         }
 
 
 
         CustomCompletionWindow completionWindow;
-        private  void completionWindowOpen(string input, bool IsNameSpaceOpen = false, bool NoStartWithStartText = false)
+        private  void completionWindowOpen(string input, int startOffset, bool IsNameSpaceOpen = false, bool NoStartWithStartText = false)
         {
             //선택이 다중일 경우 사용하지 않음
             //엔터링에서 분석한 정보를 토대로, 자동완성창을 열거나 자동완성 목록을 생성
@@ -1117,6 +1124,20 @@ namespace BingsuCodeEditor
                     return;
                 }
             }
+
+            if(aTextEditor.CaretOffset != OpenStartIndex)
+            {
+                string t = aTextEditor.Document.GetText(OpenStartIndex, aTextEditor.CaretOffset - OpenStartIndex);
+                input += t;
+                //if(token != null)
+                //{
+                //    if(input.First() == token.Value.First())
+                //    {
+                //        input = token.Value;
+                //    }
+                //}
+            }
+
             //자동완성 비활성(문장 작석 중)
             //int caret = aTextEditor.CaretOffset - 1;
             //string text = aTextEditor.Text;
@@ -1188,7 +1209,7 @@ namespace BingsuCodeEditor
 
 
             completionWindow.Open(input, IsNameSpaceOpen | NoStartWithStartText);
-
+            
 
             if (!IsNameSpaceOpen)
             {
@@ -1321,7 +1342,8 @@ namespace BingsuCodeEditor
                     //return;
                 }
 
-
+                string enterdletter = " \t\n";
+                //if (enterdletter.IndexOf(t) != -1)
                 if (!char.IsLetterOrDigit(t))
                 {
                     if (t == ' ')
@@ -1390,7 +1412,7 @@ namespace BingsuCodeEditor
                             bchar = bstr[0];
                         }
 
-                        if (!char.IsLetter(bchar) && bchar != '_')
+                        if (!char.IsLetter(bchar) && bchar != '_' && bchar != '@')
                         {
                             if (char.IsLetter(t) || t == '_' || codeAnalyzer.FuncPreChar.IndexOf(t.ToString()) != -1)
                             {
@@ -1679,6 +1701,11 @@ namespace BingsuCodeEditor
             if(e.SystemKey != Key.LeftCtrl && e.Key != Key.LeftCtrl)
             {
 
+            }
+
+            if(e.Key == Key.F9)
+            {
+                IsDebug = !IsDebug;
             }
 
 
@@ -2378,8 +2405,9 @@ namespace BingsuCodeEditor
 
 
 
+
         #endregion
 
- 
+        
     }
 }
