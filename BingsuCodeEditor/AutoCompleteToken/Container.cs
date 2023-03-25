@@ -77,13 +77,13 @@ namespace BingsuCodeEditor.AutoCompleteToken
         /// <returns></returns>
         public bool CheckIdentifier(string scope, string funcname, bool IsExtra = false, bool funcdefine = false)
         {
-            if (identifiercache.ContainsKey(scope))
-            {
-                if(identifiercache[scope].IndexOf(funcname) != -1)
-                {
-                    return true;
-                }
-            }
+            //if (identifiercache.ContainsKey(scope))
+            //{
+            //    if(identifiercache[scope].IndexOf(funcname) != -1)
+            //    {
+            //        return true;
+            //    }
+            //}
 
 
             Block var;
