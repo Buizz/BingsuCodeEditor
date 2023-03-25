@@ -46,6 +46,7 @@ namespace BingsuCodeEditor
         private bool LeftShiftDown;
         private bool LeftAltDown;
 
+        private string optionfilename;
         private DispatcherTimer dispatcherTimer;
         private CodeAnalyzer codeAnalyzer;
 
@@ -443,7 +444,7 @@ namespace BingsuCodeEditor
         #region #############옵션 함수#############
         private void btnSetting_Click(object sender, RoutedEventArgs e)
         {
-            optionControl.OpenOption(this);
+            optionControl.OpenOption(this, optionfilename);
             optionControl.Visibility = Visibility.Visible;
         }
 
@@ -916,7 +917,7 @@ namespace BingsuCodeEditor
         private void CBFontSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             aTextEditor.FontSize = (int)CBFontSize.SelectedItem;
-            SaveOption();
+            SaveOption(optionfilename: optionfilename);
         }
         private void Caret_PositionChanged(object sender, EventArgs e)
         {

@@ -3,9 +3,13 @@ using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Reflection;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using static BingsuCodeEditor.CodeAnalyzer;
 
 namespace BingsuCodeEditor.Lua
 {
@@ -502,8 +506,27 @@ namespace BingsuCodeEditor.Lua
                 data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Const, "this")));
                 objcontainer.GetAllItems(data, scope);
             }
-            DefaultFuncContainer.GetAllItems(data, "st");
+            if (DefaultFuncContainer != null) { DefaultFuncContainer.GetAllItems(data, "st"); }
+            if (importManager != null)
+            {
+                foreach (var pullpath in importManager.GetImportedFileList())
+                {
+                    if(pullpath != FilePath)
+                    {
+                        if (importManager.IsFileExist(pullpath))
+                        {
+                            if (!importManager.IsCachedContainer(pullpath))
+                            {
+                                //파일이 변형되었을 경우
+                                importManager.UpdateContainer(pullpath, GetContainer(importManager.GetFIleContent(pullpath)));
+                            }
+                        }
+                        importManager.GetContainer(pullpath).GetAllItems(data, "st");
+                    }
+                }
+            }
 
+            
 
 
             return true;

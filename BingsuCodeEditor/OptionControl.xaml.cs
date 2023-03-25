@@ -20,6 +20,8 @@ namespace BingsuCodeEditor
     /// </summary>
     public partial class OptionControl : UserControl
     {
+        private string optionfilename;
+
         public OptionControl()
         {
             InitializeComponent();
@@ -30,8 +32,10 @@ namespace BingsuCodeEditor
         Dictionary<string, Color> HighLightList;
 
 
-        public void OpenOption(CodeTextEditor codeTextEditor)
+        public void OpenOption(CodeTextEditor codeTextEditor, string optionfilename)
         {
+            this.optionfilename = optionfilename;
+
             this.codeTextEditor = codeTextEditor;
 
             HighLightList = codeTextEditor.GetCurrentHighLight();
@@ -85,8 +89,8 @@ namespace BingsuCodeEditor
 
 
 
-            codeTextEditor.SaveOption(HighLightList);
-            codeTextEditor.LoadOption();
+            codeTextEditor.SaveOption(HighLightList, optionfilename);
+            codeTextEditor.LoadOption(optionfilename);
             this.Visibility = Visibility.Collapsed;
         }
 
@@ -97,8 +101,8 @@ namespace BingsuCodeEditor
 
         private void Reset_Click(object sender, RoutedEventArgs e)
         {
-            codeTextEditor.ResetOption();
-            OpenOption(codeTextEditor);
+            codeTextEditor.ResetOption(optionfilename);
+            OpenOption(codeTextEditor, optionfilename);
         }
     }
 }

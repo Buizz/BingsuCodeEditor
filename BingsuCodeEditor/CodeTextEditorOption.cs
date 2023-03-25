@@ -63,7 +63,7 @@ namespace BingsuCodeEditor
             return rcolor;
         }
 
-        public void SaveOption(Dictionary<string, Color> HighLightList = null)
+        public void SaveOption(Dictionary<string, Color> HighLightList = null, string optionfilename = "")
         {
             if (!System.IO.Directory.Exists(OptionFilePath))
             {
@@ -81,7 +81,7 @@ namespace BingsuCodeEditor
             }
 
             //파일을 생성하고 새로 불러온다.
-            FileStream fs = new FileStream(OptionFilePath + OptionFIleName, FileMode.Create);
+            FileStream fs = new FileStream(OptionFilePath + optionfilename + OptionFIleName, FileMode.Create);
             StreamWriter sw = new StreamWriter(fs);
 
             sw.WriteLine("ShowLineNumbers:" + ShowLineNumbers);
@@ -106,8 +106,9 @@ namespace BingsuCodeEditor
 
 
 
-        public void LoadOption()
+        public void LoadOption(string optionfilename)
         {
+            this.optionfilename = optionfilename;
             if (!System.IO.Directory.Exists(OptionFilePath))
             {
                 //로드 불가능
@@ -115,7 +116,7 @@ namespace BingsuCodeEditor
             }
 
             //설정 파일에서 설정을 불러온다.
-            if (!System.IO.File.Exists(OptionFilePath + OptionFIleName))
+            if (!System.IO.File.Exists(OptionFilePath + optionfilename + OptionFIleName))
             {
                 HighLightColor.Clear();
                 //설정 파일이 없으므로 새로 만들어 준다.
@@ -150,7 +151,7 @@ namespace BingsuCodeEditor
 
                 return;
             }
-            FileStream fs = new FileStream(OptionFilePath + OptionFIleName, FileMode.Open);
+            FileStream fs = new FileStream(OptionFilePath + optionfilename + OptionFIleName, FileMode.Open);
             StreamReader sr = new StreamReader(fs);
 
             string t = sr.ReadToEnd();
@@ -228,19 +229,19 @@ namespace BingsuCodeEditor
             }
         }
 
-        public void ResetOption()
+        public void ResetOption(string optionfilename)
         {
-            if (System.IO.File.Exists(OptionFilePath + OptionFIleName))
+            if (System.IO.File.Exists(OptionFilePath + optionfilename + OptionFIleName))
             {
                 //세팅파일 제거
-                System.IO.File.Delete(OptionFilePath + OptionFIleName);
+                System.IO.File.Delete(OptionFilePath + optionfilename + OptionFIleName);
             }
             ShowLineNumbers = true;
             aTextEditor.Options.IndentationSize = 4;
             aTextEditor.Options.ConvertTabsToSpaces = true;
             aTextEditor.FontSize = 12;
 
-            LoadOption();
+            LoadOption(optionfilename);
         }
 
 
