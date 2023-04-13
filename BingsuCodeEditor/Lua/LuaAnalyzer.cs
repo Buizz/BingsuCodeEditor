@@ -15,10 +15,10 @@ namespace BingsuCodeEditor.Lua
 {
     class LuaAnalyzer : CodeAnalyzer
     {
-        public static ImportManager importManager;
-        public static string DEFAULTFUNCFILENAME = "DEFAULTFUNCTIONLIST";
-        public static Container _DefaultFuncContainer;
-        public static Container DefaultFuncContainer
+        public ImportManager importManager;
+        public string DEFAULTFUNCFILENAME = "DEFAULTFUNCTIONLIST";
+        public Container _DefaultFuncContainer;
+        public Container DefaultFuncContainer
         {
             get
             {
@@ -30,7 +30,7 @@ namespace BingsuCodeEditor.Lua
         {
             get
             {
-                return LuaAnalyzer.importManager;
+                return importManager;
             }
         }
 
@@ -44,7 +44,7 @@ namespace BingsuCodeEditor.Lua
 
         public override void SetImportManager(ImportManager importManager)
         {
-            LuaAnalyzer.importManager = importManager;
+            this.importManager = importManager;
 
             if (_DefaultFuncContainer == null)
             {
@@ -90,7 +90,7 @@ namespace BingsuCodeEditor.Lua
             //Template.Add("/***", "\n[tab] * @Type\n[tab] * F\n[tab] * @Summary.ko-KR\n[tab] * [Summary]\n[tab] * @param.args.ko-KR\n[tab]***/[Content]");
 
 
-            LuaAnalyzer.DEFAULTFUNCFILENAME = "DEFAULTFUNCTIONLIST";
+            DEFAULTFUNCFILENAME = "DEFAULTFUNCTIONLIST";
 
 
             foreach (var item in keywords)
@@ -694,19 +694,19 @@ namespace BingsuCodeEditor.Lua
                     importedNameSpace = ccon.importedNameSpaces.Find(x => (x.shortname == objname));
                 }
 
-                if (LuaAnalyzer.DefaultFuncContainer != null)
+                if (DefaultFuncContainer != null)
                 {
                     if (var == null)
                     {
-                        var = LuaAnalyzer.DefaultFuncContainer.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
+                        var = DefaultFuncContainer.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
                     }
                     if (obj == null)
                     {
-                        obj = LuaAnalyzer.DefaultFuncContainer.objs.Find(x => (x.mainname == objname));
+                        obj = DefaultFuncContainer.objs.Find(x => (x.mainname == objname));
                     }
                     if (func == null)
                     {
-                        func = LuaAnalyzer.DefaultFuncContainer.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
+                        func = DefaultFuncContainer.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
                     }
                 }
 
