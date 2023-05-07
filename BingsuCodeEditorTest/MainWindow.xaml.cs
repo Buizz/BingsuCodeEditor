@@ -89,7 +89,7 @@ namespace BingsuCodeEditorTest
             codeTextEditor.SetImportManager(importManager);
 
             codeTextEditor.OptionFilePath = @"F:\Users\Desktop\테스트\";
-            codeTextEditor.LoadOption();
+            codeTextEditor.LoadOption("");
 
             tab.Content = codeTextEditor;
             tab.Header = "새 파일";

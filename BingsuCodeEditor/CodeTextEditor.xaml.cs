@@ -800,7 +800,7 @@ namespace BingsuCodeEditor
             toolTip.Content = toolTipTextbox;
 
             functooltip = new ToolTip();
-            functooltip.StaysOpen = false;
+            functooltip.StaysOpen = true;
 
             functooltip.Unloaded += Functooltip_Unloaded;
 
@@ -1128,8 +1128,12 @@ namespace BingsuCodeEditor
 
             if(aTextEditor.CaretOffset != OpenStartIndex)
             {
-                string t = aTextEditor.Document.GetText(OpenStartIndex, aTextEditor.CaretOffset - OpenStartIndex);
-                input += t;
+                if(aTextEditor.CaretOffset > OpenStartIndex)
+                {
+                    string t = aTextEditor.Document.GetText(OpenStartIndex, aTextEditor.CaretOffset - OpenStartIndex);
+                    input += t;
+                }
+
                 //if(token != null)
                 //{
                 //    if(input.First() == token.Value.First())
@@ -2407,8 +2411,8 @@ namespace BingsuCodeEditor
 
 
 
+
         #endregion
 
-        
     }
 }

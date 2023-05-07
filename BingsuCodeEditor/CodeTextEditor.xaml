@@ -76,7 +76,6 @@
                                        TextChanged="aTextEditor_TextChanged" PreviewMouseWheel="aTextEditor_PreviewMouseWheel" FontFamily="D2Coding"
                                        Background="{DynamicResource MaterialDesignPaper}" TextElement.Foreground="{DynamicResource MaterialDesignBody}"
                                        ShowLineNumbers="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                                       
                                        MouseHover="aTextEditor_MouseHover"
                                        MouseHoverStopped="aTextEditor_MouseHoverStopped"
                                        >
