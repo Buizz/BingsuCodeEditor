@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BingsuCodeEditor.EpScript
 {
-    internal class LuaFunction : Function
+    internal class EpScriptFunction : Function
     {
 
         private void SetSummary(string type, string sectype, string content)

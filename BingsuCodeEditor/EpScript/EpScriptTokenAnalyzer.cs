@@ -676,7 +676,7 @@ namespace BingsuCodeEditor.EpScript
 
         public Function FunctionAnalyzer(int startindex, string scope)
         {
-            Function function = new LuaFunction();
+            Function function = new EpScriptFunction();
 
             TOKEN commenttoken = GetCommentTokenIten(-2);
 

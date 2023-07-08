@@ -137,16 +137,30 @@ namespace BingsuCodeEditor.Lua
                 {
                     foreach (var item in GetArgDataList(Key))
                     {
+                        string text = item;
+
+                        if(text.Split('|').Count() > 1)
+                        {
+                            text = text.Split('|').First();
+                            if(text.Count() > 1 && text[0] == '"')
+                            {
+                                text = text + "\"";
+                            }
+                        }
+
+
+                        
+
                         switch (Key)
                         {
                             case "TrgLocation":
                             case "TrgSwitch":
                             case "TrgUnit":
                             case "TrgAIScript":
-                                codeCompletionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Const, item, "\"" + item + "\"")));
+                                codeCompletionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Const, text, "\"" + text + "\"")));
                                 break;
                             default:
-                                codeCompletionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Const, item, item)));
+                                codeCompletionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Const, text, text)));
                                 break;
                         }
                     }

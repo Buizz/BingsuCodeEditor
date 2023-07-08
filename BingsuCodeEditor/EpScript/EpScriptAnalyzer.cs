@@ -747,7 +747,26 @@ namespace BingsuCodeEditor.EpScript
                                 }
                              
                                 //리턴값을 읽기
+                                _obj = GetObjectFromName(list, ccon, FindType.Obj);
+                            }
+                        }
+                        //함수가 나왔으면 함수의 리턴값을 확인하여 컨테이너 찾기
+                        if (_obj != null)
+                        {
+                            if (typeof(Function).IsInstanceOfType(_obj))
+                            {
+                                Function funcobject = (Function)_obj;
+                                List<string> list = new List<string>();
 
+                                if (funcobject.returntype != null)
+                                {
+                                    foreach (var item in funcobject.returntype)
+                                    {
+                                        list.Add(item.Value);
+                                    }
+                                }
+
+                                //리턴값을 읽기
                                 _obj = GetObjectFromName(list, ccon, FindType.Obj);
                             }
                         }
@@ -766,7 +785,8 @@ namespace BingsuCodeEditor.EpScript
                             {
                                 //마지막 부분이므로 해당 콘테이너의 내용을 모두 넣는다.
                                 ccon.GetAllItems(data, ccon.GetInitObjectNameSpacee());
-                            }else if (findType == FindType.All)
+                            }
+                            else if (findType == FindType.All)
                             {
                                 return _obj;
                             }
