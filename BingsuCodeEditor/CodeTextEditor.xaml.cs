@@ -226,6 +226,7 @@ namespace BingsuCodeEditor
             ErrorText.Text = DateTime.Now.Subtract(bgStartTime).TotalMilliseconds.ToString();
         }
 
+        int lastfunclabelstartoffset = 0;
         private void Bg_DoWork(object sender, DoWorkEventArgs e)
          {
             object[] args = (object[])e.Argument;
@@ -251,8 +252,7 @@ namespace BingsuCodeEditor
                     isFuncInternall = true;
                     //int argindex = codeAnalyzer.maincontainer.innerFuncInfor.argindex;
                     funclabelstartoffset = codeAnalyzer.maincontainer.innerFuncInfor.funcename.First().StartOffset;
-
-
+                    
                     functooltiptext = codeAnalyzer.GetFuncToolTip().Trim();
 
                     //string currentfuncname = "";
@@ -309,21 +309,29 @@ namespace BingsuCodeEditor
                             if (IsKeyUDDown)
                             {
                                 CloseTooltipBox();
+                                lastfunclabelstartoffset = funclabelstartoffset;
                                 OpenTooltipBox(funclabelstartoffset);
                                 IsKeyUDDown = false;
                             }
                             else
                             {
+                                lastfunclabelstartoffset = funclabelstartoffset;
                                 OpenTooltipBox(funclabelstartoffset);
                             }
                         }
                     }
+
 
                     if (!codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
                     {
                         CloseTooltipBox();
                     }
 
+                    if (functooltip.IsOpen && funclabelstartoffset != lastfunclabelstartoffset)
+                    {
+                        CloseTooltipBox();
+           
+                    }
 
 
 
@@ -501,6 +509,7 @@ namespace BingsuCodeEditor
         public event EventHandler Text_Change;
         public void Deactivated()
         {
+            CloseTooltipBox();
             TBCtrlValue.Visibility = Visibility.Collapsed;
             LeftCtrlDown = false;
             TBShiftValue.Visibility = Visibility.Collapsed;
