@@ -1005,7 +1005,7 @@ namespace BingsuCodeEditor.EpScript
                     goto EndLabel;
                 }
                 tk.scope = scope;
-                while (true)
+                while (true && tk != null)
                 {
                     if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == "{")
                     {

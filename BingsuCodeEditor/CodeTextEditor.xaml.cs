@@ -227,7 +227,7 @@ namespace BingsuCodeEditor
         }
 
         private void Bg_DoWork(object sender, DoWorkEventArgs e)
-        {
+         {
             object[] args = (object[])e.Argument;
 
             string codeText = (string)args[0];
