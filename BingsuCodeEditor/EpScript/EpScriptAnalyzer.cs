@@ -1066,7 +1066,7 @@ namespace BingsuCodeEditor.EpScript
             if (maincontainer.innerFuncInfor.IsInnerFuncinfor)
             {
                 //인자
-                Function func = (Function)GetObjectFromName(maincontainer.innerFuncInfor.funcename, maincontainer, FindType.Func);
+                Function func = (Function)GetObjectFromName(maincontainer.innerFuncInfor.funcename, maincontainer, FindType.Func, scope:scope);
                 if (func != null)
                 {
                     if(func.args.Count <= maincontainer.innerFuncInfor.argindex)
@@ -1075,7 +1075,7 @@ namespace BingsuCodeEditor.EpScript
                     }
                     string argtype = func.args[maincontainer.innerFuncInfor.argindex].argtype;
 
-                    foreach (var item in LuaDefaultCompletionData.GetCompletionDataList(argtype))
+                    foreach (var item in EpScriptDefaultCompletionData.GetCompletionDataList(argtype))
                     {
                         data.Add(item);
                     }

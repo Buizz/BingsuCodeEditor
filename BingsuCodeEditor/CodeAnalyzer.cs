@@ -1144,6 +1144,11 @@ namespace BingsuCodeEditor
                 Priority = 10000;
 
             }
+            public CompletionItem(CompletionWordType completionType, string name, string outputstring, string desc) : base(completionType, name, outputstring, desc)
+            {
+                Priority = 10000;
+
+            }
 
             //키워드 이름
             public override string listheader

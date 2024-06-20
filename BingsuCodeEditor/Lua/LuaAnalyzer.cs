@@ -50,8 +50,18 @@ namespace BingsuCodeEditor.Lua
             {
                 _DefaultFuncContainer = new Container(this);
 
+                {
+                    Container c = this.GetContainer(importManager.GetFIleContent(DEFAULTFUNCFILENAME));
+                    _DefaultFuncContainer.funcs.AddRange(c.funcs);
+
+                }
+
                 foreach (var item in importManager.GetFIleList())
                 {
+                    if(item == "msqcTool.lua")
+                    {
+
+                    }
                     Container c = GetContainer(importManager.GetFIleContent(item));
 
                     _DefaultFuncContainer.funcs.AddRange(c.funcs);
@@ -156,7 +166,7 @@ namespace BingsuCodeEditor.Lua
                         break;
                     }
 
-                    if (t == '\\')
+                    if (t == '\\' && IsSpec == false)
                     {
                         IsSpec = true;
                     }
@@ -785,6 +795,8 @@ namespace BingsuCodeEditor.Lua
                     {
                         //자동완성이면 해당 함수의 반환타입을 주사
                         string rtype = "";
+
+                        if (func.returntype == null) return null;
 
                         foreach (var item in func.returntype)
                         {

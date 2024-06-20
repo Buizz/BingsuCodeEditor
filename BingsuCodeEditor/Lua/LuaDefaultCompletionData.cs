@@ -32,7 +32,7 @@ namespace BingsuCodeEditor.Lua
         {
             "FormatString", "Arguments", "Tbl", "UnitsDat", "WeaponsDat", "FlingyDat",
             "SpritesDat", "ImagesDat", "UpgradesDat", "TechdataDat", "OrdersDat", "Weapon", "Flingy",
-            "Sprite", "Image", "Upgrade", "Tech", "Order", "EUDScore", "SupplyType"
+            "Sprite", "Image", "Upgrade", "Tech", "Order", "Icon", "Portrait", "EUDScore", "SupplyType"
         };
 
         private static string[] added_dynamicargtypes =

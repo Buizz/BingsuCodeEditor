@@ -150,6 +150,7 @@ namespace BingsuCodeEditor.EpScript
                                 }
 
                                 tk = GetSafeTokenIten();
+                                if (tk == null) break;
                                 if (tk.Type == TOKEN_TYPE.Symbol && tk.Value == ":")
                                 {
                                     if (tk.StartOffset <= startindex && startindex <= tk.EndOffset + 2)

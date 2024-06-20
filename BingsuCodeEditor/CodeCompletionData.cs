@@ -78,8 +78,6 @@ namespace BingsuCodeEditor
                         return preText + preCompletionData.listheader;
                     }
 
-
-
                 }
                 return "";
             }
@@ -127,7 +125,18 @@ namespace BingsuCodeEditor
         public void Complete(TextArea textArea, ISegment completionSegment,
             EventArgs insertionRequestEventArgs)
         {
-            textArea.Document.Replace(completionSegment, this.Text);
+            if(this.Text.IndexOf("=") == -1)
+            {
+                textArea.Document.Replace(completionSegment, this.Text);
+            }
+            else
+            {
+                string v = this.Text.Replace("\"", "").Split('=').Last();
+
+                textArea.Document.Replace(completionSegment, v);
+            }
+
+
         }
     }
 }

@@ -1358,7 +1358,7 @@ namespace BingsuCodeEditor
 
                 string enterdletter = " \t\n";
                 //if (enterdletter.IndexOf(t) != -1)
-                if (!char.IsLetterOrDigit(t))
+                if (!char.IsLetterOrDigit(t) && t != '_')
                 {
                     if (t == ' ')
                     {
