@@ -1010,7 +1010,7 @@ namespace BingsuCodeEditor.Lua
                             if (findType == FindType.AutoComplete)
                             {
                                 //마지막 부분이므로 해당 콘테이너의 내용을 모두 넣는다.
-                                data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "getValueAddr")));
+                                //data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "getValueAddr")));
                             }
                             else if (findType == FindType.All)
                             {

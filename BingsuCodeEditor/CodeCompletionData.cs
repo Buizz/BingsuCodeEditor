@@ -53,10 +53,32 @@ namespace BingsuCodeEditor
 
         public string preText = "";
 
+
+        public string Outputstring
+        {
+            get
+            {
+                if (preCompletionData != null) return preText + preCompletionData.outputstring;
+                return "";
+            }
+        }
+
+        // 검색 될때 기준
         public string Text
         {
             get {
-                if(preCompletionData != null) return preText + preCompletionData.outputstring;
+                if (preCompletionData != null)
+                {
+                    if (preCompletionData.listheader.Length > 2 && preCompletionData.listheader.First() == '"' && preCompletionData.listheader.First() == preCompletionData.listheader.Last())
+                    {
+                        return preText + preCompletionData.listheader.Substring(1, preCompletionData.listheader.Length - 2);
+                    }
+                    else
+                    {
+                        return preText + preCompletionData.listheader;
+                    }
+
+                }
                 return "";
             }
             private set {
@@ -125,18 +147,7 @@ namespace BingsuCodeEditor
         public void Complete(TextArea textArea, ISegment completionSegment,
             EventArgs insertionRequestEventArgs)
         {
-            if(this.Text.IndexOf("=") == -1)
-            {
-                textArea.Document.Replace(completionSegment, this.Text);
-            }
-            else
-            {
-                string v = this.Text.Replace("\"", "").Split('=').Last();
-
-                textArea.Document.Replace(completionSegment, v);
-            }
-
-
+            textArea.Document.Replace(completionSegment, this.Outputstring);
         }
     }
 }

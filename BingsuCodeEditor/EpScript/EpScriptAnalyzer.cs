@@ -380,7 +380,6 @@ namespace BingsuCodeEditor.EpScript
             if (objectname.Count == 0) return null;
 
 
-
             Container ccon = startcontainer;
             Container objcon = null;
             string folderpath = folder;

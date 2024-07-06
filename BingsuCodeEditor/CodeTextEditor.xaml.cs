@@ -1383,11 +1383,10 @@ namespace BingsuCodeEditor
 
 
 
-
         private void TextArea_TextEntered(object sender, TextCompositionEventArgs e)
         {
             //3
-            if(aTextEditor.SelectionLength == 0)
+            if (aTextEditor.SelectionLength == 0)
             {
                 codeAnalyzer.AutoDefaultInsert(e.Text);
             }
@@ -1407,8 +1406,10 @@ namespace BingsuCodeEditor
                 }
                 else if (e.Text == " ")
                 {
-                    if(codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
-                    CompletionWindowOpenAsync(e.Text, NoStartWithStartText: true);
+                    //if (codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
+                    //{
+                    //    CompletionWindowOpenAsync(e.Text, NoStartWithStartText: true);
+                    //}
                     //codeAnalyzer.AutoInsert("f");
                     return;
                 }
@@ -2178,6 +2179,13 @@ namespace BingsuCodeEditor
                 case Key.LeftAlt:
                     TBAltValue.Visibility = Visibility.Collapsed;
                     LeftAltDown = false;
+                    break;
+                case Key.Space:
+                    if (codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
+                    {
+                        CompletionWindowOpenAsync(" ", NoStartWithStartText: true);
+                    }
+
                     break;
             }
 

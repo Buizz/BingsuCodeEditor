@@ -61,9 +61,9 @@
                                 <Button x:Name="ReplaceAllBtn" DockPanel.Dock="Right" Margin="4" Content="모두 바꾸기" Click="ReplaceAllBtn_Click"/>
                             </UniformGrid>
                             <UniformGrid Rows="1"  >
-                                <TextBox x:Name="FindText" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="5,0"
+                                <TextBox x:Name="FindText" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="5,0" AcceptsReturn="True"
                                      TextChanged="FindText_TextChanged" PreviewKeyDown="FindText_PreviewKeyDown"/>
-                                <TextBox x:Name="ReplaceText" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="5,0"
+                                <TextBox x:Name="ReplaceText" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="5,0" AcceptsReturn="True"
                                          PreviewKeyDown="ReplaceText_PreviewKeyDown"/>
                             </UniformGrid>
                         </DockPanel>

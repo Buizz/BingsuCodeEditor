@@ -154,7 +154,20 @@ namespace BingsuCodeEditor.AutoCompleteToken
                 names = identifiercache[scope];
             }
 
-            names.Add(funcname);
+            //if (identifiercache.ContainsKey("st"))
+            //{
+            //    if (identifiercache["st"].Count > 10000)
+            //    {
+
+            //    }
+            //}
+            
+            if(names.IndexOf(funcname) == -1)
+            {
+                names.Add(funcname);
+            }
+
+
 
             return true;
         }

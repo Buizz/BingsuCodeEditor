@@ -137,18 +137,46 @@ namespace BingsuCodeEditor.EpScript
                 {
                     foreach (var item in GetArgDataList(Key))
                     {
+                        string itemkey = "";
+                        string des = "";
+
+
                         switch (Key)
                         {
                             case "TrgLocation":
                             case "TrgSwitch":
                             case "TrgUnit":
                             case "TrgAIScript":
-                                codeCompletionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Const, item, "\"" + item + "\"")));
+                                if(item.IndexOf("⫥") != -1)
+                                {
+                                    var sp = item.Split('⫥');
+
+                                    itemkey = "\"" + sp.First() + "\"";
+                                    des = sp.Last();
+                                }
+                                else
+                                {
+                                    itemkey = "\"" + item + "\"";
+                                    des = item;
+                                }
                                 break;
                             default:
-                                codeCompletionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Const, item, item)));
+                                if (item.IndexOf("⫥") != -1)
+                                {
+                                    var sp = item.Split('⫥');
+
+                                    itemkey = sp.First();
+                                    des = sp.Last();
+                                }
+                                else
+                                {
+                                    itemkey = item;
+                                    des = item;
+                                }
                                 break;
                         }
+                        codeCompletionDatas.Add(new CodeCompletionData(new CompletionItem(CompletionWordType.Const, des, itemkey)));
+
                     }
                 }
             }
