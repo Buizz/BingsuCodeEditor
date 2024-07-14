@@ -1267,10 +1267,16 @@ namespace BingsuCodeEditor
             //double OrginXPos = 0;
             //double OrginYPos = 0;
 
-            //TextViewPosition StartPostion = aTextEditor.TextArea.Caret.Position;
-
+            TextViewPosition LinePosition = aTextEditor.TextArea.Caret.Position;
+            
             TextViewPosition StartPosition = new TextViewPosition(aTextEditor.Document.GetLocation(startoffset));
             StartPosition.VisualColumn -= 1;
+
+            if(StartPosition.Line != LinePosition.Line)
+            {
+                StartPosition.Line = LinePosition.Line;
+                StartPosition.VisualColumn = 1;
+            }
 
             //Point p = aTextEditor.TextArea.TextView.GetVisualPosition(StartPostion, VisualYPosition.LineTop);
             //OrginXPos = p.X + 36;

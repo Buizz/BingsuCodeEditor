@@ -34,11 +34,11 @@ namespace BingsuCodeEditor.Lua
             while (!IsEndOfList())
             {
                 tk = GetCurrentToken();
-                tk.scope = scope;
                 if(tk == null)
                 {
                     break;
                 }
+                tk.scope = scope;
                 if (tk.StartOffset > startindex && isinstartoffset)
                 {
                     isinstartoffset = false;
@@ -241,7 +241,7 @@ namespace BingsuCodeEditor.Lua
                     switch (tk.Type)
                     {
                         case TOKEN_TYPE.Identifier:
-                            IdentifierFAnalyzer(container, scope, ctk, startindex, cargindex, main:main);
+                            IdentifierFAnalyzer(container, scope, tk, startindex, cargindex, main:main);
                             break;
                         case TOKEN_TYPE.Symbol:
                             //, ( ) 등이 있을 수 있다.

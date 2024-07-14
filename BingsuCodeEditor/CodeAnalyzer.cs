@@ -1058,7 +1058,18 @@ namespace BingsuCodeEditor
                     }
                     if (block != null)
                     {
-                        return block.blockdefine;
+                        string strvalues = "";
+
+                        if(block.values != null)
+                        {
+                            foreach (var item in block.values)
+                            {
+                                strvalues += item.Value;
+                            }
+                        }
+                       
+
+                        return block.blockdefine + " : " + strvalues;// block.values[0].Value;
                     }
                     return name;
                 }

@@ -644,14 +644,8 @@ namespace BingsuCodeEditor.Lua
             foreach (var item in tokenlist)
             {
                 string rval;
-                if(strs.Count == 0 && item.Value.IndexOf("@") == 0)
-                {
-                    rval = item.Value.Replace("@", "");
-                }
-                else
-                {
-                    rval = item.Value;
-                }
+
+                rval = item.Value;
 
                 strs.Add(rval);
             }
