@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -147,7 +148,26 @@ namespace BingsuCodeEditor
         public void Complete(TextArea textArea, ISegment completionSegment,
             EventArgs insertionRequestEventArgs)
         {
-            textArea.Document.Replace(completionSegment, this.Outputstring);
+            string r = this.Outputstring;
+
+            List<char> hexlist = new List<char>();
+            for (int i = 0; i < r.Length; i++)
+            {
+                int charint = (int)r[i];
+
+                if (charint <= 31)
+                {
+                    hexlist.Add(r[i]);
+                }
+            }
+
+            foreach (var item in hexlist)
+            {
+                r = r.Replace(item.ToString(), "\\x" + ((int)item).ToString("X").PadLeft(2,'0'));
+            }
+      
+
+            textArea.Document.Replace(completionSegment, r);
         }
     }
 }
