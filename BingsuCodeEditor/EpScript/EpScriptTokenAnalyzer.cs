@@ -116,6 +116,7 @@ namespace BingsuCodeEditor.EpScript
                                 int foreachstart = tk.EndOffset;
                                 forblocks.Clear();
                                 forstart = true;
+                                Block forvar = null;
                                 while (true)
                                 {
                                     tk = GetCurrentToken();
@@ -133,12 +134,12 @@ namespace BingsuCodeEditor.EpScript
                                     }
 
 
-                                    Block item = new Block("const", tk.Value);
+                                    forvar = new Block("const", tk.Value);
 
-                                    item.scope = scope;
-                                    forblocks.Add(item);
+                                    forvar.scope = scope;
+                                    forblocks.Add(forvar);
 
-                                    cc.vars.Add(item);
+                                    cc.vars.Add(forvar);
                                     if (!CheckCurrentToken(TOKEN_TYPE.Symbol, ","))
                                     {
                                         break;
@@ -156,6 +157,13 @@ namespace BingsuCodeEditor.EpScript
                                     if (tk.StartOffset <= startindex && startindex <= tk.EndOffset + 2)
                                     {
                                         cc.cursorLocation = CursorLocation.ForFuncDefine;
+                                    }
+                                    tk = GetCurrentToken();
+                                    tk = GetCurrentToken();
+
+                                    if(forvar != null)
+                                    {
+                                        forvar.values = IdentifierFAnalyzer(cc, scope, tk, startindex, main: rcontainer);
                                     }
                                 }
 

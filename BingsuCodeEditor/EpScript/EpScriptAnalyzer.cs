@@ -817,8 +817,6 @@ namespace BingsuCodeEditor.EpScript
                         }
                     }
 
-
-
                 }
                 else
                 {
@@ -1059,7 +1057,9 @@ namespace BingsuCodeEditor.EpScript
                     //data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "EUDLoopNewUnit")));
                     //data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "UnitGroup.cploop")));
                     //data.Add(new CodeCompletionData(new ObjectItem(CompletionWordType.Function, "EUDLoopPlayer")));
+                    container.GetAllItems(data, scope);
                     DefaultFuncContainer.GetAllItems(data, "st");
+
 
                     return true;
             }
