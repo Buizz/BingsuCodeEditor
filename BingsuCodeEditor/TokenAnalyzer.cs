@@ -35,11 +35,11 @@ namespace BingsuCodeEditor
 
         protected List<TOKEN> tklist;
 
-        protected int index;
+        protected int tokenindex;
         public int CurrentInedx
         {
-            get { return index; }
-            set { index = value; }
+            get { return tokenindex; }
+            set { tokenindex = value; }
         }
 
 
@@ -47,7 +47,7 @@ namespace BingsuCodeEditor
         {
             get
             {
-                if(tklist.Count <= index)
+                if(tklist.Count <= tokenindex)
                 {
                     return null;
                 }
@@ -61,20 +61,20 @@ namespace BingsuCodeEditor
         {
             PassComment(GoToReverse);
 
-            if(index < 0)
+            if(tokenindex < 0)
             {
                 return null;
             }
 
 
-            if (tklist.Count > index + _i)
+            if (tklist.Count > tokenindex + _i)
             {
-                return tklist[index + _i];
+                return tklist[tokenindex + _i];
             }
 
-            if (tklist.Count > index)
+            if (tklist.Count > tokenindex)
             {
-                return tklist[index];
+                return tklist[tokenindex];
             }
 
             return null;
@@ -84,11 +84,22 @@ namespace BingsuCodeEditor
 
         public TOKEN GetCommentTokenIten(int tindex = 0)
         {
-            int i = index + tindex;
+            int i = tokenindex + tindex;
             if (0 <= i && i < tklist.Count)
-                return tklist[index + tindex];
+                return tklist[tokenindex + tindex];
 
             return null;
+        }
+
+        public string GetTextFromToken(int start, int end)
+        {
+            string r = "";
+            for (int i = start; i <= end; i++)
+            {
+                r += tklist[i].Value;
+            }
+
+            return r;
         }
 
 
@@ -124,7 +135,7 @@ namespace BingsuCodeEditor
         {
             IsError = false;
             this.tklist = tklist;
-            index = 0;
+            tokenindex = 0;
         }
 
 
@@ -169,7 +180,7 @@ namespace BingsuCodeEditor
 
             TOKEN rtk = GetSafeTokenIten(GoToReverse);
 
-            if (GoToReverse){index--;}else{index++;}
+            if (GoToReverse){tokenindex--;}else{tokenindex++;}
 
             return rtk;
         }
@@ -232,28 +243,28 @@ namespace BingsuCodeEditor
         /// a.b.c.d등 .과 키로 이루어진 리스트입니다.
         /// </summary>
         /// <returns></returns>
-        public List<TOKEN> GetTokenListFromTarget(TOKEN target, bool IsReverse = false, bool saveIndex = true, bool IsNamespace = false)
+        public List<TOKEN> GetTokenListFromTarget(TOKEN target, bool IsReverse = false, bool saveIndex = true, bool IsNamespace = false, bool addSperator = false)
         {
             List<TOKEN> rlist = new List<TOKEN>();
             //토큰 네임스페이스를 가져옵니다.
             //a.b.c.d등 .과 키로 이루어진 리스트입니다.
 
-            int savedindex = index;
+            int savedindex = tokenindex;
 
 
-            index = tklist.IndexOf(target);
+            tokenindex = tklist.IndexOf(target);
 
             CheckCurrentToken(TOKEN_TYPE.Symbol, ".", IsReverse: IsReverse);
 
             while (true)
             {
-                if (index >= tklist.Count || index < 0)
+                if (tokenindex >= tklist.Count || tokenindex < 0)
                 {
                     break;
                 }
 
                 IsEndOfList(true);
-                if (index < 0)
+                if (tokenindex < 0)
                 {
                     break;
                 }
@@ -273,7 +284,7 @@ namespace BingsuCodeEditor
                         int bracecount = 1;
                         while (true)
                         {
-                            if (index >= tklist.Count || index < 0)
+                            if (tokenindex >= tklist.Count || tokenindex < 0)
                             {
                                 break;
                             }
@@ -307,6 +318,11 @@ namespace BingsuCodeEditor
 
                 if (tk.Type != TOKEN_TYPE.Identifier)
                 {
+                    if (addSperator)
+                    {
+                        rlist.Add(new TOKEN(0, TOKEN_TYPE.Symbol, ".", 0));
+                    }
+
                     break;
                 }
 
@@ -314,7 +330,7 @@ namespace BingsuCodeEditor
 
 
                 IsEndOfList(true);
-                if (index < 0)
+                if (tokenindex < 0)
                 {
                     break;
                 }
@@ -329,7 +345,7 @@ namespace BingsuCodeEditor
                 rlist.Reverse();
             }
 
-            if(saveIndex) index = savedindex;
+            if(saveIndex) tokenindex = savedindex;
 
             return rlist;
         }
@@ -380,11 +396,11 @@ namespace BingsuCodeEditor
 
             if (IsReverse)
             {
-                index--;
+                tokenindex--;
             }
             else
             {
-                index++;
+                tokenindex++;
             }
             if(addedlist != null)
             {
@@ -394,7 +410,7 @@ namespace BingsuCodeEditor
         }
         public bool IsEndOfList(bool IsExist = false)
         {
-            if (index >= tklist.Count)
+            if (tokenindex >= tklist.Count)
             {
                 if (IsExist)
                 {
@@ -413,30 +429,30 @@ namespace BingsuCodeEditor
         {
             if (IsEndOfList(false))
             {
-                return index;
+                return tokenindex;
             }
 
-            if (index >= tklist.Count || index < 0)
+            if (tokenindex >= tklist.Count || tokenindex < 0)
             {
-                return index;
+                return tokenindex;
             }
 
-            while (tklist[index].Type == TOKEN_TYPE.Comment || tklist[index].Type == TOKEN_TYPE.LineComment)
+            while (tklist[tokenindex].Type == TOKEN_TYPE.Comment || tklist[tokenindex].Type == TOKEN_TYPE.LineComment)
             {
                 if (GoToReverse)
                 {
-                    index--;
+                    tokenindex--;
                 }
                 else
                 {
-                    index++;
+                    tokenindex++;
                 }
                 if (IsEndOfList(false))
                 {
-                    return index;
+                    return tokenindex;
                 }
             }
-            return index;
+            return tokenindex;
         }
 
 

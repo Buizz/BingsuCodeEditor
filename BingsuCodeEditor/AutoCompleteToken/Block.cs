@@ -28,6 +28,7 @@ namespace BingsuCodeEditor.AutoCompleteToken
 
         public bool IsArg;
 
+        public string rawtext;
 
         public List<CodeAnalyzer.TOKEN> values;
 

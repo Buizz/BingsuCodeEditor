@@ -172,10 +172,30 @@ namespace BingsuCodeEditor.EpScript
                                 int importstart = tk.EndOffset;
 
                                 tk = GetCurrentToken();
-                                List<TOKEN> t = GetTokenListFromTarget(tk, saveIndex:false, IsNamespace: true);
 
+                                if(importstart < startindex && startindex < tk.StartOffset)
+                                {
+                                    //현재 공백으로 입력중
+                                    rcontainer.cursorLocation = CursorLocation.ImportFile;
+                                    break;
+                                }
+
+
+                                List<TOKEN> t = GetTokenListFromTarget(tk, saveIndex:false, IsNamespace: true, addSperator:true);
                                 
-                                int importend = t.Last().EndOffset + 1;
+                                if(t.Count == 0)
+                                {
+                                    ThrowException("import문이 정상적으로 종료되지 않았습니다.", tk);
+                                    break;
+                                }
+                                int importend = 0;
+                                if (t.Last().Value == ".")
+                                {
+                                    importend = 1;
+                                    t.RemoveAt(t.Count - 1);
+                                }
+
+                                importend += t.Last().EndOffset;
 
                         
 
@@ -439,7 +459,7 @@ namespace BingsuCodeEditor.EpScript
         {
             List<Block> blocks = new List<Block>();
 
-            int tindex = index;
+            int tindex = tokenindex;
 
             //var vname = 값;
             //var front: linkedUnit;
@@ -491,8 +511,14 @@ namespace BingsuCodeEditor.EpScript
                 int index = 0;
                 while (true)
                 {
+                    int starttokenindex = tokenindex;
                     tk = GetCurrentToken();
                     varvalue = IdentifierFAnalyzer(container, scope, tk, startindex, main: main);
+
+                    int endtokenindex = tokenindex;
+
+                    blocks[index].rawtext = GetTextFromToken(starttokenindex, endtokenindex);
+
                     if (blocks.Count <= index)
                     {
                         ThrowException("대입 식의 수가 맞지 않습니다.", tk);

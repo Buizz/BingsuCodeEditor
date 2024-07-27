@@ -872,6 +872,10 @@ namespace BingsuCodeEditor
             }
         }
 
+        public bool IsSameText(string text)
+        {
+            return text == LastAnalyzeText;
+        }
 
         public virtual void Apply(string text, int caretoffset)
         {
@@ -1067,9 +1071,10 @@ namespace BingsuCodeEditor
                                 strvalues += item.Value;
                             }
                         }
-                       
 
-                        return block.blockdefine + " : " + strvalues;// block.values[0].Value;
+
+                        //return block.blockdefine + " : " + strvalues;// block.values[0].Value;
+                        return block.blockdefine + " : " + block.rawtext;// block.values[0].Value;
                     }
                     return name;
                 }

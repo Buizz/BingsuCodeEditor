@@ -875,7 +875,9 @@ namespace BingsuCodeEditor.EpScript
         public override bool GetCompletionList(IList<ICompletionData> data, bool IsNameSpaceOpen = false)
         {
             string scope = maincontainer.currentScope;
-            
+
+            if (string.IsNullOrEmpty(scope)) scope = "st";
+
             TOKEN _t = GetToken(0);
             if(_t != null && _t.Type == TOKEN_TYPE.Special)
             {

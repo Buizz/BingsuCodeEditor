@@ -270,7 +270,7 @@ namespace BingsuCodeEditor
 
                 aTextEditor.Dispatcher.Invoke(new Action(() =>
                 {
-                    if (OpenSiginal)
+                    if (OpenSiginal && codeAnalyzer.IsSameText(aTextEditor.Text))
                     {
                         if (OpenIsNameSpaceOpen)
                         {
@@ -2187,7 +2187,7 @@ namespace BingsuCodeEditor
                     LeftAltDown = false;
                     break;
                 case Key.Space:
-                    if (codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor)
+                    if (codeAnalyzer.maincontainer.innerFuncInfor.IsInnerFuncinfor || codeAnalyzer.cursorLocation == CodeAnalyzer.CursorLocation.ImportFile)
                     {
                         CompletionWindowOpenAsync(" ", NoStartWithStartText: true);
                     }
