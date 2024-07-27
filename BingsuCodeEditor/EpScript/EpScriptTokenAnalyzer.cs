@@ -27,7 +27,7 @@ namespace BingsuCodeEditor.EpScript
 "Ore", "Gas", "OreAndGas",
 "Total", "Units", "Buildings", "UnitsAndBuildings", "Kills", "Razings", "KillsAndRazings", "Custom",
 "Set", "Clear", "Toggle", "Random",
-"Set", "Cleared"};
+"Set", "Cleared", "None"};
             specialKeyword.AddRange(sp);
         }
 
