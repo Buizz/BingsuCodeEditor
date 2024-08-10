@@ -69,12 +69,6 @@ namespace BingsuCodeEditor
             this.IsNameSpaceOpen = NoStartWithStartText;
 
 
-            Show();
-
-            if (!NoStartWithStartText)
-            {
-                this.Visibility = Visibility.Hidden;
-            }
 
             this.SizeToContent = SizeToContent.WidthAndHeight;
             this.MinHeight = 15;
@@ -92,6 +86,17 @@ namespace BingsuCodeEditor
             completionList.ListBox.Background = (System.Windows.Media.Brush)Application.Current.Resources["MaterialDesignToolBarBackground"];
             completionList.ListBox.Foreground = (System.Windows.Media.Brush)Application.Current.Resources["MaterialDesignBody"];
             completionList.ListBox.BorderBrush = (System.Windows.Media.Brush)Application.Current.Resources["MaterialDesignPaper"];
+
+
+            //if (!NoStartWithStartText)
+            //{
+            //    this.Visibility = Visibility.Hidden;
+            //}
+
+
+            Show();
+
+
 
             if (!string.IsNullOrEmpty(input))
             {
@@ -325,7 +330,10 @@ namespace BingsuCodeEditor
                 TextDocument document = this.TextArea.Document;
                 if (document != null)
                 {
-                    if(this.StartOffset != -1) completionList.SelectItem(document.GetText(this.StartOffset, offset - this.StartOffset));
+                    if (this.StartOffset != -1 && completionList.ListBox != null)
+                    {
+                        completionList.SelectItem(document.GetText(this.StartOffset, offset - this.StartOffset));
+                    }
                 }
             }
         }

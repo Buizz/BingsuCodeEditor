@@ -187,6 +187,8 @@ namespace BingsuCodeEditor
         }
 
         DateTime bgStartTime;
+
+        Point lastfunctooltip;
         private void DispatcherTimer_Tick(object sender, EventArgs e)
         {
             if (codeAnalyzer != null && (bg == null || !bg.IsBusy))
@@ -204,7 +206,19 @@ namespace BingsuCodeEditor
 
                 bgStartTime = DateTime.Now;
                 bg.RunWorkerAsync(args);
-            }else if (bg != null && bg.IsBusy)
+
+                if (functooltip.IsOpen)
+                {
+                    Point t = aTextEditor.PointToScreen(new Point(0, 0));
+                    if (t != lastfunctooltip)
+                    {
+                        CloseTooltipBox();
+                        t = aTextEditor.PointToScreen(new Point(0, 0));
+                        OpenTooltipBox(tooltiplaststartoffset);
+                    }
+                }
+            }
+            else if (bg != null && bg.IsBusy)
             {
                 if (DateTime.Now.Subtract(bgStartTime).TotalSeconds > 10)
                 {
@@ -285,6 +299,10 @@ namespace BingsuCodeEditor
                             completionWindowOpen(OpenInput, OpenStartIndex, OpenIsNameSpaceOpen, OpenNoStartWithStartText);
                             OpenSiginal = false;
                         }
+
+                        //Thread.Sleep(100);
+
+                        //completionWindow.ForceUpdatePosition();
                     }
 
 
@@ -1100,7 +1118,7 @@ namespace BingsuCodeEditor
 
 
         CustomCompletionWindow completionWindow;
-        private  void completionWindowOpen(string input, int startOffset, bool IsNameSpaceOpen = false, bool NoStartWithStartText = false)
+        private void completionWindowOpen(string input, int startOffset, bool IsNameSpaceOpen = false, bool NoStartWithStartText = false)
         {
             //선택이 다중일 경우 사용하지 않음
             //엔터링에서 분석한 정보를 토대로, 자동완성창을 열거나 자동완성 목록을 생성
@@ -1221,9 +1239,14 @@ namespace BingsuCodeEditor
             //data.Add(new CodeCompletionData("function", CompletionWordType.KeyWord));
             //data.Add(new CodeCompletionData("for", CompletionWordType.KeyWord));
 
+            if(completionWindow.CompletionList.CompletionData.Count == 0)
+            {
+                completionWindow = null;
+                return;
+            }
 
             completionWindow.Open(input, IsNameSpaceOpen | NoStartWithStartText);
-            
+
 
             if (!IsNameSpaceOpen)
             {
@@ -1250,7 +1273,7 @@ namespace BingsuCodeEditor
 
         #region #############키 입력#############
 
-
+        private int tooltiplaststartoffset;
         private void OpenTooltipBox(int startoffset)
         {
             if (!IsKeyUDDown)
@@ -1268,7 +1291,7 @@ namespace BingsuCodeEditor
             //double OrginYPos = 0;
 
             TextViewPosition LinePosition = aTextEditor.TextArea.Caret.Position;
-            
+            tooltiplaststartoffset = startoffset;
             TextViewPosition StartPosition = new TextViewPosition(aTextEditor.Document.GetLocation(startoffset));
             StartPosition.VisualColumn -= 1;
 
@@ -1331,7 +1354,10 @@ namespace BingsuCodeEditor
 
             //functooltip.PlacementTarget = aTextEditor;
             functooltip.Placement = System.Windows.Controls.Primitives.PlacementMode.Absolute;
-            if(completionWindow != null)
+
+            lastfunctooltip = aTextEditor.PointToScreen(new Point(0, 0));
+
+            if (completionWindow != null)
             {
                 completionWindow.ForceUpdatePosition();
             }
@@ -1790,10 +1816,10 @@ namespace BingsuCodeEditor
 
             if (functooltip.IsOpen)
             {
-                if (e.Key == Key.Up || e.Key == Key.Down)
-                {
-                    IsKeyUDDown = true;
-                }
+                //if (e.Key == Key.Up || e.Key == Key.Down)
+                //{
+                //    IsKeyUDDown = true;
+                //}
             }
 
             if (markSnippetWord.IsSnippetStart)
