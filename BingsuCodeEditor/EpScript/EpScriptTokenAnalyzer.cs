@@ -710,6 +710,12 @@ namespace BingsuCodeEditor.EpScript
                             main.innerFuncInfor.funcename = tlist;
                         }
                         argstartindex = tk.StartOffset;
+
+                        //if(!CheckCurrentToken(TOKEN_TYPE.Symbol, ";"))
+                        //{
+                        //    ThrowException(";이 필요합니다.", tk);
+                        //}
+
                         break;
                     }
                 }

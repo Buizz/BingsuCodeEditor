@@ -41,7 +41,7 @@ namespace BingsuCodeEditor
             Clear,
             Toggle
         }
-        public abstract void SetCommentLine(int start, int end, CommentType commentType);
+        public abstract void SetCommentLine(int start, int end, string intend, CommentType commentType);
 
 
 

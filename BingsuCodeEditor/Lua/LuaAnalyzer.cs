@@ -1118,7 +1118,7 @@ namespace BingsuCodeEditor.Lua
             return rstr;
         }
 
-        public override void SetCommentLine(int start, int end, CommentType commentType)
+        public override void SetCommentLine(int start, int end, string intend, CommentType commentType)
         {
             throw new NotImplementedException();
         }

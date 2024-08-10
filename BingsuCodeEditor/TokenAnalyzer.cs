@@ -219,6 +219,7 @@ namespace BingsuCodeEditor
             {
 
                 TOKEN tk = GetSafeTokenIten(IsReverse);
+                if (tk == null) break;
                 if (CheckCurrentToken(TOKEN_TYPE.Identifier))
                 {
                     rlist.Add(tk);

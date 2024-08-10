@@ -1336,92 +1336,66 @@ namespace BingsuCodeEditor.EpScript
             return rstr;
         }
 
-        public override void SetCommentLine(int start, int end, CommentType commentType)
+        public override void SetCommentLine(int start, int end, string intend, CommentType commentType)
         {
             int startLine = textEditor.Document.GetLineByOffset(start).LineNumber - 1;
             int endLine = textEditor.Document.GetLineByOffset(end).LineNumber - 1;
 
-            int minspacecount = int.MaxValue;
-            bool IsAllComment = true;
+
+            int minstartindexcount = int.MaxValue;
+
             for (int i = startLine; i <= endLine; i++)
             {
                 string line = textEditor.Document.GetText(textEditor.Document.Lines[i].Offset, textEditor.Document.Lines[i].TotalLength);
 
-                bool IsComment = false;
-                int commentcount = 0;
-                int spacecount = 0;
-                bool checksapce = false;
-                foreach (var c in line)
-                {
-                    if (char.IsWhiteSpace(c))
-                    {
-                        spacecount += 1;
-                    }
-                    else
-                    {
-                        if (!checksapce)
-                        {
-                            checksapce = true;
-                            if (c == '/')
-                            {
-                                commentcount++;
-                            }
-                            else { break; }
-                        }
-                        else
-                        {
-                            if(c == '/')
-                            {
-                                commentcount++;
-                                if(commentcount == 2)
-                                {
-                                    IsComment = true;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
+                if (line.Trim() == "") continue;
 
+                int cstartindex = line.IndexOf(line.TrimStart());
+                if(cstartindex != 0)
+                {
+                    if (minstartindexcount > cstartindex)
+                    {
+                        minstartindexcount = cstartindex;
                     }
                 }
 
-                if(spacecount <= minspacecount)
-                {
-                    minspacecount = spacecount;
-                }
-                if(!IsComment)
-                {
-                    IsAllComment = false;
-                }
             }
+            if (minstartindexcount == int.MaxValue) minstartindexcount = 0;
 
+
+            textEditor.Document.BeginUpdate();
             for (int i = startLine; i <= endLine; i++)
             {
                 int startoffset = textEditor.Document.Lines[i].Offset;
+                string line = textEditor.Document.GetText(startoffset, textEditor.Document.Lines[i].TotalLength);
+
+                if (line.Trim() == "") continue;
+
+                bool iscomment = line.Substring(minstartindexcount).StartsWith("//");
                 switch (commentType)
                 {
                     case CommentType.Set:
-                        DirectInsetText("//", startoffset + minspacecount);
+                        DirectInsetText("//", startoffset + minstartindexcount);
                         break;
                     case CommentType.Clear:
-                        DirectRemoveText(2, startoffset + minspacecount);
+                        if (iscomment)
+                        {
+                            DirectRemoveText(2, startoffset + minstartindexcount);
+                        }
                         break;
                     case CommentType.Toggle:
-                        if (!IsAllComment)
+                        if (iscomment)
                         {
-                            DirectInsetText("//", startoffset + minspacecount);
+                            DirectRemoveText(2, startoffset + minstartindexcount);
                         }
                         else
                         {
-                            DirectRemoveText(2, startoffset + minspacecount);
+                            DirectInsetText("//", startoffset + minstartindexcount);
                         }
                         break;
                 }
             }
-
+            textEditor.Document.EndUpdate();
         }
     }
 }

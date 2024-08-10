@@ -877,6 +877,8 @@ namespace BingsuCodeEditor
             dispatcherTimer.Dispatcher.UnhandledException += Dispatcher_UnhandledException;
             dispatcherTimer.Start();
 
+            DataObject.AddPastingHandler(this, PasteEvent);
+
 
             aTextEditor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
             aTextEditor.TextArea.TextEntered += TextArea_TextEntered;
@@ -886,6 +888,73 @@ namespace BingsuCodeEditor
             codeAnalyzer.codeFoldingManager.FoldingFlip(aTextEditor.SelectionStart, aTextEditor.SelectionLength)
             )));
             contextMenu.Items.Add(new Separator());
+        }
+
+        private void PasteEvent(object sender, DataObjectPastingEventArgs args)
+        {
+            string clipboard = args.DataObject.GetData(typeof(string)) as string;
+            
+            int coffset = aTextEditor.CaretOffset;
+
+            string tab = gettabspace(false);
+            string tabonce = gettabspace(true);
+
+            int intendcount = 0;
+            string[] lines = clipboard.Split('\n');
+            if(lines.Length > 1)
+            {
+                string inserttext = "";
+                foreach (var linetext in lines)
+                {
+                    if (linetext.Contains("}"))
+                    {
+                        if (intendcount > 0)
+                        {
+                            intendcount -= 1;
+                        }
+                    }
+
+                    if (inserttext != "") {
+                        inserttext += "\n";
+                        inserttext += tab;
+                        for (int i = 0; i < intendcount; i++)
+                        {
+                            inserttext += tabonce;
+                        }
+
+                        inserttext += linetext.TrimStart();
+                    }
+                    else
+                    {
+                        inserttext += linetext.TrimStart();
+                    }
+
+                    if (linetext.Contains("{"))
+                    {
+                        intendcount += 1;
+                    }
+                }
+                if(aTextEditor.SelectedText == "")
+                {
+                    aTextEditor.Document.Insert(aTextEditor.CaretOffset, inserttext);
+                }
+                else
+                {
+                    aTextEditor.SelectedText = inserttext;
+
+                    aTextEditor.SelectionLength = 0;
+                    if (gettabspace(false) == "")
+                    {
+                        aTextEditor.SelectedText = tab;
+                        //aTextEditor.CaretOffset += tab.Length;
+                    }
+                    aTextEditor.CaretOffset += inserttext.Length;
+                }
+
+                
+                
+                args.CancelCommand();
+            }
         }
 
 
@@ -1745,7 +1814,7 @@ namespace BingsuCodeEditor
         private bool IsKeyUDDown = false;
         private void aTextEditor_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if(e.SystemKey != Key.LeftCtrl && e.Key != Key.LeftCtrl)
+            if (e.SystemKey != Key.LeftCtrl && e.Key != Key.LeftCtrl)
             {
 
             }
@@ -1808,7 +1877,7 @@ namespace BingsuCodeEditor
                     {
                         TBCtrlValue.Visibility = Visibility.Collapsed;
                         LeftCtrlDown = false;
-                        codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, CodeAnalyzer.CommentType.Toggle);
+                        codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, gettabspace(true), CodeAnalyzer.CommentType.Toggle);
                     }
                     break;
             }
@@ -1965,7 +2034,7 @@ namespace BingsuCodeEditor
                     {
                         TBCtrlValue.Visibility = Visibility.Collapsed;
                         LeftCtrlDown = false;
-                        codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, CodeAnalyzer.CommentType.Toggle);
+                        codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, gettabspace(true), CodeAnalyzer.CommentType.Toggle);
                         e.Handled = true;
                     }
                     break;
@@ -2055,14 +2124,14 @@ namespace BingsuCodeEditor
                     {
                         case Key.U:
                             //주석 온
-                            codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, CodeAnalyzer.CommentType.Clear);
+                            codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, gettabspace(true), CodeAnalyzer.CommentType.Clear);
                             LastKey = Key.None;
                             LastSystemKey = Key.None;
                             ShortCutText.Text = "";
                             return true;
                         case Key.C:
                             //주석 오프
-                            codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, CodeAnalyzer.CommentType.Set);
+                            codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, gettabspace(true), CodeAnalyzer.CommentType.Set);
                             LastKey = Key.None;
                             LastSystemKey = Key.None;
                             ShortCutText.Text = "";
@@ -2224,6 +2293,16 @@ namespace BingsuCodeEditor
             if (markSnippetWord.IsSnippetStart)
             {
                 markSnippetWord.TypeChangeEnd();
+            }
+            
+            if (aTextEditor.TextArea.Selection.Segments.Count() > 1)
+            {
+                int lastoffset = aTextEditor.TextArea.Selection.Segments.Last().StartOffset;
+
+                aTextEditor.CaretOffset = lastoffset;
+                //aTextEditor.TextArea.Selection.Segments.Last().StartOffset
+
+                //aTextEditor.TextArea.Selection.SetEndpoint(new TextViewPosition(0, 0));
             }
         }
         #endregion
