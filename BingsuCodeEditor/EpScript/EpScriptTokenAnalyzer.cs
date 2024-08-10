@@ -517,6 +517,7 @@ namespace BingsuCodeEditor.EpScript
             if (CheckCurrentToken(TOKEN_TYPE.Symbol, "="))
             {
                 int index = 0;
+                int equalstarttokenindex = tokenindex;
                 while (true)
                 {
                     int starttokenindex = tokenindex;
@@ -525,14 +526,34 @@ namespace BingsuCodeEditor.EpScript
 
                     int endtokenindex = tokenindex;
 
-                    blocks[index].rawtext = GetTextFromToken(starttokenindex, endtokenindex);
 
                     if (blocks.Count <= index)
                     {
-                        ThrowException("대입 식의 수가 맞지 않습니다.", tk);
-                        break;
+                        if(blocks.Count == 1)
+                        {
+                            //튜플형
+                            blocks[0].rawtext = GetTextFromTokenToEndLine(equalstarttokenindex, ";");
+                            break;
+                        }
+                        else
+                        {
+                            ThrowException("대입 식의 수가 맞지 않습니다.", tk);
+                            break;
+                        }
                     }
-                    blocks[index++].values = varvalue;
+                    else
+                    {
+                        if(varvalue.Count >= 1 && varvalue[0].Value == "EUDArray")
+                        {
+                            blocks[index].rawtext = GetTextFromTokenToEndLine(equalstarttokenindex, ";");
+                        }
+                        else
+                        {
+                            blocks[index].rawtext = GetTextFromToken(starttokenindex, endtokenindex);
+                        }
+
+                        blocks[index++].values = varvalue;
+                    }
 
                     if(!CheckCurrentToken(TOKEN_TYPE.Symbol, ","))
                     {

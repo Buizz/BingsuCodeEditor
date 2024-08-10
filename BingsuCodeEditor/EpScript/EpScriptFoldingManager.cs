@@ -35,7 +35,20 @@ namespace BingsuCodeEditor.EpScript
 
                         Foldings.Add(new NewFolding(st, et));
                     }
-                }else if(tk.Type == CodeAnalyzer.TOKEN_TYPE.Comment)
+                    if (tk.Value == "[")
+                    {
+                        startOffset.Push(tk.StartOffset);
+                    }
+                    else if (tk.Value == "]")
+                    {
+                        if (startOffset.Count == 0) return;
+                        int st = startOffset.Pop();
+                        int et = tk.EndOffset;
+
+                        Foldings.Add(new NewFolding(st, et));
+                    }
+                }
+                else if(tk.Type == CodeAnalyzer.TOKEN_TYPE.Comment)
                 {
                     if (tk.Value == "/*region*/")
                     {

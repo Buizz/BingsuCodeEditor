@@ -103,6 +103,23 @@ namespace BingsuCodeEditor
         }
 
 
+        public string GetTextFromTokenToEndLine(int start, string endchar)
+        {
+            string r = "";
+            for (int i = start; i <= 100; i++)
+            {
+                if(tklist.Count < i)
+                {
+                    break;
+                }
+
+                r += tklist[i].Value;
+
+                if (tklist[i].Value == endchar) break;
+            }
+
+            return r;
+        }
 
         public List<ErrorToken> ErrorList = new List<ErrorToken>();
         public List<ErrorToken> TempErrorList = new List<ErrorToken>();

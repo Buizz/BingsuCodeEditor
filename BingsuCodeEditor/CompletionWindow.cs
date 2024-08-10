@@ -206,6 +206,11 @@ namespace BingsuCodeEditor
             CodeCompletionData item = (CodeCompletionData)completionList.SelectedItem;
             if (item != null)
             {
+                if(StartOffset == EndOffset)
+                {
+                    return;
+                }
+
                 item.Complete(this.TextArea, new AnchorSegment(this.TextArea.Document, this.StartOffset, this.EndOffset - this.StartOffset), e);
                 //if (item.Text.IndexOf("/") != -1)
                 //{
@@ -315,6 +320,7 @@ namespace BingsuCodeEditor
                 else
                 {
                     completionList.SelectItem(string.Empty);
+                    completionList.SelectedItem = null;
                 }
                 return;
             }
