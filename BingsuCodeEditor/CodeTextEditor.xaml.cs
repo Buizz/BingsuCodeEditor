@@ -929,11 +929,19 @@ namespace BingsuCodeEditor
                         inserttext += linetext.TrimStart();
                     }
 
+                    if(linetext == "\r")
+                    {
+                        inserttext = "\r";
+                    }
+
                     if (linetext.Contains("{"))
                     {
                         intendcount += 1;
                     }
                 }
+
+
+
                 if(aTextEditor.SelectedText == "")
                 {
                     aTextEditor.Document.Insert(aTextEditor.CaretOffset, inserttext);
