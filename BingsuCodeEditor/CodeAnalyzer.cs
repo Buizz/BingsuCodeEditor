@@ -882,6 +882,7 @@ namespace BingsuCodeEditor
             workComplete = false;
             LastAnalyzeText = text;
 
+
             currentoffset = caretoffset;
             _currenttokenIndex = -1;
             lasttokenIndex = -1;

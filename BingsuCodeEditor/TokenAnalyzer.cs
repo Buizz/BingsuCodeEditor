@@ -433,7 +433,7 @@ namespace BingsuCodeEditor
                 if (IsExist)
                 {
                     ThrowException("인덱스가 토근의 최대 크기를 넘겼습니다.", null);
-                    return false;
+                    return true;
                 }
                 return true;
             }

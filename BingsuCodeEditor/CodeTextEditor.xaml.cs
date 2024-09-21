@@ -38,7 +38,7 @@ namespace BingsuCodeEditor
     /// <summary>
     /// UserControl1.xaml에 대한 상호 작용 논리
     /// </summary>
-    public partial class CodeTextEditor : UserControl
+    public partial class CodeTextEditor : UserControl, IDisposable
     {
 
         #region #############프라이빗(코드분석)#############
@@ -182,19 +182,37 @@ namespace BingsuCodeEditor
         }
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            dispatcherTimer.Stop();
+            if(dispatcherTimer != null)
+            {
+                dispatcherTimer.Stop();
+                dispatcherTimer = null;
+            }
             //codeAnalyzer = null;
         }
+
+
+        public void Dispose()
+        {
+            dispatcherTimer.Stop();
+            dispatcherTimer = null;
+        }
+
+
 
         DateTime bgStartTime;
 
         Point lastfunctooltip;
+
+        private string lastcode;
+        private int lastoffset;
         private void DispatcherTimer_Tick(object sender, EventArgs e)
         {
             if (codeAnalyzer != null && (bg == null || !bg.IsBusy))
             {
                 string codeText = aTextEditor.Text;
                 int offset = aTextEditor.CaretOffset;
+
+
 
                 bg = new BackgroundWorker();
 
@@ -205,7 +223,18 @@ namespace BingsuCodeEditor
                 object[] args = { codeText, offset };
 
                 bgStartTime = DateTime.Now;
-                bg.RunWorkerAsync(args);
+
+                if (aTextEditor.IsKeyboardFocusWithin)
+                {
+                    if(lastcode != codeText || lastoffset != offset)
+                    {
+                        lastcode = codeText;
+                        lastoffset = offset;
+
+                        bg.RunWorkerAsync(args);
+                    }
+                }
+
 
                 if (functooltip.IsOpen)
                 {
@@ -217,6 +246,7 @@ namespace BingsuCodeEditor
                         OpenTooltipBox(tooltiplaststartoffset);
                     }
                 }
+
             }
             else if (bg != null && bg.IsBusy)
             {
@@ -241,6 +271,7 @@ namespace BingsuCodeEditor
         }
 
         int lastfunclabelstartoffset = 0;
+        private string lasttexted = "";
         private void Bg_DoWork(object sender, DoWorkEventArgs e)
          {
             object[] args = (object[])e.Argument;
@@ -311,7 +342,10 @@ namespace BingsuCodeEditor
                     {
                         highLightSelectItem();
                     }
-                    dispatcherTimer.Interval = TimeSpan.FromMilliseconds(interval.TotalMilliseconds * 2);
+                    if(dispatcherTimer != null)
+                    {
+                        dispatcherTimer.Interval = TimeSpan.FromMilliseconds(interval.TotalMilliseconds * 2);
+                    }
 
                     if (IsKeyDown)
                     {
@@ -348,7 +382,6 @@ namespace BingsuCodeEditor
                     if (functooltip.IsOpen && funclabelstartoffset != lastfunclabelstartoffset)
                     {
                         CloseTooltipBox();
-           
                     }
 
 
@@ -799,6 +832,7 @@ namespace BingsuCodeEditor
 
         #region #############초기화#############
 
+
         ToolTip toolTip;
         TextEditor toolTipTextbox;
         ToolTip functooltip;
@@ -856,6 +890,8 @@ namespace BingsuCodeEditor
             aTextEditor.Options.ConvertTabsToSpaces = true;
             aTextEditor.TextArea.SelectionCornerRadius = 0.1;
             aTextEditor.Options.HighlightCurrentLine = true;
+
+
 
             searchPanel = SearchPanel.Install(aTextEditor);
             CBFontSize.Items.Clear();
@@ -1818,289 +1854,6 @@ namespace BingsuCodeEditor
 
 
 
-        private bool IsKeyDown = false;
-        private bool IsKeyUDDown = false;
-        private void aTextEditor_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.SystemKey != Key.LeftCtrl && e.Key != Key.LeftCtrl)
-            {
-
-            }
-
-            if(e.Key == Key.F9)
-            {
-                IsDebug = !IsDebug;
-            }
-
-
-            string input = e.Key.ToString();
-            if (!LeftCtrlDown && !LeftShiftDown)
-            {
-                if (input == "OemPeriod")
-                {
-                    //
-                    //codeAnalyzer.GetToken(0);
-                    //.일경우 네임스페이스 확인
-                    //return;
-                }
-                else
-                {
-                    //CompletionWindowOpenAsync(input);
-                }
-            }
-            if (SnippetDraw(e.SystemKey, e.Key))
-            {
-                e.Handled = true;
-                return;
-            }
-            switch (e.SystemKey)
-            {
-                case Key.LeftCtrl:
-                    TBCtrlValue.Visibility = Visibility.Visible;
-                    LeftCtrlDown = true;
-                    break;
-                case Key.LeftShift:
-                    TBShiftValue.Visibility = Visibility.Visible;
-                    LeftShiftDown = true;
-                    break;
-                case Key.LeftAlt:
-                    TBAltValue.Visibility = Visibility.Visible;
-                    LeftAltDown = true;
-                    e.Handled = true;
-                    break;
-                case Key.Up:
-                    if (LeftAltDown && !LeftShiftDown)
-                    {
-                        LineChange(true);
-                    }
-                    break;
-                case Key.Down:
-                    if (LeftAltDown && !LeftShiftDown)
-                    {
-                        LineChange(false);
-                    }
-                    break;
-                case Key.ImeProcessed:
-                    if (LeftCtrlDown)
-                    {
-                        TBCtrlValue.Visibility = Visibility.Collapsed;
-                        LeftCtrlDown = false;
-                        codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, gettabspace(true), CodeAnalyzer.CommentType.Toggle);
-                    }
-                    break;
-            }
-
-
-            if (functooltip.IsOpen)
-            {
-                //if (e.Key == Key.Up || e.Key == Key.Down)
-                //{
-                //    IsKeyUDDown = true;
-                //}
-            }
-
-            if (markSnippetWord.IsSnippetStart)
-            {
-                if(e.Key != Key.Up && e.Key != Key.Down)
-                {
-                    if (!markSnippetWord.TypeChangeStart())
-                    {
-                        SnippetEnd(false);
-                    }
-                }
-           
-            }
-
-
-            switch (e.Key)
-            {
-                case Key.Left:
-                    TabMove(true);
-                    break;
-                case Key.Right:
-                    TabMove(false);
-                    break;
-                case Key.Tab:
-                case Key.Up:
-                case Key.Down:
-                case Key.Enter:
-                    if (completionWindow != null)
-                    {
-                        if (completionWindow.CompletionList.ListBox.Items.Count == 0)
-                        {
-                            completionWindow.Close();
-                        }
-                    }
-                    break;
-            }
-
-    
-
-
-            switch (e.Key)
-            {
-                case Key.Back:
-                    {
-                        if (codeAnalyzer.AutoDefaultRemove())
-                        {
-                            e.Handled = true;
-                            break;
-                        }
-
-
-                        if (codeAnalyzer.AutoRemove())
-                        {
-                            e.Handled = true;
-                            break;
-                        }
-
-
-                        var currentLine = aTextEditor.Document.GetLineByOffset(aTextEditor.CaretOffset);
-                        int len = currentLine.Length;
-                        if (len % 4 == 0 && len != 0)
-                        {
-                            //4의 배수일 경우
-                            if (aTextEditor.SelectionLength == 0 && aTextEditor.SelectionStart >= 4)
-                            {
-                                int lineoffset = currentLine.Offset;
-                                //라인의 끝일 경우
-                                if (aTextEditor.CaretOffset == lineoffset + len)
-                                {
-                                    string line = aTextEditor.Document.GetText(lineoffset, len);
-
-
-                                    if (aTextEditor.Options.ConvertTabsToSpaces)
-                                    {
-                                        if (line.Replace(" ", "") == "")
-                                        {
-                                            e.Handled = true;
-                                            //모든 문자열이 스페이스
-                                            aTextEditor.SelectionStart -= aTextEditor.Options.IndentationSize;
-                                            aTextEditor.SelectionLength = aTextEditor.Options.IndentationSize;
-                                            aTextEditor.SelectedText = "";
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (line.Replace("\t", "") == "")
-                                        {
-                                            e.Handled = true;
-                                            //모든 문자열이 스페이스
-                                            aTextEditor.SelectionStart -= 1;
-                                            aTextEditor.SelectionLength = 1;
-                                            aTextEditor.SelectedText = "";
-                                        }
-                                    }
-
-                                   
-                                }
-                            }
-                        }
-                    }       
-                    break;
-                case Key.OemQuotes:
-                    //""로 감싸기 등
-                    {
-                        int len = aTextEditor.SelectionLength;
-
-                        if(len != 0)
-                        {
-                            e.Handled = true;
-                            aTextEditor.SelectionLength = 0;
-                            aTextEditor.SelectedText = "\"";
-                            aTextEditor.SelectionLength = 0;
-                            aTextEditor.SelectionStart += len + 1;
-                            aTextEditor.SelectedText = "\"";
-                            aTextEditor.SelectionStart -= len;
-                            aTextEditor.SelectionLength = len;
-                        }
-                    }
-                    break;
-                case Key.LeftCtrl:
-                    TBCtrlValue.Visibility = Visibility.Visible;
-                    LeftCtrlDown = true;
-                    break;
-                case Key.LeftShift:
-                    TBShiftValue.Visibility = Visibility.Visible;
-                    LeftShiftDown = true;
-                    break;
-                case Key.LeftAlt:
-                    TBAltValue.Visibility = Visibility.Visible;
-                    LeftAltDown = true;
-                    break;
-                case Key.F:
-                    if (LeftCtrlDown)
-                    {
-                        TBCtrlValue.Visibility = Visibility.Collapsed;
-                        LeftCtrlDown = false;
-                        SearchPanelOpen();
-                    }
-                    break;
-                //case Key.ImeProcessed:
-                case Key.OemQuestion:
-                    if (LeftCtrlDown)
-                    {
-                        TBCtrlValue.Visibility = Visibility.Collapsed;
-                        LeftCtrlDown = false;
-                        codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, gettabspace(true), CodeAnalyzer.CommentType.Toggle);
-                        e.Handled = true;
-                    }
-                    break;
-                case Key.Escape:
-                    if (IsSearchPanelOpen)
-                    {
-                        SearchPanelClose();
-                    }                        
-                    break;
-                case Key.Tab:
-                    if (TabAutoSnippetStart())
-                    {
-                        if(completionWindow != null)
-                        {
-                            completionWindow.Close();
-                        }
-                        e.Handled = true;
-                    }                 
-                    break;
-                case Key.Enter:
-                    {
-                        string fstr = codeAnalyzer.GetDirectText(-1);
-                        string bstr = codeAnalyzer.GetDirectText(0);
-
-                        int spacecount = 0;
-                        string tabstr = gettabspace(false);
-                        spacecount = tabstr.Length;
-
-                        string tabonce = gettabspace(true);
-
-                        if (fstr == "{")
-                        {
-                            e.Handled = true;
-                            codeAnalyzer.DirectInsetTextFromCaret("\n" + tabstr + tabonce, IsMove: true);
-
-                            if (bstr == "}")
-                            {
-                                codeAnalyzer.DirectInsetTextFromCaret("\n" + tabstr, IsMove: false);
-                            }
-                        }
-                    }
-                    break;
-            }
-            if(e.Key.ToString().Length == 1)
-            {
-                if(ShortCut(e.Key)) e.Handled = true;
-            }
-
-            bool rval = codeAnalyzer.AutoInsert(e.Key.ToString());
-            if(!e.Handled)
-            {
-                e.Handled = rval;
-            }
-
-            IsKeyDown = true;
-        }
-
-
         private Key LastKey;
         private Key LastSystemKey;
         private bool ShortCut(Key key)
@@ -2255,6 +2008,458 @@ namespace BingsuCodeEditor
 
 
 
+        private bool IsKeyDown = false;
+        private bool IsKeyUDDown = false;
+
+        private int previewKeyDownSelectionRow = 0;
+        private int previewKeyDownSelectionIndex = 0;
+
+        private void aTextEditor_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.SystemKey != Key.LeftCtrl && e.Key != Key.LeftCtrl)
+            {
+
+            }
+
+            if (aTextEditor.TextArea.Selection.Segments.Count() > 1)
+            {
+                if (e.Key == Key.Back || e.Key == Key.Delete)
+                {
+                    List<SelectionSegment> selectionSegments = aTextEditor.TextArea.Selection.Segments.ToList();
+
+                    int itemlen = 0;
+
+                    selectionSegments.Reverse();
+                    aTextEditor.Document.BeginUpdate();
+                    foreach (SelectionSegment item in selectionSegments)
+                    {
+                        itemlen += item.Length;
+                        if (item.Length > 0)
+                        {
+                            aTextEditor.Document.Remove(item);
+                        }
+                        else
+                        {
+                            if (e.Key == Key.Back)
+                            {
+                                if (item.StartOffset != 0)
+                                {
+                                    //aTextEditor.Document.Remove(item.EndOffset - 1, 1);
+
+                                }
+                            }
+                            else if (e.Key == Key.Delete)
+                            {
+                                DocumentLine documentLine = aTextEditor.TextArea.Document.GetLineByOffset(item.StartOffset);
+
+                                if (item.StartOffset != documentLine.EndOffset)
+                                {
+                                    aTextEditor.Document.Remove(item.StartOffset, 1);
+                                }
+                            }
+                        }
+                    }
+
+
+                    if (e.Key == Key.Back && itemlen == 0)
+                    {
+                        if(selectionSegments.Last().StartOffset > 0)
+                        {
+                            TextViewPosition startposition = new TextViewPosition(aTextEditor.TextArea.Document.GetLocation(selectionSegments.Last().StartOffset));
+                            TextViewPosition endposition = new TextViewPosition(aTextEditor.TextArea.Document.GetLocation(selectionSegments.First().EndOffset));
+
+                            if(startposition.Column > 1)
+                            {
+
+                                startposition.VisualColumn = selectionSegments.Last().StartVisualColumn - 1;
+                                endposition.VisualColumn = selectionSegments.First().StartVisualColumn - 1;
+
+                                if (selectionSegments.Last().StartVisualColumn == (startposition.Column - 1) && selectionSegments.First().StartVisualColumn == (endposition.Column - 1))
+                                {
+                                    startposition.Column -= 1;
+                                    endposition.Column -= 1;
+                                    aTextEditor.SelectionStart -= 1;
+                                }
+
+
+                                List<bool> isvirtual = new List<bool>();
+                                int rcount = 0;
+                                bool isfit = false;
+                                foreach (var item in selectionSegments)
+                                {
+                                    TextViewPosition cpos = new TextViewPosition(aTextEditor.TextArea.Document.GetLocation(item.StartOffset));
+
+                                    if (item.StartVisualColumn == (cpos.Column - 1))
+                                    {
+                                        isvirtual.Add(true);
+                                        rcount += 1;
+                                    }
+                                    else
+                                    {
+                                        isvirtual.Add(false);
+                                    }
+                                }
+                                if(rcount == selectionSegments.Count)
+                                {
+                                    isfit = true;
+                                }
+
+
+
+                                RectangleSelection t = new ICSharpCode.AvalonEdit.Editing.RectangleSelection(aTextEditor.TextArea, startposition, endposition);
+                                aTextEditor.TextArea.Selection = t;
+
+
+                                List<SelectionSegment> n = aTextEditor.TextArea.Selection.Segments.ToList();
+                                n.Reverse();
+
+                                int len = 0;
+                                foreach (SelectionSegment item in n)
+                                {
+                                    len += item.Length;
+                                }
+
+                                int index = 0;
+                                foreach (SelectionSegment item in n)
+                                {
+                                    if (!isfit && isvirtual.First())
+                                    {
+                                        if (isvirtual[index])
+                                        {
+                                            aTextEditor.Document.Remove(item.StartOffset, 1);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (len == 0)
+                                        {
+                                            aTextEditor.Document.Remove(item.StartOffset, 1);
+                                        }
+                                        else
+                                        {
+                                            if (item.Length > 0)
+                                            {
+                                                aTextEditor.Document.Remove(item.StartOffset, 1);
+                                                //aTextEditor.Document.Remove(item);
+                                            }
+                                        }
+                                    }
+                                    index++;
+                                }
+                            }
+                        }
+                    }
+
+
+                    selectionSegments = aTextEditor.TextArea.Selection.Segments.ToList();
+                    int _len = 0;
+                    foreach (SelectionSegment item in selectionSegments)
+                    {
+                        if(_len < item.Length)
+                        {
+                            _len = item.Length;
+                        }
+                    }
+
+                    if(_len != 0)
+                    {
+                        //0이 아니면 선택리스트 제거해준다.
+
+                        TextViewPosition startposition = new TextViewPosition(aTextEditor.TextArea.Document.GetLocation(selectionSegments.Last().StartOffset));
+                        TextViewPosition endposition = new TextViewPosition(aTextEditor.TextArea.Document.GetLocation(selectionSegments.First().StartOffset));
+
+                        startposition.VisualColumn = selectionSegments.Last().StartVisualColumn;
+                        endposition.VisualColumn = selectionSegments.First().StartVisualColumn;
+
+                        //endposition.Column -= _len + 2;
+
+                        RectangleSelection t = new ICSharpCode.AvalonEdit.Editing.RectangleSelection(aTextEditor.TextArea, startposition, endposition);
+                        aTextEditor.TextArea.Selection = t;
+                    }
+
+
+                    aTextEditor.Document.EndUpdate();
+
+
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            if (e.Key == Key.F9)
+            {
+                IsDebug = !IsDebug;
+            }
+
+
+            string input = e.Key.ToString();
+            if (!LeftCtrlDown && !LeftShiftDown)
+            {
+                if (input == "OemPeriod")
+                {
+                    //
+                    //codeAnalyzer.GetToken(0);
+                    //.일경우 네임스페이스 확인
+                    //return;
+                }
+                else
+                {
+                    //CompletionWindowOpenAsync(input);
+                }
+            }
+            if (SnippetDraw(e.SystemKey, e.Key))
+            {
+                e.Handled = true;
+                return;
+            }
+            switch (e.SystemKey)
+            {
+                case Key.LeftCtrl:
+                    TBCtrlValue.Visibility = Visibility.Visible;
+                    LeftCtrlDown = true;
+                    break;
+                case Key.LeftShift:
+                    TBShiftValue.Visibility = Visibility.Visible;
+                    LeftShiftDown = true;
+                    break;
+                case Key.LeftAlt:
+                    TBAltValue.Visibility = Visibility.Visible;
+                    LeftAltDown = true;
+                    e.Handled = true;
+                    break;
+                case Key.Up:
+                    if (LeftAltDown && !LeftShiftDown)
+                    {
+                        LineChange(true);
+                    }
+                    break;
+                case Key.Down:
+                    if (LeftAltDown && !LeftShiftDown)
+                    {
+                        LineChange(false);
+                    }
+                    break;
+                case Key.ImeProcessed:
+                    if (LeftCtrlDown)
+                    {
+                        TBCtrlValue.Visibility = Visibility.Collapsed;
+                        LeftCtrlDown = false;
+                        codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, gettabspace(true), CodeAnalyzer.CommentType.Toggle);
+                    }
+                    break;
+            }
+
+
+            if (functooltip.IsOpen)
+            {
+                if (e.SystemKey == Key.Up || e.SystemKey == Key.Down || e.Key == Key.Up || e.Key == Key.Down)
+                {
+                    IsKeyUDDown = true;
+                }
+            }
+
+            if (markSnippetWord.IsSnippetStart)
+            {
+                if (e.Key != Key.Up && e.Key != Key.Down)
+                {
+                    if (!markSnippetWord.TypeChangeStart())
+                    {
+                        SnippetEnd(false);
+                    }
+                }
+
+            }
+
+
+            switch (e.Key)
+            {
+                case Key.Left:
+                    TabMove(true);
+                    break;
+                case Key.Right:
+                    TabMove(false);
+                    break;
+                case Key.Tab:
+                case Key.Up:
+                case Key.Down:
+                case Key.Enter:
+                    if (completionWindow != null)
+                    {
+                        if (completionWindow.CompletionList.ListBox.Items.Count == 0)
+                        {
+                            completionWindow.Close();
+                        }
+                    }
+                    break;
+            }
+
+
+
+
+            switch (e.Key)
+            {
+                case Key.Back:
+                    {
+                        if (codeAnalyzer.AutoDefaultRemove())
+                        {
+                            e.Handled = true;
+                            break;
+                        }
+
+
+                        if (codeAnalyzer.AutoRemove())
+                        {
+                            e.Handled = true;
+                            break;
+                        }
+
+
+                        var currentLine = aTextEditor.Document.GetLineByOffset(aTextEditor.CaretOffset);
+                        int len = currentLine.Length;
+                        if (len % 4 == 0 && len != 0)
+                        {
+                            //4의 배수일 경우
+                            if (aTextEditor.SelectionLength == 0 && aTextEditor.SelectionStart >= 4)
+                            {
+                                int lineoffset = currentLine.Offset;
+                                //라인의 끝일 경우
+                                if (aTextEditor.CaretOffset == lineoffset + len)
+                                {
+                                    string line = aTextEditor.Document.GetText(lineoffset, len);
+
+
+                                    if (aTextEditor.Options.ConvertTabsToSpaces)
+                                    {
+                                        if (line.Replace(" ", "") == "")
+                                        {
+                                            e.Handled = true;
+                                            //모든 문자열이 스페이스
+                                            aTextEditor.SelectionStart -= aTextEditor.Options.IndentationSize;
+                                            aTextEditor.SelectionLength = aTextEditor.Options.IndentationSize;
+                                            aTextEditor.SelectedText = "";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (line.Replace("\t", "") == "")
+                                        {
+                                            e.Handled = true;
+                                            //모든 문자열이 스페이스
+                                            aTextEditor.SelectionStart -= 1;
+                                            aTextEditor.SelectionLength = 1;
+                                            aTextEditor.SelectedText = "";
+                                        }
+                                    }
+
+
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case Key.OemQuotes:
+                    //""로 감싸기 등
+                    {
+                        int len = aTextEditor.SelectionLength;
+
+                        if (len != 0)
+                        {
+                            e.Handled = true;
+                            aTextEditor.SelectionLength = 0;
+                            aTextEditor.SelectedText = "\"";
+                            aTextEditor.SelectionLength = 0;
+                            aTextEditor.SelectionStart += len + 1;
+                            aTextEditor.SelectedText = "\"";
+                            aTextEditor.SelectionStart -= len;
+                            aTextEditor.SelectionLength = len;
+                        }
+                    }
+                    break;
+                case Key.LeftCtrl:
+                    TBCtrlValue.Visibility = Visibility.Visible;
+                    LeftCtrlDown = true;
+                    break;
+                case Key.LeftShift:
+                    TBShiftValue.Visibility = Visibility.Visible;
+                    LeftShiftDown = true;
+                    break;
+                case Key.LeftAlt:
+                    TBAltValue.Visibility = Visibility.Visible;
+                    LeftAltDown = true;
+                    break;
+                case Key.F:
+                    if (LeftCtrlDown)
+                    {
+                        TBCtrlValue.Visibility = Visibility.Collapsed;
+                        LeftCtrlDown = false;
+                        SearchPanelOpen();
+                    }
+                    break;
+                //case Key.ImeProcessed:
+                case Key.OemQuestion:
+                    if (LeftCtrlDown)
+                    {
+                        TBCtrlValue.Visibility = Visibility.Collapsed;
+                        LeftCtrlDown = false;
+                        codeAnalyzer.SetCommentLine(aTextEditor.SelectionStart, aTextEditor.SelectionStart + aTextEditor.SelectionLength, gettabspace(true), CodeAnalyzer.CommentType.Toggle);
+                        e.Handled = true;
+                    }
+                    break;
+                case Key.Escape:
+                    if (IsSearchPanelOpen)
+                    {
+                        SearchPanelClose();
+                    }
+                    break;
+                case Key.Tab:
+                    if (TabAutoSnippetStart())
+                    {
+                        if (completionWindow != null)
+                        {
+                            completionWindow.Close();
+                        }
+                        e.Handled = true;
+                    }
+                    break;
+                case Key.Enter:
+                    {
+                        string fstr = codeAnalyzer.GetDirectText(-1);
+                        string bstr = codeAnalyzer.GetDirectText(0);
+
+                        int spacecount = 0;
+                        string tabstr = gettabspace(false);
+                        spacecount = tabstr.Length;
+
+                        string tabonce = gettabspace(true);
+
+                        if (fstr == "{")
+                        {
+                            e.Handled = true;
+                            codeAnalyzer.DirectInsetTextFromCaret("\n" + tabstr + tabonce, IsMove: true);
+
+                            if (bstr == "}")
+                            {
+                                codeAnalyzer.DirectInsetTextFromCaret("\n" + tabstr, IsMove: false);
+                            }
+                        }
+                    }
+                    break;
+            }
+            if (e.Key.ToString().Length == 1)
+            {
+                if (ShortCut(e.Key)) e.Handled = true;
+            }
+
+            bool rval = codeAnalyzer.AutoInsert(e.Key.ToString());
+            if (!e.Handled)
+            {
+                e.Handled = rval;
+            }
+
+            IsKeyDown = true;
+        }
+
+
         private void aTextEditor_PreviewKeyUp(object sender, KeyEventArgs e)
         {
 
@@ -2303,15 +2508,40 @@ namespace BingsuCodeEditor
                 markSnippetWord.TypeChangeEnd();
             }
             
-            if (aTextEditor.TextArea.Selection.Segments.Count() > 1)
-            {
-                int lastoffset = aTextEditor.TextArea.Selection.Segments.Last().StartOffset;
 
-                aTextEditor.CaretOffset = lastoffset;
-                //aTextEditor.TextArea.Selection.Segments.Last().StartOffset
+            
+            //if (previewKeyDownSelectionRow > 0)
+            //{
+            //    if (previewKeyDownSelectionRow > 0
+            //        && (e.Key == Key.Back || e.Key == Key.Delete))
+            //    {
 
-                //aTextEditor.TextArea.Selection.SetEndpoint(new TextViewPosition(0, 0));
-            }
+            //        if(previewKeyDownSelectionRow != aTextEditor.TextArea.Selection.Segments.Count())
+            //        {
+
+            //        }
+            //        else
+            //        {
+            //            int k = 0;
+            //            foreach (var item in aTextEditor.TextArea.Selection.Segments)
+            //            {
+            //                if (previewKeyDownSelectionIndex == k)
+            //                {
+            //                    aTextEditor.CaretOffset = item.StartOffset;
+            //                    break;
+            //                }
+
+
+            //                k++;
+            //            }
+            //        }
+            //    }
+
+
+            //    previewKeyDownSelectionRow = -1;
+            //    previewKeyDownSelectionIndex = -1;
+            //}
+            
         }
         #endregion
 
@@ -2541,11 +2771,6 @@ namespace BingsuCodeEditor
                 }
             }
         }
-
-
-
-
-
 
 
         #endregion

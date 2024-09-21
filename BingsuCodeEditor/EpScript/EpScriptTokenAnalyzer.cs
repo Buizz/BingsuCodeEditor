@@ -180,7 +180,11 @@ namespace BingsuCodeEditor.EpScript
                                 int importstart = tk.EndOffset;
 
                                 tk = GetCurrentToken();
-
+                                if(tk == null)
+                                {
+                                    ThrowException("import문이 정상적으로 종료되지 않았습니다.", tk);
+                                    break;
+                                }
                                 if(importstart < startindex && startindex < tk.StartOffset)
                                 {
                                     //현재 공백으로 입력중

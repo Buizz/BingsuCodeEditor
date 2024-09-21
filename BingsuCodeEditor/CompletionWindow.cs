@@ -132,6 +132,11 @@ namespace BingsuCodeEditor
 
         void completionList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if(this.TextArea.Caret.Offset - StartOffset < 0)
+            {
+                return;
+            }
+
             string input = this.TextArea.Document.GetText(StartOffset, this.TextArea.Caret.Offset - StartOffset);
             int t;
             if (int.TryParse(input, out t))
