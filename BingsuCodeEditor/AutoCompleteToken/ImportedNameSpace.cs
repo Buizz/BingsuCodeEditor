@@ -9,6 +9,8 @@ namespace BingsuCodeEditor.AutoCompleteToken
 {
     public class ImportedNameSpace
     {
+        public Container parentcontainer;
+
         public string mainname;
         public string shortname;
 

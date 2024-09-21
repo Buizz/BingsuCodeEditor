@@ -9,6 +9,9 @@ namespace BingsuCodeEditor.Lua
 {
     internal class LuaFunction : Function
     {
+        public LuaFunction(Container parentcontainer, CodeAnalyzer.TOKEN StartToken) : base(parentcontainer, StartToken)
+        {
+        }
 
         private void SetSummary(string type, string sectype, string content, string argtype)
         {

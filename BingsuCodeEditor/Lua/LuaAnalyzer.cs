@@ -686,13 +686,13 @@ namespace BingsuCodeEditor.Lua
 
                 if (objcon != null)
                 {
-                    var = objcon.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
+                    var = objcon.vars.Find(x => (x.BlockName == objname && lscope.Contains(x.Scope)));
                     obj = objcon.objs.Find(x => (x.mainname == objname));
                     func = objcon.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
                 }
                 else
                 {
-                    var = ccon.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
+                    var = ccon.vars.Find(x => (x.BlockName == objname && lscope.Contains(x.Scope)));
                     obj = ccon.objs.Find(x => (x.mainname == objname));
                     func = ccon.funcs.Find(x => (x.funcname == objname && lscope.Contains(x.scope)));
                     importedNameSpace = ccon.importedNameSpaces.Find(x => (x.shortname == objname));
@@ -702,7 +702,7 @@ namespace BingsuCodeEditor.Lua
                 {
                     if (var == null)
                     {
-                        var = DefaultFuncContainer.vars.Find(x => (x.blockname == objname && lscope.Contains(x.scope)));
+                        var = DefaultFuncContainer.vars.Find(x => (x.BlockName == objname && lscope.Contains(x.Scope)));
                     }
                     if (obj == null)
                     {
@@ -915,11 +915,11 @@ namespace BingsuCodeEditor.Lua
                     object _obj;
 
 
-                    if (!string.IsNullOrEmpty(var.blocktype))
+                    if (!string.IsNullOrEmpty(var.BlockType))
                     {
                         List<string> list = new List<string>();
 
-                        list.Add(var.blocktype);
+                        list.Add(var.BlockType);
 
 
                         //타입이 지정되어 있을 경우
@@ -936,7 +936,7 @@ namespace BingsuCodeEditor.Lua
                         }
 
 
-                        if (objcon != null && var.blocktype == "selftype")
+                        if (objcon != null && var.BlockType == "selftype")
                         {
                             _obj = objcon;
                         }
@@ -944,18 +944,18 @@ namespace BingsuCodeEditor.Lua
                     else
                     {
                         //그 외
-                        _obj = GetObjectFromName(var.values, ccon, FindType.Obj);
+                        _obj = GetObjectFromName(var.Values, ccon, FindType.Obj);
                         if (_obj == null && DefaultFuncContainer != null)
                         {
-                            _obj = GetObjectFromName(var.values, DefaultFuncContainer, FindType.Obj);
+                            _obj = GetObjectFromName(var.Values, DefaultFuncContainer, FindType.Obj);
                         }
                         if (_obj == null)
                         {
                             //함수 일 가능성이 있음
-                            _obj = GetObjectFromName(var.values, ccon, FindType.Func);
+                            _obj = GetObjectFromName(var.Values, ccon, FindType.Func);
                             if (_obj == null && DefaultFuncContainer != null)
                             {
-                                _obj = GetObjectFromName(var.values, DefaultFuncContainer, FindType.Func);
+                                _obj = GetObjectFromName(var.Values, DefaultFuncContainer, FindType.Func);
                             }
                             if (_obj != null)
                             {
@@ -1062,16 +1062,16 @@ namespace BingsuCodeEditor.Lua
                 {
                     case "Block":
                         Block var = (Block)o;
-                        rstr = var.blockdefine + " " + rstr;
-                        if (!string.IsNullOrEmpty(var.blocktype))
+                        rstr = var.BlockDefine + " " + rstr;
+                        if (!string.IsNullOrEmpty(var.BlockType))
                         {
-                            rstr += ":" + var.blocktype;
+                            rstr += ":" + var.BlockType;
                         }
 
-                        if (var.values != null && var.values.Count != 0)
+                        if (var.Values != null && var.Values.Count != 0)
                         {
                             string v = "";
-                            foreach (var item in var.values)
+                            foreach (var item in var.Values)
                             {
                                 if (v != "")
                                 {

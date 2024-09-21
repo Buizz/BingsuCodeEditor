@@ -85,12 +85,12 @@ namespace BingsuCodeEditor.EpScript
 
                                 foreach (var item in b)
                                 {
-                                    item.scope = scope;
+                                    item.Scope = scope;
 
 
-                                    if (cc.CheckIdentifier(scope, item.blockname))
+                                    if (cc.CheckIdentifier(scope, item.BlockName))
                                     {
-                                        ThrowException("변수 " + item.blockname + "는 이미 선언되어 있습니다.", tk, 1);
+                                        ThrowException("변수 " + item.BlockName + "는 이미 선언되어 있습니다.", tk, 1);
                                     }
 
 
@@ -134,9 +134,9 @@ namespace BingsuCodeEditor.EpScript
                                     }
 
 
-                                    forvar = new Block("const", tk.Value);
+                                    forvar = new Block(rcontainer, "const", tk.Value, tk);
 
-                                    forvar.scope = scope;
+                                    forvar.Scope = scope;
                                     forblocks.Add(forvar);
 
                                     cc.vars.Add(forvar);
@@ -163,7 +163,7 @@ namespace BingsuCodeEditor.EpScript
 
                                     if(forvar != null)
                                     {
-                                        forvar.values = IdentifierFAnalyzer(cc, scope, tk, startindex, main: rcontainer);
+                                        forvar.Values = IdentifierFAnalyzer(cc, scope, tk, startindex, main: rcontainer);
                                     }
                                 }
 
@@ -258,7 +258,7 @@ namespace BingsuCodeEditor.EpScript
                                 //본인의 이름과 파일 이름을 넘겨야함.
                                 break;
                             case "function":
-                                Function function = FunctionAnalyzer(startindex, scope);
+                                Function function = FunctionAnalyzer(rcontainer, startindex, scope);
 
                                 //if(rcontainer.funcs.Find(x=> ((x.funcname == function.funcname) && (x.IsPredefine == false))) != null)
                                 //{
@@ -289,8 +289,8 @@ namespace BingsuCodeEditor.EpScript
                                 //매게변수 추가
                                 foreach (var item in function.args)
                                 {
-                                    Block bl = new Block("var", item.argname, item.argtype, IsArg: true);
-                                    bl.scope = scope + "." + (currentscope + 1).ToString().PadLeft(4, '0');
+                                    Block bl = new Block(rcontainer, "var", item.argname, tk, item.argtype, IsArg: true);
+                                    bl.Scope = scope + "." + (currentscope + 1).ToString().PadLeft(4, '0');
                                     cc.vars.Add(bl);
                                 }
                                 //function fname(args){}
@@ -392,7 +392,7 @@ namespace BingsuCodeEditor.EpScript
                                 {
                                     foreach (var item in forblocks)
                                     {
-                                        item.scope = scope;
+                                        item.Scope = scope;
                                     }
 
                                     forstart = false;
@@ -502,7 +502,7 @@ namespace BingsuCodeEditor.EpScript
                     vartype = tk.Value;
                 }
 
-                blocks.Add(new Block(varconst, varname, vartype, varvalue));
+                blocks.Add(new Block(container, varconst, varname, tk, vartype, varvalue));
                 if (CheckCurrentToken(TOKEN_TYPE.Symbol, ","))
                 {
                     //다중 선언일 경우
@@ -536,7 +536,7 @@ namespace BingsuCodeEditor.EpScript
                         if(blocks.Count == 1)
                         {
                             //튜플형
-                            blocks[0].rawtext = GetTextFromTokenToEndLine(equalstarttokenindex, ";");
+                            blocks[0].RawText = GetTextFromTokenToEndLine(equalstarttokenindex, ";");
                             break;
                         }
                         else
@@ -549,14 +549,14 @@ namespace BingsuCodeEditor.EpScript
                     {
                         if(varvalue.Count >= 1 && varvalue[0].Value == "EUDArray")
                         {
-                            blocks[index].rawtext = GetTextFromTokenToEndLine(equalstarttokenindex, ";");
+                            blocks[index].RawText = GetTextFromTokenToEndLine(equalstarttokenindex, ";");
                         }
                         else
                         {
-                            blocks[index].rawtext = GetTextFromToken(starttokenindex, endtokenindex);
+                            blocks[index].RawText = GetTextFromToken(starttokenindex, endtokenindex);
                         }
 
-                        blocks[index++].values = varvalue;
+                        blocks[index++].Values = varvalue;
                     }
 
                     if(!CheckCurrentToken(TOKEN_TYPE.Symbol, ","))
@@ -740,9 +740,9 @@ namespace BingsuCodeEditor.EpScript
 
 
 
-        public Function FunctionAnalyzer(int startindex, string scope)
+        public Function FunctionAnalyzer(Container container, int startindex, string scope)
         {
-            Function function = new EpScriptFunction();
+            Function function = new EpScriptFunction(container, null);
 
             TOKEN commenttoken = GetCommentTokenIten(-2);
 
@@ -815,6 +815,7 @@ namespace BingsuCodeEditor.EpScript
             }
 
             TOKEN tk = GetCurrentToken();
+            function.StartToken = tk;
             if (tk == null) return function;
             tk.scope = scope;
             CursorLocation cl = CursorLocation.None;

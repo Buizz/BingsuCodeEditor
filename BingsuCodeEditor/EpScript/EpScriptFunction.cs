@@ -9,6 +9,9 @@ namespace BingsuCodeEditor.EpScript
 {
     internal class EpScriptFunction : Function
     {
+        public EpScriptFunction(Container parentcontainer, CodeAnalyzer.TOKEN StartToken) : base(parentcontainer, StartToken)
+        {
+        }
 
         private void SetSummary(string type, string sectype, string content)
         {

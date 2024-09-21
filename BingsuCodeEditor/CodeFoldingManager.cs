@@ -123,8 +123,6 @@ namespace BingsuCodeEditor
                         Folding(item.StartOffset);
                     }
                 }
-
-
             }
         }
 

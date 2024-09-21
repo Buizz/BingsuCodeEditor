@@ -25,6 +25,9 @@ namespace BingsuCodeEditor.AutoCompleteToken
         }
         public InnerFuncInfor innerFuncInfor;
 
+
+        public string pullpath;
+
         public string folderpath;
 
         public bool IsObject;
@@ -111,7 +114,7 @@ namespace BingsuCodeEditor.AutoCompleteToken
             }
             else
             {
-                var = m.vars.Find(x => (x.blockname == funcname && scope.Contains(x.scope)));
+                var = m.vars.Find(x => (x.BlockName == funcname && scope.Contains(x.Scope)));
             }
 
             Container obj = m.objs.Find(x => (x.mainname == funcname));
@@ -198,16 +201,16 @@ namespace BingsuCodeEditor.AutoCompleteToken
             }
             if (noargFlag)
             {
-                foreach (var item in vars.FindAll(x => scope.Contains(x.scope) && !x.IsArg))
+                foreach (var item in vars.FindAll(x => scope.Contains(x.Scope) && !x.IsArg))
                 {
-                    data.Add(new CodeCompletionData(item.preCompletion));
+                    data.Add(new CodeCompletionData(item.PreCompletion));
                 }
             }
             else
             {
-                foreach (var item in vars.FindAll(x => scope.Contains(x.scope)))
+                foreach (var item in vars.FindAll(x => scope.Contains(x.Scope)))
                 {
-                    data.Add(new CodeCompletionData(item.preCompletion));
+                    data.Add(new CodeCompletionData(item.PreCompletion));
                 }
             }
      

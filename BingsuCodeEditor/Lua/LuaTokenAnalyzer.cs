@@ -63,7 +63,7 @@ namespace BingsuCodeEditor.Lua
                                 scope += "." + (currentscope).ToString().PadLeft(4, '0');
 
 
-                                Function function = FunctionAnalyzer(startindex, scope);
+                                Function function = FunctionAnalyzer(rcontainer, startindex, scope);
 
                                 //if(rcontainer.funcs.Find(x=> ((x.funcname == function.funcname) && (x.IsPredefine == false))) != null)
                                 //{
@@ -89,8 +89,8 @@ namespace BingsuCodeEditor.Lua
                                 //매게변수 추가
                                 foreach (var item in function.args)
                                 {
-                                    Block bl = new Block("var", item.argname, item.argtype, IsArg: true);
-                                    bl.scope = scope;
+                                    Block bl = new Block(rcontainer, "var", item.argname, tk, item.argtype, IsArg: true);
+                                    bl.Scope = scope;
                                     cc.vars.Add(bl);
                                 }
 
@@ -199,8 +199,8 @@ namespace BingsuCodeEditor.Lua
 
             if(!container.CheckIdentifier(scope, fname))
             {
-                Block block = new Block("var", fname);
-                block.scope = scope;
+                Block block = new Block(container, "var", fname, ctk);
+                block.Scope = scope;
                 container.vars.Add(block);
                 //ThrowException(fname + "는 선언되지 않았습니다.", ctk);
             }
@@ -299,9 +299,9 @@ namespace BingsuCodeEditor.Lua
 
 
 
-        public Function FunctionAnalyzer(int startindex, string scope)
+        public Function FunctionAnalyzer(Container container, int startindex, string scope)
         {
-            Function function = new LuaFunction();
+            Function function = new LuaFunction(container, null);
 
             TOKEN commenttoken = GetCommentTokenIten(-2);
 
@@ -312,6 +312,8 @@ namespace BingsuCodeEditor.Lua
 
             TOKEN tk = GetCurrentToken();
             if (tk == null) return function;
+            function.StartToken = tk;
+
             tk.scope = scope;
             CursorLocation cl = CursorLocation.None;
             int argstartoffset = tk.EndOffset;

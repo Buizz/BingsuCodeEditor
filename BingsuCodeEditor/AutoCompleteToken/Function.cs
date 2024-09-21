@@ -29,6 +29,7 @@ namespace BingsuCodeEditor.AutoCompleteToken
         ***/
         //원본 내용
 
+        public Container parentcontainer;
 
         public string scope;
         public CodeAnalyzer.CursorLocation cursorLocation;
@@ -47,6 +48,7 @@ namespace BingsuCodeEditor.AutoCompleteToken
 
         public string comment;
 
+        public TOKEN StartToken;
 
         public List<TOKEN> returntype;
 
@@ -60,6 +62,13 @@ namespace BingsuCodeEditor.AutoCompleteToken
             public bool IsList;
         }
         protected Dictionary<string, string> argsummary = new Dictionary<string, string>();
+
+        public Function(Container parentcontainer, TOKEN StartToken)
+        {
+            this.StartToken = StartToken;
+            this.parentcontainer = parentcontainer;
+        }
+
 
         public string GetArgSummary(string arg)
         {

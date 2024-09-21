@@ -272,6 +272,7 @@ namespace BingsuCodeEditor
 
         int lastfunclabelstartoffset = 0;
         private string lasttexted = "";
+
         private void Bg_DoWork(object sender, DoWorkEventArgs e)
          {
             object[] args = (object[])e.Argument;
@@ -574,6 +575,11 @@ namespace BingsuCodeEditor
             TBLineText.Text = Lan.Line;
             TBColumnText.Text = Lan.Column;
         }
+        public void FocusTextBox()
+        {
+            aTextEditor.Focus();
+            Keyboard.Focus(aTextEditor);
+        }
 
         private bool _isdark;
         public bool IsDark
@@ -596,6 +602,13 @@ namespace BingsuCodeEditor
                     toolTipTextbox.Background = (Brush)this.FindResource("MaterialDesignToolBarBackground");
                     toolTipTextbox.Foreground = (Brush)this.FindResource("MaterialDesignBody");
                 }
+            }
+        }
+
+        public TextEditorOptions Options {
+            get
+            {
+                return aTextEditor.Options;
             }
         }
 
@@ -658,6 +671,14 @@ namespace BingsuCodeEditor
             {
                 aTextEditor.Text = value;
             }
+        }
+
+        public void ScrollTo(int startoffset)
+        {
+            DocumentLine documentLine = aTextEditor.Document.GetLineByOffset(startoffset);
+
+            aTextEditor.CaretOffset = startoffset;
+            aTextEditor.ScrollTo(documentLine.LineNumber, 0);
         }
 
         public struct CustomShortCut
@@ -921,7 +942,16 @@ namespace BingsuCodeEditor
             aTextEditor.TextArea.TextEntering += TextArea_TextEntering;
 
             AddCustomMenuBtn("개요 확장/축소", "Ctrl+G", Key.LeftCtrl, Key.G, new RoutedEventHandler(new Action<object, RoutedEventArgs>((e, x) =>
-            codeAnalyzer.codeFoldingManager.FoldingFlip(aTextEditor.SelectionStart, aTextEditor.SelectionLength)
+            {
+                codeAnalyzer.codeFoldingManager.FoldingFlip(aTextEditor.SelectionStart, aTextEditor.SelectionLength);
+                lastoffset = -1;
+
+            }
+            )));
+            AddCustomMenuBtn("정의로 이동", "F12", Key.None, Key.F12, new RoutedEventHandler(new Action<object, RoutedEventArgs>((e, x) =>
+            {
+                FindDefinition();
+            }
             )));
             contextMenu.Items.Add(new Separator());
         }
@@ -1527,7 +1557,6 @@ namespace BingsuCodeEditor
         }
 
 
-
         private void TextArea_TextEntered(object sender, TextCompositionEventArgs e)
         {
             //3
@@ -1585,7 +1614,6 @@ namespace BingsuCodeEditor
                 }
             }
         }
-
         private void aTextEditor_TextChanged(object sender, EventArgs e)
         {
             //2
@@ -1603,7 +1631,6 @@ namespace BingsuCodeEditor
             }
             if(Text_Change != null) Text_Change(sender, e);
         }
-
 
         private bool IsSingleSelected()
         {
@@ -2014,6 +2041,25 @@ namespace BingsuCodeEditor
         private int previewKeyDownSelectionRow = 0;
         private int previewKeyDownSelectionIndex = 0;
 
+
+        private void FindDefinition()
+        {
+            //정의 찾기
+            ItemPosition pos = codeAnalyzer.GetObjectPostion();
+            if (pos == null) return;
+            if (pos.PullPath == "")
+            {
+                DocumentLine documentLine = aTextEditor.Document.GetLineByOffset(pos.StartOffset);
+
+                aTextEditor.CaretOffset = pos.StartOffset;
+                aTextEditor.ScrollTo(documentLine.LineNumber, 0);
+            }
+            else
+            {
+                codeAnalyzer.StaticImportManager.OpenFile(pos.PullPath, pos.StartOffset);
+            }
+        }
+
         private void aTextEditor_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.SystemKey != Key.LeftCtrl && e.Key != Key.LeftCtrl)
@@ -2191,6 +2237,10 @@ namespace BingsuCodeEditor
                 IsDebug = !IsDebug;
             }
 
+            if (e.Key == Key.F12)
+            {
+                FindDefinition();
+            }
 
             string input = e.Key.ToString();
             if (!LeftCtrlDown && !LeftShiftDown)
@@ -2458,8 +2508,6 @@ namespace BingsuCodeEditor
 
             IsKeyDown = true;
         }
-
-
         private void aTextEditor_PreviewKeyUp(object sender, KeyEventArgs e)
         {
 

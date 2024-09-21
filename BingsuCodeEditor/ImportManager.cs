@@ -18,6 +18,14 @@ namespace BingsuCodeEditor
 
 
         /// <summary>
+        /// 파일을 열어서 해당 라인으로 가는 함수
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <returns></returns>
+        public abstract void OpenFile(string pullpath, int offset);
+
+
+        /// <summary>
         /// 기본 함수 파일들을 가져오는 함수
         /// </summary>
         /// <returns></returns>
@@ -63,6 +71,8 @@ namespace BingsuCodeEditor
         /// <returns></returns>
         public void UpdateContainer(string pullpath, Container container)
         {
+            container.pullpath = pullpath;
+
             if (CachedContainer.Keys.Contains(pullpath))
             {
                 CachedContainer[pullpath] = container;

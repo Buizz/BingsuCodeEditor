@@ -1,4 +1,5 @@
 ﻿using BingsuCodeEditor.AutoCompleteToken;
+using BingsuCodeEditor.Lua;
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Markup;
 using System.Windows.Threading;
 
 namespace BingsuCodeEditor
@@ -987,6 +989,110 @@ namespace BingsuCodeEditor
 
             return rval;
         }
+
+        public ItemPosition GetObjectPostion()
+        {
+            string scope = maincontainer.currentScope;
+
+            if (string.IsNullOrEmpty(scope)) scope = "st";
+
+            Container container = maincontainer;
+            Container objcontainer = null;
+
+            if (scope.IndexOf("st.O") != -1)
+            {
+                //string[] scopes = scope.Split('.');
+                //string initscope = scopes[0] + "." + scopes[1];
+
+                List<string> tname = new List<string>();
+                tname.Add(scope.Split('.')[1].Substring(1));
+                object _obj = GetObjectFromName(tname, maincontainer, FindType.Obj, scope: "st");
+
+                if (_obj != null)
+                {
+                    objcontainer = (Container)_obj;
+                }
+            }
+
+            TOKEN ctkn = GetToken(0, TOKEN.Side.Left);
+            if (ctkn == null)
+            {
+                ctkn = GetToken(0, TOKEN.Side.Right);
+            }
+            else if(ctkn.Type != TOKEN_TYPE.Identifier)
+            {
+                ctkn = GetToken(0, TOKEN.Side.Right);
+            }
+
+
+            if (ctkn == null || ctkn.Type != TOKEN_TYPE.Identifier)
+            {
+                return null;
+            }
+            if (ctkn == null) return null;
+
+            List<TOKEN> t = tokenAnalyzer.GetTokenListFromTarget(ctkn, true);
+            //imported1.var1;
+            //imported1.const1.object1;
+            //const1.object1;
+            //maincontainer.vars[0].
+
+            //Item.cast(inven[i]). 이럴 경우 Item.cast를 t로 보낸다.
+            //Item.cast함수의 반환타입을 구해야 한다.
+            //t.Add(new TOKEN(0, TOKEN_TYPE.Identifier, "Item", 0));
+            //t.Add(new TOKEN(0, TOKEN_TYPE.Identifier, "cast", 0));
+            if (t.Count == 0) return null;
+
+
+            List<string> strs = new List<string>();
+
+            string fname = "";
+            foreach (var item in t)
+            {
+                strs.Add(item.Value);
+
+                fname += item.Value;
+                fname += ".";
+            }
+
+            ItemPosition rpos = new ItemPosition();
+            object tobj = GetObjectFromName(strs, container, FindType.All, scope:scope);
+            switch (tobj)
+            {
+                case Block t1:
+                    Block b = (Block)tobj;
+                    if (b.ParentContainer == maincontainer)
+                    {
+                        rpos.PullPath = "";
+                    }
+                    else
+                    {
+                        rpos.PullPath = b.ParentContainer.pullpath;
+                    }
+                    rpos.StartOffset = b.StartToken.StartOffset;
+
+                    break;
+                case Container t2:
+                    Container c = (Container)tobj;
+      
+
+                    break;
+                case Function t3:
+                    Function f = (Function)tobj;
+                    if(f.parentcontainer == maincontainer)
+                    {
+                        rpos.PullPath = "";
+                    }
+                    else
+                    {
+                        rpos.PullPath = f.parentcontainer.pullpath;
+                    }
+                    rpos.StartOffset = f.StartToken.StartOffset;
+                    break;
+            }
+
+            return rpos;
+        }
         #endregion
 
         #region #############자동완성#############
@@ -1065,9 +1171,9 @@ namespace BingsuCodeEditor
                     {
                         string strvalues = "";
 
-                        if(block.values != null)
+                        if(block.Values != null)
                         {
-                            foreach (var item in block.values)
+                            foreach (var item in block.Values)
                             {
                                 strvalues += item.Value;
                             }
@@ -1075,7 +1181,7 @@ namespace BingsuCodeEditor
 
 
                         //return block.blockdefine + " : " + strvalues;// block.values[0].Value;
-                        return block.blockdefine + " : " + block.rawtext;// block.values[0].Value;
+                        return block.BlockDefine + " : " + block.RawText;// block.values[0].Value;
                     }
                     return name;
                 }

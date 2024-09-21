@@ -12,44 +12,47 @@ namespace BingsuCodeEditor.AutoCompleteToken
         //변수나 배열, 오브젝트등입니다.
 
         //오브젝트의 경우 Container이 이어져 있습니다.
+        public Container ParentContainer;
 
-
-        public string scope;
+        public string Scope;
 
 
         //const, var
-        public string blockdefine;
+        public string BlockDefine;
 
         //객체
-        public string blocktype;
+        public string BlockType;
 
         //변수 명
-        public string blockname;
+        public string BlockName;
 
         public bool IsArg;
 
-        public string rawtext;
+        public string RawText;
 
-        public List<CodeAnalyzer.TOKEN> values;
+        public List<CodeAnalyzer.TOKEN> Values;
 
+        public TOKEN StartToken;
 
-        public PreCompletionData preCompletion;
+        public PreCompletionData PreCompletion;
 
-        public Block(string blockdefine, string blockname, string blocktype = "", List<CodeAnalyzer.TOKEN> values = null, bool IsArg = false)
+        public Block(Container parentcontainer, string blockdefine, string blockname, TOKEN StartToken, string blocktype = "", List<CodeAnalyzer.TOKEN> values = null, bool IsArg = false)
         {
-            this.blockdefine = blockdefine;
-            this.blocktype = blocktype;
-            this.blockname = blockname;
-            this.values = values;
+            this.StartToken = StartToken;
+            this.ParentContainer = parentcontainer;
+            this.BlockDefine = blockdefine;
+            this.BlockType = blocktype;
+            this.BlockName = blockname;
+            this.Values = values;
             this.IsArg = IsArg;
 
             if(blockdefine == "var")
             {
-                preCompletion = new ObjectItem(CompletionWordType.Variable, blockname, block:this);
+                PreCompletion = new ObjectItem(CompletionWordType.Variable, blockname, block:this);
             }
             else
             {
-                preCompletion = new ObjectItem(CompletionWordType.Const, blockname, block: this);
+                PreCompletion = new ObjectItem(CompletionWordType.Const, blockname, block: this);
             }
         }
     }
