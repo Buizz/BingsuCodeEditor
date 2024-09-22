@@ -1000,7 +1000,7 @@ namespace BingsuCodeEditor
 
                     if(linetext == "\r")
                     {
-                        inserttext = "\r";
+                        inserttext += "\r";
                     }
 
                     if (linetext.Contains("{"))
