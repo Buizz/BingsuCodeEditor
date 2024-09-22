@@ -178,7 +178,10 @@ namespace BingsuCodeEditor
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             //codeAnalyzer = null;
-            dispatcherTimer.Start();
+            if(dispatcherTimer != null)
+            {
+                dispatcherTimer.Start();
+            }
         }
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
