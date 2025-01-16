@@ -196,7 +196,11 @@ namespace BingsuCodeEditor
 
         public void Dispose()
         {
-            dispatcherTimer.Stop();
+            if (dispatcherTimer != null)
+            {
+                dispatcherTimer.Stop();
+            }
+        
             dispatcherTimer = null;
         }
 
