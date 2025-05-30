@@ -47,8 +47,8 @@
                     </Button>
                 </StackPanel>
             </UniformGrid>
-   
-            <Border x:Name="TextSearchBox" Height="40" DockPanel.Dock="Bottom" Visibility="Collapsed" BorderBrush="{DynamicResource PrimaryHueMidBrush}" BorderThickness="1">
+
+            <Border x:Name="TextSearchBox" Height="40" DockPanel.Dock="Bottom" Visibility="Collapsed" BorderBrush="{DynamicResource MaterialDesign.Brush.Primary}" BorderThickness="1">
                 <materialDesign:ColorZone x:Name="ColorZone">
                     <DockPanel>
                         <Button x:Name="SearchCloseBtn" DockPanel.Dock="Right" Margin="4" Click="SearchCloseBtn_Click" Style="{StaticResource MaterialDesignToolButton}" VerticalAlignment="Top" HorizontalAlignment="Right">
